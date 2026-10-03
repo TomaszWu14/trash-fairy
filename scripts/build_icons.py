@@ -13,6 +13,7 @@ house layout-dashboard monitor smartphone truck trash-2 map-pin map navigation r
 play rotate-ccw sparkles clock timer calendar filter download list-ordered layers recycle leaf coins banknote gauge
 trending-up trending-down users radar zap graduation-cap wrench package bell flag circle-dot wifi-off loader-circle
 newspaper wine milk apple trash scan-line hand external-link refresh-cw circle-play footprints building-2 file-text bell-ring
+shield-check circle-help ban
 battery battery-low battery-warning battery-full signal radio-tower cpu wifi activity tablet-smartphone
 """.split()
 

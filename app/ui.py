@@ -10,6 +10,14 @@ from .models import Point
 from .simulation import DEMO_NOW
 from .state import point_states
 
+# „Co tu wrzucać” na panelu kosza: polski system 5 frakcji, po 2–3 najczęstsze przykłady (czytelne z daleka)
+SORTOWANIE = {
+    "papier": ("gazety, kartony, zeszyty", "paragony, tłusty papier, kartony po mleku"),
+    "metale_tworzywa": ("butelki plastikowe, puszki, kartony po mleku", "baterie, elektrośmieci, styropian budowlany"),
+    "szklo": ("butelki i słoiki", "ceramika, szyby i lustra, żarówki"),
+    "bio": ("obierki, resztki owoców i warzyw, fusy", "mięso i kości, olej, odchody zwierząt"),
+    "zmieszane": ("zabrudzone opakowania, zużyte chusteczki", "baterie, leki, elektrośmieci"),
+}
 DEMO_BIN_ID = 18  # ten sam kosz w scenariuszu demo, QR na slajdach i w nagraniu (decyzja 13)
 
 bp = Blueprint("ui", __name__)
@@ -54,7 +62,8 @@ def kiosk(point_id):
         abort(404)
     now = clock.now()
     base = (os.environ.get("PUBLIC_URL") or request.url_root).rstrip("/")
-    return render_template("ui/kiosk.html", bin=kosz_json(p, point_states(now), now), frakcje=FRAKCJE,
+    k = kosz_json(p, point_states(now), now)
+    return render_template("ui/kiosk.html", bin=k, frakcje=FRAKCJE, sortowanie=SORTOWANIE.get(k["frakcja"], SORTOWANIE["zmieszane"]),
                            qr_url=f"{base}/zglos/{p.id}?qr={qr_token(p.id)}")
 
 

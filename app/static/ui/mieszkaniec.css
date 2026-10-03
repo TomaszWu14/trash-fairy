@@ -116,3 +116,6 @@
 .m-nav .btn-xl { min-width: 0; padding: 0 var(--s4); font-size: var(--fs-md); }
 .m-check.ok .btn { display: none; }
 .m-checks:has(#chk-geo.ok) + .m-sim { display: none; }
+.m-photo-hint { margin-top: calc(-1 * var(--s2)); }
+.m-ai { padding: var(--s3) var(--s4); border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--line); }
+.m-ai > b { display: block; font-size: var(--fs-sm); }

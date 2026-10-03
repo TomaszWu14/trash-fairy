@@ -54,23 +54,44 @@
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3600);
   };
 
-  // licznik KPI przy wejściu: tylko tekst, bez przesuwania układu (cyfry tabularne)
+  // licznik KPI przy wejściu: cyfry tabularne, blok o stałej wysokości, więc liczenie nie przesuwa układu
   TF.countUp = (el, to, fmt = v => TF.num(v)) => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !isFinite(to)) { el.textContent = fmt(to); return; }
+    el.innerHTML = fmt(to);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !isFinite(to) || !to) return;
     const t0 = performance.now(), dur = 700;
-    const step = t => { const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3); el.textContent = fmt(to * e); if (p < 1) requestAnimationFrame(step); };
+    const step = t => { const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3); el.innerHTML = fmt(p < 1 ? to * e : to); if (p < 1) requestAnimationFrame(step); };
     requestAnimationFrame(step);
   };
 
-  // polling zmian: jedna funkcja dla wszystkich perspektyw; wywołuje cb, gdy wersja danych się zmieni
-  TF.watch = (cb, ms = 3000) => {
+  // polling zmian: jedna funkcja dla wszystkich perspektyw; wywołuje cb, gdy wersja danych się zmieni.
+  // onState(ok) dostaje wynik każdej próby: kiosk pokazuje „Stan z HH:MM”, gdy sieci nie ma
+  TF.watch = (cb, ms = 3000, onState = null) => {
     let v = null;
     const tick = async () => {
       if (document.hidden) return;
-      try { const d = await TF.api('/api/zmiany'); if (v !== null && d.wersja !== v) cb(d); v = d.wersja; } catch (e) { /* cicho: następna próba za chwilę */ }
+      try { const d = await TF.api('/api/zmiany'); if (v !== null && d.wersja !== v) cb(d); v = d.wersja; onState?.(true); }
+      catch (e) { onState?.(false); /* następna próba za chwilę */ }
     };
     tick(); return setInterval(tick, ms);
   };
+
+  // analiza AI zdjęcia ze zgłoszenia: plakietka + rozwijane szczegóły. Status liczy reguła w kodzie (photos.verification)
+  const AI = { zweryfikowane: ['ok', 'shield-check'], do_weryfikacji: ['neutral', 'circle-help'], w_toku: ['brand', 'loader-circle'] };
+  TF.aiOpen = false;
+  document.addEventListener('toggle', e => { if (e.target.matches?.('details.ai')) TF.aiOpen = e.target.open; }, true);
+  TF.aiBlock = ai => {
+    if (!ai) return '';
+    const [cls, ico] = AI[ai.status] || AI.do_weryfikacji;
+    const row = (t, v) => v == null || v === '' ? '' : `<div><dt>${t}</dt><dd>${TF.esc(v)}</dd></div>`;
+    return `<details class="ai"${TF.aiOpen ? ' open' : ''}><summary><span class="badge ${cls}">${TF.icon(ico)}${TF.esc(ai.etykieta)}</span>
+      <span class="ai-more">Pokaż analizę AI${TF.icon('chevron-down', 'i-sm')}</span></summary>
+      <dl class="ai-d">${row('Stan na zdjęciu', ai.stan)}${row('Pewność', ai.pewnosc == null ? null : `${Math.round(ai.pewnosc * 100)}%`)}${row('Uzasadnienie', ai.uzasadnienie)}</dl>
+      <p class="ai-note">AI opisuje tylko zdjęcie. Status ustala reguła: kosz widoczny, stan zgodny z typem zgłoszenia, pewność od 70%.
+        ${ai.zdjecie_publiczne === false && ai.pewnosc != null ? 'Na zdjęciu są osoby lub tablice, więc nie pokazujemy go publicznie.' : ''}</p></details>`;
+  };
+
+  // efekt projektu: planowany bez wyniku dostaje krótkie „Start MM.RRRR” zamiast zdania
+  TF.effect = p => p.efekt_wartosc == null && p.start ? `Start ${p.start.slice(5, 7)}.${p.start.slice(0, 4)}` : (p.efekt_etykieta || '–');
 
   TF.resetDemo = async (btn) => {
     if (btn) btn.setAttribute('aria-disabled', 'true');

@@ -12,6 +12,12 @@
   const pin = (level, n) => L.divIcon({ className: 'pin', html: gauge(level) + (n ? `<span class="k-num">${n}</span>` : ''), iconSize: [24, 28], iconAnchor: [12, 28] });
   const fmtM = m => m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;
   const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m} min`;
+  // „dlaczego tu”: powód z reguły priorytetu (api_pl.powod); pełny kosz ma już kolor i ikonę w samym powodzie
+  const WHY = [['zgłosz', 'brand', 'message-square-text'], ['Pełny', 'full', 'circle-alert'], ['Prognoza', 'warn', 'trending-up']];
+  const why = k => {
+    const [, cls, ico] = WHY.find(([t]) => (k.powod || '').includes(t)) || [null, 'neutral', 'route'];
+    return `<span class="badge ${cls}" title="Dlaczego na tej pozycji">${icon(ico)}${esc(k.powod || '')}</span>`;
+  };
   const hhmm = iso => new Date(iso).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
 
   // ---------- lista trasy ----------
@@ -24,8 +30,7 @@
     let fitted = false;
     const row = (k, top) => `<li class="k-stop ${top ? 'top' : ''} ${k.zrobione ? 'done' : ''}"><a href="/kierowca/kosz/${k.id}">
       ${gauge(k.zrobione ? 0 : k.poziom)}<span class="k-stop-txt"><b>${esc(k.nazwa)}</b><span>${esc(k.adres)} · przystanek ${k.kolejnosc}</span>
-      <span class="k-stop-tags">${k.zrobione ? `<span class="badge ok">${icon('check')}Opróżniony</span>` : fillBadge(k.poziom)}
-        ${k.zgloszenia_liczba ? `<span class="badge brand">${icon('message-square-text')}Zgłoszenia: ${k.zgloszenia_liczba}</span>` : ''}
+      <span class="k-stop-tags">${k.zrobione ? `<span class="badge ok">${icon('check')}Opróżniony</span>` : why(k)}
         ${k.w_drodze ? `<span class="badge progress">${icon('navigation')}Jadę</span>` : ''}</span></span>
       ${k.zrobione ? '' : `<b class="k-pct num">${k.poziom}%</b>`}${icon('chevron-right')}</a></li>`;
     const load = async () => {
@@ -70,9 +75,10 @@
 
   const render = k => {
     document.getElementById('k-head').innerHTML = `${gauge(k.poziom)}<div><h1>${esc(k.nazwa)}</h1><span>${esc(k.adres)} · ${esc(k.rodzaj)}</span>
-      <div class="k-stop-tags">${fillBadge(k.poziom)}${frac(k.frakcja)}</div></div><b class="k-big num">${k.poziom}%</b>`;
+      <div class="k-stop-tags">${fillBadge(k.poziom)}${frac(k.frakcja)}</div></div><b class="k-big num">${k.poziom}%</b>
+      <p class="k-fc">${icon('trending-up', 'i-sm')}${esc(k.prognoza)}</p>`;
     document.getElementById('k-reports').innerHTML = k.zgloszenia.length ? `<div class="k-reports">${k.zgloszenia.map(z =>
-      `<div class="k-rep">${icon('message-square-text')}<div><b>Zgłoszenie mieszkańca: ${esc(z.typ)}</b>${z.komentarz ? `<q>${esc(z.komentarz)}</q>` : 'Bez komentarza.'}</div></div>`).join('')}</div>`
+      `<div class="k-rep">${icon('message-square-text')}<div><b>Zgłoszenie mieszkańca: ${esc(z.typ)}</b>${z.komentarz ? `<q>${esc(z.komentarz)}</q>` : 'Bez komentarza.'}${window.TF.aiBlock(z.ai)}</div></div>`).join('')}</div>`
       : '<p class="hint">Brak zgłoszeń mieszkańców przy tym koszu.</p>';
     if (!page.querySelector('input[name=poziom]:checked')) {  // podpowiedź: najbliższy poziom do szacunku; kierowca może poprawić
       const near = LEVELS.reduce((a, b) => Math.abs(b - k.poziom) < Math.abs(a - k.poziom) ? b : a);
@@ -86,7 +92,7 @@
     try { render((await api(`/api/kosze/${id}`)).kosz); }
     catch (e) { document.getElementById('k-head').innerHTML = `<div class="alert" style="flex:1">${icon('circle-alert')}<span>${esc(e.message)}</span></div>`; }
   };
-  load();
+  load(); window.TF.watch(load);  // np. wynik analizy AI zdjęcia przychodzi kilka sekund po zgłoszeniu
 
   const post = (akcja, extra = {}) => api('/api/odbiory', { method: 'POST', body: { kosz: +id, akcja, ...extra } });
 

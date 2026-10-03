@@ -24,10 +24,10 @@
 .persp-body p { color: var(--ink-2); font-size: var(--fs-sm); margin-top: var(--s2); }
 .persp-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); padding: var(--s4) var(--s5) var(--s5); }
 .chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 var(--s3); border-radius: var(--r-pill);
-        background: var(--surface-2); border: 1px solid var(--line); font-size: var(--fs-xs); font-weight: 600; color: var(--ink-2); min-width: 0; }
+        background: var(--surface-2); border: 1px solid var(--line); font-size: var(--fs-xs); font-weight: 600; color: var(--ink-2); min-width: 0; white-space: nowrap; }
 .chip b { color: var(--ink); }
 .gauge-xs { width: 14px; height: 17px; }
-.go { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
+.go { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
       transition: transform var(--t) var(--ease), background var(--t) var(--ease), color var(--t) var(--ease); }
 .persp-tile:hover .go { transform: translateX(3px); background: var(--brand); color: #fff; }
 

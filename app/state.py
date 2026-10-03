@@ -27,6 +27,7 @@ CREW_ISSUE_WINDOW = timedelta(hours=12)  # zgłoszenie kierowcy z przystanku wid
 CREW_ISSUES = {"no_access": "nie da się podjechać", "damaged": "kosz uszkodzony", "blocked": "zablokowany dojazd",
                "overflow": "odpady obok kosza"}
 DAMAGE_WINDOW = timedelta(hours=48)  # zgłoszenie „uszkodzony” z /zglos trzyma flagę do opróżnienia, najwyżej 48 h
+FILL_KINDS = ("full", "overflow")  # Press.kind, które mówią o zapełnieniu (None = fizyczny przycisk „pełny”)
 NEIGHBOR_RADIUS_M = 100
 NEIGHBORS_EMPTY_BELOW = 30
 NEIGHBORS_FACTOR = 0.7  # pojedyncze zgłoszenie przy pustych sąsiadach waży mniej (spec, pkt 4)
@@ -150,18 +151,31 @@ def current_routes(now):
     return _cached("routes", now, lambda: plan_routes(now, point_states(now)))
 
 
+def non_fill_reports():
+    """Id zgłoszeń wyłącznie „uszkodzony” / „inne”: zostają zgłoszeniami (numer, status, flaga), ale nie są sygnałem
+    zapełnienia — nie podnoszą szacunku i nie liczą się do wiarygodności przycisku."""
+    fill = Press.kind.is_(None) | Press.kind.in_(FILL_KINDS)
+    odd = {rid for (rid,) in db.session.query(Press.report_id).filter(~fill, Press.report_id.isnot(None)).distinct()}
+    if odd:
+        odd -= {rid for (rid,) in db.session.query(Press.report_id).filter(Press.report_id.in_(odd), fill).distinct()}
+    return odd
+
+
 def _point_states(now):
     """{point_id: dict ze stanem} dla chwili `now` zegara demo."""
     hour = hour_floor(now)
+    skip = non_fill_reports()
 
     open_reports = {}
     for r in Report.query.filter(Report.hit.is_(None), Report.first_at <= now).order_by(Report.first_at):
-        open_reports[r.point_id] = r  # najnowsze otwarte
+        if r.id not in skip:
+            open_reports[r.point_id] = r  # najnowsze otwarte
 
     resolved = defaultdict(list)
-    for pid, at, hit in (db.session.query(Report.point_id, Report.first_at, Report.hit)
-                         .filter(Report.hit.isnot(None), Report.first_at <= now).order_by(Report.first_at)):
-        resolved[pid].append((at, hit))
+    for rid, pid, at, hit in (db.session.query(Report.id, Report.point_id, Report.first_at, Report.hit)
+                              .filter(Report.hit.isnot(None), Report.first_at <= now).order_by(Report.first_at)):
+        if rid not in skip:
+            resolved[pid].append((at, hit))
 
     last_emptying = dict(db.session.query(Emptying.point_id, func.max(Emptying.at))
                          .filter(Emptying.at <= now).group_by(Emptying.point_id).all())

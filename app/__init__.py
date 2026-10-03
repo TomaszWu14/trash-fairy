@@ -75,7 +75,9 @@ def _add_missing_columns():
                                ("press", "note", "VARCHAR(280)"), ("press", "photo_id", "INTEGER"),
                                ("point", "live", "BOOLEAN NOT NULL DEFAULT TRUE"), ("point", "district", "VARCHAR(30)"),
                                ("point", "fraction", "VARCHAR(20) NOT NULL DEFAULT 'zmieszane'"),
-                               ("point", "address", "VARCHAR(160)"), ("point", "snapshot_fill", "INTEGER")]:
+                               ("point", "address", "VARCHAR(160)"), ("point", "snapshot_fill", "INTEGER"),
+                               ("photo_analysis", "bin_visible", "BOOLEAN"), ("photo_analysis", "condition", "VARCHAR(20)"),
+                               ("photo_analysis", "people", "BOOLEAN")]:
         if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
             db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
             db.session.commit()

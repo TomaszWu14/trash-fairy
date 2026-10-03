@@ -169,7 +169,10 @@ class PhotoAnalysis(db.Model):
     damage = db.Column(db.Boolean)
     confidence = db.Column(db.Float)
     note = db.Column(db.String(500))
-    source = db.Column(db.String(10), nullable=False, default="crew")  # crew / demo
+    source = db.Column(db.String(10), nullable=False, default="crew")  # crew / demo / resident (zdjęcie ze zgłoszenia)
+    bin_visible = db.Column(db.Boolean)  # tylko zdjęcia mieszkańców: kosz widoczny na zdjęciu
+    condition = db.Column(db.String(20))  # w_porzadku / pelny / odpady_obok / uszkodzony
+    people = db.Column(db.Boolean)  # osoby lub tablice rejestracyjne na zdjęciu → zdjęcie niepubliczne
 
 
 class FairyReport(db.Model):
