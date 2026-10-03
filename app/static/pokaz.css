@@ -217,3 +217,52 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: "IBM
 .c-login-form .btn { margin-top: 8px; min-height: 56px; }
 .c-login-err { padding: 12px 16px; border-radius: 12px; border: 2px solid var(--full); background: var(--surface); color: var(--text) !important; }
 .c-login a { color: var(--route); }
+
+/* menu ekranów w nagłówkach stylu C (to samo _nav.html co panel; decyzja 10) */
+.c-head .tf-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.c-head .tf-nav a { color: #fff; font-size: 15px; font-weight: 600; padding: 6px 10px; border-radius: 8px; text-decoration: none; }
+.c-head .tf-nav a:hover { background: var(--navy-2, #1B2135); }
+.c-head .tf-nav a[aria-current="page"] { background: #fff; color: var(--navy); }
+.tf-nav-star { box-shadow: inset 0 0 0 2px var(--yellow); display: inline-flex; align-items: center; gap: 6px; }
+.c-head .tf-nav-user { display: flex; align-items: center; gap: 8px; color: #C3C8D4; font-size: 14px; }
+.c-head .tf-nav-user button { min-height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid #3B4254; background: transparent;
+                              color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+
+/* /telefony: cykl jednego kosza w ramkach */
+.t-main { padding: 24px; display: flex; flex-direction: column; gap: 24px; max-width: 1600px; margin: 0 auto; }
+.t-intro h1 { margin: 0 0 4px; font-size: 30px; line-height: 38px; }
+.t-en { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+.t-steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 16px; line-height: 24px; }
+.t-btn { min-height: 40px; padding: 0 14px; font-size: 15px; vertical-align: middle; }
+.t-btn-ghost { background: transparent; color: var(--text); border-color: var(--line); }
+.t-status { margin: 12px 0 0; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.t-row { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; align-items: flex-start; }
+.t-col { display: flex; flex-direction: column; gap: 10px; align-items: center; max-width: 470px; }
+.t-col:has(.t-phone) { max-width: 340px; }  /* trzy kolumny w jednym rzędzie od 1280 px */
+.t-col h2 { margin: 0; font-size: 18px; }
+.t-frame { position: relative; overflow: hidden; background: var(--navy); box-shadow: 0 12px 32px rgba(14,18,34,.25); }
+.t-frame iframe { border: 0; display: block; transform-origin: 0 0; background: var(--page); }
+.t-phone { width: 328px; height: 694px; border-radius: 40px; padding: 10px; }          /* 390×844 ×0,79 + ramka */
+.t-phone iframe { width: 390px; height: 844px; transform: scale(.7897); border-radius: 30px; }
+.t-device { width: 460px; height: 694px; border-radius: 20px; padding: 0; }  /* ta sama wysokość co telefony */
+.t-device iframe { width: 460px; height: 694px; }
+.t-cap { margin: 0; font-size: 14px; line-height: 20px; color: var(--muted); text-align: center; }
+.t-night { display: flex; align-items: center; gap: 8px; font-size: 15px; min-height: 44px; }
+.t-night input { width: 20px; height: 20px; }
+.t-open { display: none; flex-direction: column; align-items: center; gap: 8px; }
+.t-open .btn { min-height: 56px; text-decoration: none; }
+.t-qr { width: 120px; height: 120px; background: #fff; padding: 6px; border-radius: 10px; }
+.t-qr svg { width: 100%; height: 100%; display: block; }
+@media (min-width: 701px) { .t-open { display: flex; } .t-open .btn { display: none; } }  /* desktop: ramka + QR na swój telefon */
+@media (max-width: 700px) {  /* na telefonie ramki nie mają sensu: duże przyciski do prawdziwych aplikacji */
+  .t-main { padding: 16px; }
+  .t-frame, .t-night, .t-qr { display: none; }
+  .t-open { display: flex; } .t-col { max-width: none; width: 100%; } .t-open .btn { width: 100%; }
+}
+
+/* linki kontekstowe do /telefony i linia EN (decyzje 14, 16) */
+.c-en { margin: 0; padding: 8px 24px 0; font-size: 14px; color: var(--muted); }
+.c-map-link { position: absolute; right: 16px; bottom: 56px; z-index: 1000; padding: 8px 12px; font-size: 14px; font-weight: 700;
+              color: var(--route); text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; }
+.c-qr-alt { color: #fff; font-size: 15px; font-weight: 600; text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; }
+@media (max-width: 760px) { .c-en { padding: 8px 16px 0; } .c-map-link { bottom: auto; top: 72px; right: 16px; } }

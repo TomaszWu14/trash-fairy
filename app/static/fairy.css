@@ -1,19 +1,18 @@
-:root {
-  --cream: #f4f1ea; --paper: #fbfaf6; --ink: #1f2a1b;
-  --plant: #2f3b2a; --plant-2: #4d6b45; --gold: #c9a227;
-  --magic: #7c3aed; --magic-2: #db2777;
-  --ok: #2e7d32; --warn: #a16207; --bad: #c53030;
-  --line: #e3ddcf; --muted: #5f5e55;
+:root {  /* paleta C (decyzje 17, 24): te same wartości co pokaz.css; nazwy zmiennych bez zmian, żeby nie przepisywać panelu */
+  --cream: #F6F4EF; --paper: #FFFFFF; --ink: #0E1222;
+  --plant: #0E1222; --plant-2: #454B57; --gold: #FFD34D;
+  --magic: #6A3FD6; --magic-2: #6A3FD6;
+  --ok: #127A3E; --warn: #F0A500; --warn-ink: #7A4F00; --bad: #C40000;
+  --line: #D9D5CC; --muted: #454B57;
 }
 html, body { height: 100%; }
-body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--ink); background: var(--cream);
+body.tf { margin: 0; font: 14px/1.45 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); background: var(--cream);
           display: grid; grid-template-rows: auto 1fr; grid-template-columns: minmax(0, 1fr); }
 
 .tf-header { display: flex; align-items: center; gap: 8px 14px; padding: 10px 20px; min-width: 0;
              background: var(--plant); color: var(--cream); border-bottom: 3px solid var(--gold); }
-.tf-brand { font: 600 22px Fraunces, Georgia, serif; white-space: nowrap; }
-.tf-brand span:first-child { background: linear-gradient(90deg, #c4b5fd, #f9a8d4);
-                              -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tf-brand { font: 600 22px "IBM Plex Sans", system-ui, sans-serif; white-space: nowrap; }
+.tf-brand span:first-child { color: #CDBBFF; }
 .tf-sub { color: #d6dfcf; font-size: 13px; }
 .tf-clock { font-size: 13px; color: #e8e4d8; white-space: nowrap; }
 .tf-demo { font-weight: 600; font-size: 12px; letter-spacing: .08em; padding: 4px 10px; border-radius: 999px;
@@ -22,12 +21,12 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 .tf-main { display: grid; grid-template-columns: minmax(0, 1fr) 420px; min-height: 0; min-width: 0; }
 #map { min-height: 0; }
 .tf-aside { background: var(--paper); border-left: 1px solid var(--line); overflow-y: auto; padding: 16px 18px; }
-.tf-aside h2 { font: 600 17px Fraunces, Georgia, serif; margin: 0 0 10px; color: var(--plant); }
+.tf-aside h2 { font: 600 17px "IBM Plex Sans", system-ui, sans-serif; margin: 0 0 10px; color: var(--plant); }
 .tf-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 14px; background: #fff; }
 .tf-muted { color: var(--muted); margin: 0; }
-.tf-stat b { display: block; font: 600 28px Fraunces, Georgia, serif; color: var(--plant); }
+.tf-stat b { display: block; font: 600 28px "IBM Plex Sans", system-ui, sans-serif; color: var(--plant); }
 .tf-stat small { color: var(--muted); font-size: 12px; }
-.tf-sym { font-weight: 700; } .tf-sym.ok { color: var(--ok); } .tf-sym.warn { color: var(--warn); } .tf-sym.bad { color: var(--bad); }
+.tf-sym { font-weight: 700; } .tf-sym.ok { color: var(--ok); } .tf-sym.warn { color: var(--warn-ink); } .tf-sym.bad { color: var(--bad); }
 
 /* magia tylko tam, gdzie działa wróżka */
 .tf-fairy { border-color: #ddd6fe; background: linear-gradient(180deg, #faf5ff, #fff);
@@ -35,7 +34,7 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 .tf-fairy h2 { color: var(--magic) !important; }
 
 /* znaczniki: kształt = typ, kolor + symbol = stan */
-.tf-pin { display: inline-grid; place-items: center; color: #fff; font: 700 11px Inter, sans-serif;
+.tf-pin { display: inline-grid; place-items: center; color: #fff; font: 700 11px "IBM Plex Sans", system-ui, sans-serif;
           width: 18px; height: 18px; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); flex: none; }
 .tf-pin.circle { border-radius: 50%; } .tf-pin.square { border-radius: 4px; width: 20px; height: 20px; }
 .tf-pin.ok { background: var(--ok); } .tf-pin.warn { background: var(--warn); } .tf-pin.bad { background: var(--bad); }
@@ -60,7 +59,7 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 }
 
 /* nagłówek: sterowanie zegarem demo */
-.tf-hbtn { font: 600 13px Inter, sans-serif; padding: 5px 12px; border-radius: 8px; cursor: pointer;
+.tf-hbtn { font: 600 13px "IBM Plex Sans", system-ui, sans-serif; padding: 5px 12px; border-radius: 8px; cursor: pointer;
            background: var(--cream); color: var(--plant); border: 1px solid var(--gold); white-space: nowrap; }
 .tf-hbtn:hover { background: #fff; }
 .tf-hbtn:disabled { opacity: .5; cursor: not-allowed; }
@@ -88,7 +87,7 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 /* etap 3: prognoza, szczegóły punktu, wydarzenia */
 .tf-quality { font-size: 13px; color: var(--plant); padding: 8px 10px; border-radius: 8px; background: #f3f6ef; border: 1px solid #dfe7d6; }
 .tf-quality b { font-variant-numeric: tabular-nums; }
-.tf-back { font: 600 13px Inter, sans-serif; color: var(--plant); background: none; border: 0; padding: 4px 0; cursor: pointer; }
+.tf-back { font: 600 13px "IBM Plex Sans", system-ui, sans-serif; color: var(--plant); background: none; border: 0; padding: 4px 0; cursor: pointer; }
 .tf-back:hover { text-decoration: underline; }
 .tf-back:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .tf-dstate { margin: 8px 0 4px; font-weight: 600; }
@@ -116,7 +115,7 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 .tf-route label { font-size: 12px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 .tf-routesw { display: inline-block; width: 22px; height: 4px; border-radius: 2px; vertical-align: middle; }
 .tf-routesw.bin { background: #2f6b3a; } .tf-routesw.shelter { background: #b8860b; }
-.tf-stop { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font: 700 10px Inter, sans-serif;
+.tf-stop { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font: 700 10px "IBM Plex Sans", system-ui, sans-serif;
            color: #fff; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
 .tf-stop.bin { background: #2f6b3a; } .tf-stop.shelter { background: #b8860b; }
 .tf-depot { font-size: 22px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
@@ -139,7 +138,7 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 .tf-rec { border: 1px solid #ddd6fe; border-radius: 10px; padding: 10px 12px; margin: 4px 0 12px; }
 .tf-rec b { color: var(--magic); }
 .tf-rec p { margin: 4px 0 0; font-size: 13px; }
-.tf-h3 { font: 600 14px Inter, sans-serif; color: var(--plant); margin: 12px 0 6px; }
+.tf-h3 { font: 600 14px "IBM Plex Sans", system-ui, sans-serif; color: var(--plant); margin: 12px 0 6px; }
 .tf-photo { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; padding: 6px 0; border-top: 1px solid var(--line); }
 .tf-photo img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; flex: none; }
 .tf-photo.err, .tf-photo-err { color: var(--bad); }
@@ -148,7 +147,7 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 .tf-upload input[type=file] { font-size: 12px; max-width: 100%; }
 
 /* etap 6: raport, rekomendacje, jury */
-.tf-fairybtn { font: 600 12px Inter, sans-serif; padding: 4px 10px; border-radius: 8px; cursor: pointer;
+.tf-fairybtn { font: 600 12px "IBM Plex Sans", system-ui, sans-serif; padding: 4px 10px; border-radius: 8px; cursor: pointer;
                background: linear-gradient(90deg, var(--magic), var(--magic-2)); color: #fff; border: 0;
                box-shadow: 0 0 12px -2px rgba(124, 58, 237, .6); }
 .tf-fairybtn:disabled { opacity: .6; cursor: wait; }
@@ -180,13 +179,13 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
           /* cień na krawędziach mówi, że menu się przewija */
           mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 24px), transparent); }
 .tf-nav::-webkit-scrollbar { display: none; }
-.tf-nav a { color: #d6dfcf; text-decoration: none; font: 600 14px Inter, sans-serif; padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
+.tf-nav a { color: #d6dfcf; text-decoration: none; font: 600 14px "IBM Plex Sans", system-ui, sans-serif; padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
 .tf-nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
 .tf-nav a[aria-current="page"] { background: var(--cream); color: var(--plant); }
 .tf-nav a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .tf-tabs { display: flex; gap: 2px; margin: -4px 0 14px; border-bottom: 2px solid var(--line); position: sticky; top: -16px;
            background: var(--paper); z-index: 2; padding-top: 4px; }
-.tf-tabs button { flex: 1; font: 600 13px Inter, sans-serif; padding: 8px 4px; border: 0; background: none; color: var(--muted);
+.tf-tabs button { flex: 1; font: 600 13px "IBM Plex Sans", system-ui, sans-serif; padding: 8px 4px; border: 0; background: none; color: var(--muted);
                   border-bottom: 3px solid transparent; margin-bottom: -2px; cursor: pointer; }
 .tf-tabs button[aria-selected="true"] { color: var(--plant); border-bottom-color: var(--gold); }
 .tf-tabs button:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; }
@@ -199,6 +198,32 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 /* pogoda i ruch (etap 8) */
 .tf-cond { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 8px 0 0; font-size: 13px; }
 .tf-cond dt { font-weight: 600; color: var(--plant); } .tf-cond dd { margin: 0; color: var(--ink); }
-.tf-jam { display: inline-block; transform: translate(-50%, -50%); white-space: nowrap; font: 700 12px Inter, sans-serif;
+.tf-jam { display: inline-block; transform: translate(-50%, -50%); white-space: nowrap; font: 700 12px "IBM Plex Sans", system-ui, sans-serif;
           padding: 2px 8px; border-radius: 999px; background: var(--bad); color: #fff; box-shadow: 0 0 0 2px #fff; }
 .tf-legend .tf-jam { transform: none; }
+
+/* zamiast Tailwinda i DaisyUI z CDN (decyzja 22): tylko klasy, których panel naprawdę używa */
+:where(.tf) *, :where(.tf) *::before, :where(.tf) *::after { box-sizing: border-box; }
+:where(.tf) :where(h2, h3, p, dl, dd, figure) { margin-top: 0; }  /* :where = zerowa specyficzność, nie nadpisuje komponentów */
+:where(.tf) :where(ol, ul) { margin-top: 0; }
+:where(.tf) :where(button) { font: inherit; color: inherit; }
+.flex { display: flex; } .flex-1 { flex: 1 1 0; } .items-center { align-items: center; } .justify-between { justify-content: space-between; }
+.gap-2 { gap: 8px; } .mt-2 { margin-top: 8px; } .mb-2 { margin-bottom: 8px; } .block { display: block; } .text-center { text-align: center; }
+.grid { display: grid; } .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.\!mb-0 { margin-bottom: 0 !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.join { display: inline-flex; } .join .join-item:not(:first-child) { margin-left: -1px; }
+.join .join-item:first-child { border-radius: 8px 0 0 8px; } .join .join-item:last-child { border-radius: 0 8px 8px 0; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 12px;
+       border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); cursor: pointer;
+       font: 600 13px/1 "IBM Plex Sans", system-ui, sans-serif; }
+.btn:hover { border-color: var(--plant); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-xs { min-height: 32px; padding: 0 10px; font-size: 13px; }
+
+/* słownik stanów (decyzja 18): kształt i znak niosą stan, kolor tylko wzmacnia; altana = podwójna obwódka */
+.tf-pin.ok { border-radius: 50%; }
+.tf-pin.warn { border-radius: 0; color: #1A1200; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); border: 0; width: 22px; height: 22px; }
+.tf-pin.bad { border-radius: 3px; }
+.tf-pin.alt { box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor, 0 1px 4px rgba(0,0,0,.4); }
+.tf-pin.neutral.alt { color: #fff; }

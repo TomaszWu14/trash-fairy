@@ -1,7 +1,7 @@
 // Widok C „Pokaz dla jury”. Dane z tych samych endpointów co panel dyspozytora; tu tylko prezentacja.
 const POLL_MS = 2000;
 const RANK = { full: 5, report: 4, near: 3, warn: 2, ok: 1 };
-const LBL = { ok: 'OK', near: 'zbliża się do pełna', full: 'przepełniony', report: 'zgłoszenie mieszkańca', warn: 'sprawdź przycisk' };
+const LBL = { ok: 'w porządku', near: 'zapełnia się', full: 'do opróżnienia', report: 'zgłoszenie mieszkańca', warn: 'sprawdź przycisk' };  // słownik: decyzja 18
 const DAYS = ['niedz.', 'pon.', 'wt.', 'śr.', 'czw.', 'pt.', 'sob.'];
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -163,9 +163,12 @@ function setStep(n) {
 document.querySelectorAll('.step').forEach(b => b.addEventListener('click', () => setStep(Number(b.dataset.step))));
 
 function renderCards() {
-  const badList = points.filter(p => p.state === 'bad'), bad = badList.length, risk = points.filter(atRisk).length;
-  $('c1').textContent = bad ? badList.slice(0, 3).map(p => p.name.replace(/^(Kosz|Altana) /, '')).join(', ') + (bad > 3 ? ` i ${bad - 3} więcej` : '')
-                            : 'Teraz żaden punkt nie jest przepełniony.';
+  // karta 1 (decyzja 19): „przepełniony” tylko przy szacunku ≥ 100%, reszta stanu bad to „do opróżnienia”
+  const badList = points.filter(p => p.state === 'bad'), over = badList.filter(p => p.value >= 100), risk = points.filter(atRisk).length;
+  const bad = over.length, rest = badList.length - over.length;
+  $('c1').textContent = (rest ? `+${rest} do opróżnienia przed kursem. ` : '')
+    + (badList.length ? badList.slice(0, 3).map(p => p.name.replace(/^(Kosz|Altana) /, '')).join(', ') + (badList.length > 3 ? '…' : '')
+                      : 'Teraz żaden punkt nie wymaga opróżnienia.');
   $('v1').textContent = bad;
   $('u1').textContent = plural(bad, 'przepełniony teraz', 'przepełnione teraz', 'przepełnionych teraz');
   $('v2').textContent = risk;
@@ -191,18 +194,23 @@ async function loadComparison() {
       + `<p>Stały harmonogram: <strong>${fmt(Math.round(a))}${unit}</strong></p><p>Trash Fairy: <strong>${fmt(Math.round(b))}${unit}</strong></p>`
       + (why ? `<p class="why">${why}</p>` : '') + '</div>', pct };
   };
-  const overflow = card('Godziny przepełnień', 'overflow_hours', ' h',
-    `Altany: ${fmt(c.fixed.shelter.overflow_hours)} h → ${fmt(c.fairy.shelter.overflow_hours)} h.`);
+  // dwie uczciwe liczby zamiast uśrednionego „−16%” (decyzja 41): każda przy swoim problemie
+  const empty = `<div class="c-eff"><h3>Puste przyjazdy do koszy</h3><b class="better">${c.fixed.bin.empty_share}% → ${c.fairy.bin.empty_share}%</b>`
+    + `<p>Ta sama czystość ulic, o połowę mniej jazdy do pustych koszy.</p>`
+    + `<p class="why">Godziny przepełnienia koszy bez zmian (${fmt(c.fixed.bin.overflow_hours)} → ${fmt(c.fairy.bin.overflow_hours)} h): oszczędzamy, nie pogarszając.</p></div>`;
+  const shelters = `<div class="c-eff"><h3>Przepełnione altany</h3><b class="better">${fmt(c.fixed.shelter.overflow_hours)} h → ${fmt(c.fairy.shelter.overflow_hours)} h</b>`
+    + `<p>Koniec worków domowych wynoszonych z altan do koszy ulicznych.</p></div>`;
   const km = card('Kilometry tras', 'km', ' km', 'Więcej km, bo częściej jeździmy do przeciążonych altan.');
   const visits = card('Wizyty przy punktach', 'visits', '',
     `Puste przyjazdy do koszy: ${c.fixed.bin.empty_share}% → ${c.fairy.bin.empty_share}%.`);
-  $('effect-grid').innerHTML = overflow.html + km.html + visits.html;
-  $('v4').textContent = `${overflow.pct > 0 ? '+' : '−'}${Math.abs(overflow.pct)} %`;
+  $('effect-grid').innerHTML = empty + shelters + km.html + visits.html;
+  $('v4').textContent = `${c.fixed.bin.empty_share}% → ${c.fairy.bin.empty_share}%`;
+  $('c4').textContent = `pustych przyjazdów · altany ${fmt(c.fixed.shelter.overflow_hours)} → ${fmt(c.fairy.shelter.overflow_hours)} h przepełnień`;
 }
 
 // --- prawa kolumna ---
 function renderQr() {
-  const url = (window.PUBLIC_URL || location.origin) + '/jury';
+  const url = (window.PUBLIC_URL || location.origin) + '/zglos/18?jury=1';  // zawsze kosz 18 (decyzja 13)
   const qr = qrcode(0, 'M');
   qr.addData(url);
   qr.make();
@@ -296,7 +304,21 @@ async function clockAction(btn, url) {
   finally { btn.disabled = false; }
 }
 $('btn-advance').addEventListener('click', e => clockAction(e.currentTarget, '/api/clock/advance'));
-$('btn-reset').addEventListener('click', e => clockAction(e.currentTarget, '/api/clock/reset'));
+// Reset kasuje zgłoszenia z demo: tylko dyspozytor, potwierdzenie na stronie zamiast confirm() (decyzja 5)
+function armReset(btn, run) {
+  if (!btn) return;
+  let armed = null;
+  const label = btn.innerHTML;
+  btn.addEventListener('click', () => {
+    if (!armed) {
+      btn.textContent = 'Skasuje zgłoszenia z demo. Kliknij ponownie';
+      armed = setTimeout(() => { armed = null; btn.innerHTML = label; }, 4000);
+      return;
+    }
+    clearTimeout(armed); armed = null; btn.innerHTML = label; run();
+  });
+}
+armReset($('btn-reset'), () => clockAction($('btn-reset'), '/api/clock/reset'));
 
 if (matchMedia('(max-width: 767px)').matches) $('legend').open = false;  // na telefonie legenda nie zasłania mapy
 renderQr();

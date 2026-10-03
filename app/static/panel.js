@@ -13,7 +13,7 @@ const linkLayer = L.layerGroup().addTo(map);
 const routeLayers = { bin: L.layerGroup().addTo(map), shelter: L.layerGroup().addTo(map) };
 const trafficLayer = L.layerGroup().addTo(map);
 const JAM = 1.5;  // od tego korka trasa na mapie jest kropkowana
-const ROUTE_COLOR = { bin: '#2f6b3a', shelter: '#b8860b' };
+const ROUTE_COLOR = { bin: '#0050B5', shelter: '#8E2C8C' };  // jak w widoku C i u kierowcy (decyzja 23)
 let onRoute = {};  // point_id → przystanek na najbliższym kursie
 let points = [];
 let filter = 'all';
@@ -24,7 +24,7 @@ let chart = null;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pinHtml = p => `<span class="tf-pinwrap${p.fresh ? ' fresh' : ''}" aria-hidden="true">`
-  + `<span class="tf-pin ${KIND[p.kind].shape} ${p.state}">${p.symbol}</span>`
+  + `<span class="tf-pin ${p.state}${p.kind === 'shelter' ? ' alt' : ''}">${p.symbol}</span>`  // kształt = stan, altana = podwójna obwódka
   + (p.check_button ? '<span class="tf-badge">⚠</span>' : '')
   + (p.misuse?.length ? '<span class="tf-badge left">🛍</span>' : '')
   + (p.damaged_at ? '<span class="tf-badge left">🛠</span>' : '') + '</span>';
@@ -34,7 +34,7 @@ const describe = p => `${KIND[p.kind].label}: ${p.name}, ${p.label}, ${p.reason}
   + (p.damaged_at ? ', zgłoszono uszkodzenie' : '') + (p.overflow_reported ? ', zgłoszono odpady obok' : '')
   + (p.crew_issue ? `, kierowca: ${p.crew_issue.label}` : '');
 const popup = p => `<b>${esc(p.name)}</b><br>${KIND[p.kind].label} · ${esc(p.area)}<br>`
-  + `Stan: <b>${p.symbol} ${p.label}</b> — ${esc(p.reason)}<br>Poziom: ${p.level}% · wiarygodność przycisku: ${p.reliability}%`
+  + `Stan: <b>${p.symbol} ${p.label}</b> — ${esc(p.reason)}<br>Poziom: ${p.level}%` + (p.reliability != null ? ` · wiarygodność przycisku: ${p.reliability}%` : '')
   + (p.check_button ? `<br>⚠ Sprawdź przycisk: ${esc(p.check_reason)}` : '')
   + `<br><a href="/zglos/${p.id}" target="_blank" rel="noopener">Zgłoś z telefonu ↗</a> · <a href="/epapier/${p.id}" target="_blank" rel="noopener">Ekran na koszu ↗</a>`;
 
@@ -179,7 +179,7 @@ $('recs').addEventListener('click', e => {
 $('btn-fairy').addEventListener('click', () => loadFairy(true));
 
 function renderJuryQr() {
-  const url = (window.PUBLIC_URL || location.origin) + '/jury';
+  const url = (window.PUBLIC_URL || location.origin) + '/zglos/18?jury=1';  // zawsze kosz 18 (decyzja 13)
   const qr = qrcode(0, 'M');
   qr.addData(url);
   qr.make();
@@ -455,6 +455,20 @@ document.querySelectorAll('.tf-filter').forEach(b => b.addEventListener('click',
 }));
 
 $('btn-advance').addEventListener('click', e => clockAction(e.currentTarget, '/api/clock/advance'));
-$('btn-reset').addEventListener('click', e => clockAction(e.currentTarget, '/api/clock/reset'));
+// Reset kasuje zgłoszenia z demo: tylko dyspozytor, potwierdzenie na stronie zamiast confirm() (decyzja 5)
+function armReset(btn, run) {
+  if (!btn) return;
+  let armed = null;
+  const label = btn.innerHTML;
+  btn.addEventListener('click', () => {
+    if (!armed) {
+      btn.textContent = 'Skasuje zgłoszenia z demo. Kliknij ponownie';
+      armed = setTimeout(() => { armed = null; btn.innerHTML = label; }, 4000);
+      return;
+    }
+    clearTimeout(armed); armed = null; btn.innerHTML = label; run();
+  });
+}
+armReset($('btn-reset'), () => clockAction($('btn-reset'), '/api/clock/reset'));
 
 poll();

@@ -37,7 +37,7 @@ TROLL_FACTOR = 0.5  # ≥3 fałszywe zgłoszenia o tej samej porze (±1 h) w 14 
 # kolor nigdy nie jest jedynym nośnikiem informacji: każdy stan ma też symbol i opis
 STATES = {
     "ok": {"symbol": "✓", "label": "w porządku"},
-    "warn": {"symbol": "~", "label": "zapełnia się"},
+    "warn": {"symbol": "↑", "label": "zapełnia się"},  # słownik stanów: decyzja 18
     "bad": {"symbol": "!", "label": "do opróżnienia"},
 }
 

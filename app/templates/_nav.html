@@ -1,8 +1,13 @@
-{# Wspólne menu ekranów — aria-current wskazuje bieżący ekran (nie tylko kolor) #}
-{% set screens = [('/', 'Pokaz'), ('/dyspozytor', 'Panel'), ('/program', 'Program'), ('/kierowca', 'Kierowca'), ('/jury', 'Jury'), ('/metodologia', 'Metodologia'), ('/api/docs', 'API')] %}
+{# Wspólne menu ekranów zależne od roli (decyzja 10). aria-current wskazuje bieżący ekran (nie tylko kolor).
+   Kierowca nie ma menu: jego PWA to osobna aplikacja. #}
+{% set screens = [('/', 'Pokaz'), ('/telefony', 'Na telefonie'), ('/dyspozytor', 'Panel' if is_dispatcher else 'Panel (podgląd)')]
+   + ([('/zdjecia', 'Zdjęcia')] if is_dispatcher else [('/zglos/18?jury=1', 'Zgłoś kosz')])
+   + [('/program', 'Program'), ('/metodologia', 'Metodologia'), ('/api/docs', 'API')] %}
 <nav class="tf-nav" aria-label="Ekrany aplikacji">
-  {% for href, label in screens %}
-  <a href="{{ href }}"{% if request.path == href or (href != '/' and request.path.startswith(href)) %} aria-current="page"{% endif %}
-     {% if href == '/jury' %} target="_blank" rel="noopener" title="Losowy przycisk przy Rynku (tryb dla jury)"{% endif %}>{{ label }}</a>
+  {% for href, label in screens %}{% set path = href.split('?')[0] %}
+  <a href="{{ href }}"{% if request.path == path or (path != '/' and request.path.startswith(path)) %} aria-current="page"{% endif %}
+     {% if href == '/telefony' %} class="tf-nav-star"{% endif %}>{% if href == '/telefony' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg> {% endif %}{{ label }}</a>
   {% endfor %}
+  {% if user %}<form method="post" action="{{ url_for('main.logout') }}" class="tf-nav-user"><span>{{ user.login }}</span><button type="submit">Wyloguj</button></form>
+  {% else %}<a href="{{ url_for('main.login', next=request.path) }}">Zaloguj</a>{% endif %}
 </nav>
