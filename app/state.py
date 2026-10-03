@@ -22,6 +22,7 @@ FRESH_BAD_WEIGHT = 0.7  # świeże zgłoszenie z przycisku o takiej wadze = od r
 WEAK_AFTER_EMPTYING = timedelta(hours=2)
 WEAK_BELOW_LEVEL = 30
 OVERFLOW_HOURS = 6  # przepełniony (wg szacunku) tyle godzin bez naciśnięcia → przycisk może nie działać
+DAMAGE_WINDOW = timedelta(hours=48)  # zgłoszenie „uszkodzony” z /zglos trzyma flagę do opróżnienia, najwyżej 48 h
 NEIGHBOR_RADIUS_M = 100
 NEIGHBORS_EMPTY_BELOW = 30
 NEIGHBORS_FACTOR = 0.7  # pojedyncze zgłoszenie przy pustych sąsiadach waży mniej (spec, pkt 4)
@@ -126,6 +127,12 @@ def point_states(now):
     forecasts = point_forecasts(now, last_emptying)
     neighbors = neighbors_map()
     offline = device_flags(now)
+    # zgłoszenia z ekranu /zglos: „uszkodzony” nie podnosi poziomu (flaga dla ekipy), „odpady obok” to notatka przy zgłoszeniu
+    damaged = {pid: at for pid, at in db.session.query(Press.point_id, func.max(Press.at))
+               .filter(Press.kind == "damaged", Press.at > now - DAMAGE_WINDOW, Press.at <= now).group_by(Press.point_id)
+               if last_emptying.get(pid) is None or last_emptying[pid] < at}
+    overflow_reported = {pid for (pid,) in db.session.query(Press.point_id).distinct()
+                         .filter(Press.kind == "overflow", Press.at > now - MERGE_WINDOW, Press.at <= now)}
     out = {}
     for pid, f in forecasts.items():
         level = f["est"]
@@ -158,6 +165,8 @@ def point_states(now):
             "level": round(level), "value": round(value), "state": state, **STATES[state],
             "reason": reason, "fresh": fresh, "reliability": round(reliability([h for _, h in resolved[pid]]) * 100),
             "check_button": check_reason is not None, "check_reason": check_reason,
+            "damaged_at": damaged[pid].isoformat() if pid in damaged else None,
+            "overflow_reported": pid in overflow_reported,
             "crossing": f["crossing"].isoformat() if f["crossing"] else None,
             "crossing_label": time_label(f["crossing"], now),
         }

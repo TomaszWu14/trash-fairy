@@ -25,7 +25,7 @@ flask --app app seed        # import punktów z data/*.geojson + symulacja histo
 flask --app app run         # http://localhost:5000
 python -m pytest -q
 ```
-Docker: `docker build -t trash-fairy . && docker run -p 8000:8000 trash-fairy` (z `-e DATABASE_URL=...` dla PostgreSQL).
+Docker: `docker build -t trash-fairy . && docker run -p 8080:8080 trash-fairy` (z `-e DATABASE_URL=...` dla PostgreSQL).
 
 ## Dane i licencje
 - **OpenStreetMap:** pozycje koszy, altan, lokali i przystanków; podkład mapy. © OpenStreetMap contributors, licencja ODbL 1.0.

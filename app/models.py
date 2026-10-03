@@ -26,6 +26,7 @@ class Press(db.Model):
     ip = db.Column(db.String(45))
     wall_at = db.Column(db.DateTime, index=True)  # None = naciśnięcie z symulacji
     source = db.Column(db.String(10), nullable=False, default="button")  # button / qr
+    kind = db.Column(db.String(10))  # full / overflow / damaged (None = fizyczny przycisk, czyli „pełny”)
     resident_id = db.Column(db.Integer, db.ForeignKey("resident.id"), index=True)  # None = anonimowe
     report_id = db.Column(db.Integer, db.ForeignKey("report.id"), index=True)
 

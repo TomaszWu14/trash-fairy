@@ -35,3 +35,6 @@
 - Świeże zgłoszenie jako zlecenie interwencji z terminem 2 h (standard MPO dla prac interwencyjnych).
 - Program „Przyjaciele Wróżki”: prawdziwy SMS (np. Twilio Verify), odbiór nagród z danymi zwycięzcy, losowanie miesięczne, +5 pkt za zdjęcie od mieszkańca.
 - Firmware przycisku LoRaWAN: limit 1 zgłoszenie na 15 min w urządzeniu, sygnał życia i bateria raz na dobę, autotest co 6 h, e-papier.
+- Ekran „Zgłoś kosz”: zdjęcie od mieszkańca (upload do `/api/photo` po wysłaniu), zapis komentarza przy zgłoszeniu, status po opróżnieniu z powiadomieniem (Web Push),
+  ikony PNG 192/512 obok SVG dla starszych Androidów, Lighthouse w CI.
+- E-papier etap 2: firmware LoRaWAN wg `docs/epapier/ETAP2-LORAWAN.md` (downlink 12 B, uplink przycisk/heartbeat, QR i fonty rastrowe na urządzeniu), test w słońcu i mrozie.

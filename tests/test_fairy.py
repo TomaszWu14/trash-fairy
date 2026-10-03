@@ -135,7 +135,7 @@ def test_jury_redirects_to_button_near_rynek(client, demo):
     for _ in range(10):
         r = client.get("/jury")
         assert r.status_code == 302
-        pid = int(r.headers["Location"].split("/przycisk/")[1].split("?")[0])
+        pid = int(r.headers["Location"].split("/zglos/")[1].split("?")[0])
         assert pid in pool
 
 

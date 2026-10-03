@@ -1,7 +1,7 @@
 import os
 import random
 
-from flask import Blueprint, jsonify, redirect, render_template, url_for
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, send_file, send_from_directory, url_for
 from sqlalchemy import text
 
 from . import clock, db
@@ -16,6 +16,12 @@ bp = Blueprint("main", __name__)
 
 
 @bp.get("/")
+def show():
+    """Widok C „Pokaz dla jury”: historia w 4 krokach na jednej mapie."""
+    return render_template("pokaz.html", public_url=os.environ.get("PUBLIC_URL", ""))
+
+
+@bp.get("/dyspozytor")
 def panel():
     return render_template("panel.html", public_url=os.environ.get("PUBLIC_URL", ""))
 
@@ -31,7 +37,70 @@ def jury():
     pool = jury_pool()
     if not pool:
         return redirect(url_for("main.panel"))
-    return redirect(url_for("main.button", point_id=random.choice(pool).id, jury=1))
+    return redirect(url_for("main.report", point_id=random.choice(pool).id, jury=1))
+
+
+@bp.get("/zglos/<int:point_id>")
+def report(point_id):
+    """Publiczny ekran „Zgłoś kosz” (PWA): mieszkaniec trafia tu z kodu QR na koszu."""
+    from .api import WEEKDAYS_SHORT
+    now = clock.now()
+    return render_template("zglos.html", point=db.get_or_404(Point, point_id),
+                           clock_label=f"{WEEKDAYS_SHORT[now.weekday()]} {now:%d.%m, %H:%M}")
+
+
+@bp.get("/zglos")
+def report_pick():
+    """start_url PWA bez kosza: wybór kosza (najbliższe wg GPS w JS, zapas: pula przy Rynku)."""
+    return render_template("zglos_wybor.html", points=jury_pool())
+
+
+@bp.get("/zglos/sw.js")
+def sw():
+    """Service worker PWA zgłoszeń. Nagłówek pozwala na zakres /zglos (bez ukośnika), czyli także start_url."""
+    resp = send_from_directory(os.path.join(current_app.static_folder, "zglos"), "sw.js", mimetype="application/javascript")
+    resp.headers["Service-Worker-Allowed"] = "/zglos"
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
+
+@bp.get("/epapier/<int:point_id>")
+def epaper_page(point_id):
+    """Symulator ekranu e-papierowego z fizycznym przyciskiem (docs/epapier/HANDOFF.md, etap 1)."""
+    return render_template("epapier.html", point=db.get_or_404(Point, point_id))
+
+
+@bp.get("/epapier/<int:point_id>.png")
+def epaper_png(point_id):
+    """Obraz 1-bitowy aktualnego stanu; ?part=1 = tylko okno odświeżania częściowego."""
+    import io
+    from . import epaper, epaper_render
+    point = db.get_or_404(Point, point_id)
+    state, data = epaper.display_state(point, clock.now())
+    img = epaper_render.render_partial(state, data) if request.args.get("part") else epaper_render.render(state, data)
+    buf = io.BytesIO()
+    img.save(buf, "PNG")
+    buf.seek(0)
+    resp = send_file(buf, mimetype="image/png")
+    resp.headers["Cache-Control"] = "no-store"
+    resp.headers["X-Epaper-State"] = state
+    return resp
+
+
+# adresy z kodów QR na ekranie (renderer: /kosz/<nr>/zglos, /kosz/<nr>/status, /przyjaciele)
+@bp.get("/kosz/<int:point_id>/zglos")
+def qr_report(point_id):
+    return redirect(url_for("main.report", point_id=point_id))
+
+
+@bp.get("/kosz/<int:point_id>/status")
+def qr_status(point_id):
+    return redirect(url_for("main.report", point_id=point_id, status=1))
+
+
+@bp.get("/przyjaciele")
+def qr_program():
+    return redirect(url_for("main.program"))
 
 
 @bp.get("/metodologia")

@@ -175,3 +175,43 @@ bo RODO wymaga minimalizacji, a rozliczenie i tak jest możliwe przy odbiorze na
 **Antyspam w regułach wagi:** zgłoszenie przy koszach w promieniu 100 m z szacunkiem poniżej 30% liczy się ×0,7; ≥3 fałszywe zgłoszenia o tej porze
 (±1 h) w 14 dni dają ×0,5; zgłoszenie z telefonu z położeniem dalej niż 150 m od kosza jest odrzucane. `REQUIRE_GEO=1` wymusza położenie.
 W demo jest wyłączone, bo jury głosuje z hali, a nie spod kosza. Autotest urządzenia nie tworzy zgłoszeń, a brak sygnału przez 48 h daje flagę.
+
+## Widok C „Pokaz dla jury” (sob 3.10, ~15:30–)
+
+**Strona główna to teraz historia w 4 krokach (Problem → Predykcja → Trasa → Efekt) na jednej mapie, a pełny panel przeniósł się pod `/dyspozytor`.**
+Jury w 2 minuty ma zobaczyć problem, prognozę, trasę i efekt, a nie zakładki. Odrzuciliśmy usunięcie starego panelu, bo szczegóły punktu,
+zdjęcia AI, raport wróżki i rekomendacje są potrzebne przy pytaniach jury. „Zagrożone” liczy tę samą regułę co planer tras
+(60–85% i 85% przed kolejnym kursem), a krok 4 pokazuje uczciwie także wzrost km (+7%), a nie tylko spadki.
+
+**Trasy po ulicach z OSRM liczy serwer, z cache w `data/osrm_cache.json` i fallbackiem do linii prostej.** Przebieg służy tylko do rysowania,
+a kilometry dalej liczymy jako linia prosta × 1,3, więc porównanie i Metodologia się nie zmieniają. Odrzuciliśmy wołanie OSRM z przeglądarki:
+publiczny serwer bywa wolny, a cache w repo pozwala pokazać demo bez sieci. CARTO Positron wymaga już klucza API (kafelki „API KEY REQUIRED”),
+więc używamy OSM z filtrem CSS (szarość), a przy braku sieci statycznego podkładu SVG.
+
+## Ekran „Zgłoś kosz” (PWA mieszkańca) (sob 3.10, ~16:30–)
+
+**Nowy publiczny ekran `/zglos/<id>` zamiast makiety słupka; `/jury` prowadzi na niego.** Jedno dotknięcie wysyła zgłoszenie
+(1,5 s na „Cofnij”), potwierdzenie pojawia się w miejscu, bez nowej strony. Stara makieta `/przycisk/<id>` zostaje tylko jako
+podgląd fizycznego przycisku. Zamiast nowego `/api/reports` rozszerzyliśmy `/api/press` (status accepted/merged, eta, retry_at,
+distance_m), bo to on już scala zgłoszenia, liczy limity i wagi programu. Publiczne `/api/zglos/<id>` nie zwraca wiarygodności przycisku.
+
+**Rodzaj zgłoszenia zmienia regułę tylko dla „uszkodzony”.** „Pełny” i „przepełniony, odpady obok” działają jak naciśnięcie przycisku
+(odpady obok to notatka w panelu), a „uszkodzony” nie podnosi poziomu: to zadanie dla ekipy, więc tylko flaga 🛠 w panelu do najbliższego
+opróżnienia (max 48 h). Odrzuciliśmy traktowanie uszkodzenia jak pełnego kosza, bo wysyłałoby śmieciarkę do pustego kosza.
+
+**Offline: IndexedDB + Background Sync, a nie localStorage.** Zgłoszenie zapisane w telefonie wysyła service worker także po zamknięciu
+aplikacji; bez Background Sync strona wysyła po zdarzeniu `online`. SW ma zakres `/zglos` (nagłówek `Service-Worker-Allowed`), więc nie
+dotyka panelu. Kolumnę `press.kind` dokładamy bez Alembica małym `ALTER TABLE` przy starcie, bo to jedyna zmiana schematu w hackathonie.
+
+## Wyświetlacz e-papierowy na koszu, etap 1 (sob 3.10, ~17:00–)
+
+**Stan ekranu liczy `app/epaper.py` z tych samych danych co panel, a renderer z paczki (`app/epaper_render.py`) rysuje go 1-bitowo.**
+Priorytet: fault > overflow > confirm > enroute > emptied > night > calm. „Przepełniony” liczymy z prognozy (`level`), a nie z wartości
+podbitej samym zgłoszeniem, bo inaczej każde naciśnięcie dawałoby od razu stan 5 zamiast 2. „Ekipa w drodze” = punkt ma przystanek na
+najbliższym kursie i do kursu zostało < 45 min, a zgłoszenie nie jest już świeże (15 min). Odrzuciliśmy osobny model „ekranu” w bazie:
+stan jest funkcją zgłoszeń, opróżnień, tras i urządzenia, więc nie ma czego synchronizować.
+
+**Pełne mignięcie tylko przy zmianie stanu.** API zwraca dwa klucze: `state_key` (pas stanu, QR) i `values_key` (okno 24,344–776,432).
+Symulator `/epapier/<nr>` przy zmianie `values_key` podmienia tylko wycinek okna, co odpowiada odświeżaniu częściowemu sterownika 7,5".
+Test XOR pilnuje, że zmiana wartości nie rusza pikseli poza oknem. Fizyczny przycisk na stronie to zwykłe `POST /api/press` (źródło `button`),
+które przy okazji odświeża heartbeat urządzenia, bo nadający przycisk na pewno żyje. Etap 2 (LoRaWAN) tylko jako kontrakt w `docs/epapier/ETAP2-LORAWAN.md`.

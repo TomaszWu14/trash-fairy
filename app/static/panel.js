@@ -23,14 +23,16 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const pinHtml = p => `<span class="tf-pinwrap${p.fresh ? ' fresh' : ''}" aria-hidden="true">`
   + `<span class="tf-pin ${KIND[p.kind].shape} ${p.state}">${p.symbol}</span>`
   + (p.check_button ? '<span class="tf-badge">⚠</span>' : '')
-  + (p.misuse?.length ? '<span class="tf-badge left">🛍</span>' : '') + '</span>';
+  + (p.misuse?.length ? '<span class="tf-badge left">🛍</span>' : '')
+  + (p.damaged_at ? '<span class="tf-badge left">🛠</span>' : '') + '</span>';
 const describe = p => `${KIND[p.kind].label}: ${p.name}, ${p.label}, ${p.reason}`
   + (p.fresh ? ', świeże zgłoszenie' : '') + (p.check_button ? `, sprawdź przycisk: ${p.check_reason}` : '')
-  + (p.misuse?.length ? `, nadużycie: ${p.misuse.join(', ')}` : '') + (p.recommendation ? ', jest rekomendacja' : '');
+  + (p.misuse?.length ? `, nadużycie: ${p.misuse.join(', ')}` : '') + (p.recommendation ? ', jest rekomendacja' : '')
+  + (p.damaged_at ? ', zgłoszono uszkodzenie' : '') + (p.overflow_reported ? ', zgłoszono odpady obok' : '');
 const popup = p => `<b>${esc(p.name)}</b><br>${KIND[p.kind].label} · ${esc(p.area)}<br>`
   + `Stan: <b>${p.symbol} ${p.label}</b> — ${esc(p.reason)}<br>Poziom: ${p.level}% · wiarygodność przycisku: ${p.reliability}%`
   + (p.check_button ? `<br>⚠ Sprawdź przycisk: ${esc(p.check_reason)}` : '')
-  + `<br><a href="/przycisk/${p.id}" target="_blank" rel="noopener">Otwórz przycisk ↗</a>`;
+  + `<br><a href="/zglos/${p.id}" target="_blank" rel="noopener">Zgłoś z telefonu ↗</a> · <a href="/epapier/${p.id}" target="_blank" rel="noopener">Ekran na koszu ↗</a>`;
 
 function renderMap() {
   for (const p of points) {
@@ -57,10 +59,12 @@ function renderList() {
           ${onRoute[p.id] ? `<span class="tf-onroute">🚚 kurs ${onRoute[p.id].run}, przystanek ${onRoute[p.id].order}</span>` : ''}
           ${p.check_button ? `<small class="check">⚠ sprawdź przycisk: ${esc(p.check_reason)}</small>` : ''}
           ${p.misuse?.length ? `<small class="misuse">🛍 ${esc(p.misuse.join(', '))}</small>` : ''}
+          ${p.damaged_at ? `<small class="check">🛠 mieszkaniec zgłosił uszkodzenie (${p.damaged_at.slice(11, 16)})</small>` : ''}
+          ${p.overflow_reported ? '<small class="misuse">🛍 zgłoszenie: odpady obok kosza</small>' : ''}
           ${p.recommendation ? '<small class="rec">✨ rekomendacja: zwiększ częstotliwość odbioru</small>' : ''}
         </span>
         <span class="lvl">${p.value}%</span></button>
-        <a class="tf-btnlink" href="/przycisk/${p.id}" target="_blank" rel="noopener" aria-label="Otwórz przycisk punktu ${esc(p.name)}" title="Otwórz przycisk">↗</a></li>`)
+        <a class="tf-btnlink" href="/zglos/${p.id}" target="_blank" rel="noopener" aria-label="Otwórz przycisk punktu ${esc(p.name)}" title="Otwórz przycisk">↗</a></li>`)
     .join('');
 }
 
@@ -289,7 +293,8 @@ async function openDetails(id, focus = true) {
     ['Naciśnięcia (48 h)', String(d.presses.length)],
   ].concat(d.check_button ? [['⚠ Sprawdź przycisk', d.check_reason]] : [])
     .map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
-  $('d-button').href = `/przycisk/${d.id}`;
+  $('d-button').href = `/zglos/${d.id}`;
+  $('d-epaper').href = `/epapier/${d.id}`;
   $('d-invest').hidden = !d.investment;
   $('d-invest').innerHTML = d.investment ? `<b>${REC_ICON[d.investment.type]} Rekomendacja: ${esc(d.investment.label)}</b>`
     + `<p>${esc(d.investment.reason)} → ${esc(d.investment.impact)}</p>` : '';

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>PWA · ikona, splash, ekran główny</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.k{font-family:"IBM Plex Sans",system-ui,sans-serif;color:#0E1222}
+.h{margin:0;font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#454B57}
+.app{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#FFFFFF}
+.app i{display:block;width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,.22)}
+</style>
+</helmet>
+<div class="k" style="width: 1200px; height: 900px; box-sizing: border-box; padding: 40px; background: #F6F4EF; display: flex; flex-direction: column; gap: 24px">
+<h1 style="margin: 0; font-size: 32px; line-height: 40px; font-weight: 700">PWA · ikona, splash i wygląd po instalacji</h1>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 24px; flex: 1; min-height: 0">
+
+<section style="background: #fff; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<h2 class="h">Ikona aplikacji</h2>
+<div style="display: flex; align-items: flex-end; gap: 16px">
+<svg width="192" height="192" viewBox="0 0 192 192" aria-label="Ikona Trash Fairy"><rect width="192" height="192" rx="44" fill="#0E1222"></rect><path d="M96 34 L108 84 L158 96 L108 108 L96 158 L84 108 L34 96 L84 84 Z" fill="#CDBBFF"></path><path d="M146 30 L150.5 43.5 L164 48 L150.5 52.5 L146 66 L141.5 52.5 L128 48 L141.5 43.5 Z" fill="#FFD34D"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<svg width="72" height="72" viewBox="0 0 192 192" aria-hidden="true"><rect width="192" height="192" rx="44" fill="#0E1222"></rect><path d="M96 34 L108 84 L158 96 L108 108 L96 158 L84 108 L34 96 L84 84 Z" fill="#CDBBFF"></path><path d="M146 30 L150.5 43.5 L164 48 L150.5 52.5 L146 66 L141.5 52.5 L128 48 L141.5 43.5 Z" fill="#FFD34D"></path></svg>
+<svg width="40" height="40" viewBox="0 0 192 192" aria-hidden="true"><rect width="192" height="192" rx="44" fill="#0E1222"></rect><path d="M96 34 L108 84 L158 96 L108 108 L96 158 L84 108 L34 96 L84 84 Z" fill="#CDBBFF"></path></svg>
+</div>
+</div>
+<span style="font-size: 15px; line-height: 22px; color: #454B57">Gwiazdka wróżki na granacie. Wersja „maskable”: motyw w środkowych 80 %, tło granatowe do krawędzi. Przy 40 px bez małej gwiazdki.</span>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 15px">
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 24px; height: 24px; border-radius: 6px; background: #0E1222"></span><strong>theme_color</strong> #0E1222 · pasek systemowy</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 24px; height: 24px; border-radius: 6px; background: #0E1222"></span><strong>background_color</strong> #0E1222 · splash</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 24px; height: 24px; border-radius: 6px; background: #0B0E1A"></span><strong>ciemny</strong> #0B0E1A · media prefers-color-scheme</span>
+<span><strong>display</strong> standalone · <strong>start_url</strong> /zglos · <strong>lang</strong> pl</span>
+</div>
+</section>
+
+<section style="background: #fff; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; align-items: center">
+<h2 class="h" style="align-self: flex-start">Splash</h2>
+<div style="width: 234px; height: 506px; border-radius: 28px; background: #0E1222; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #fff; box-shadow: 0 12px 32px rgba(14,18,34,.25); padding: 24px; box-sizing: border-box">
+<svg width="88" height="88" viewBox="0 0 192 192" aria-hidden="true"><path d="M96 34 L108 84 L158 96 L108 108 L96 158 L84 108 L34 96 L84 84 Z" fill="#CDBBFF"></path><path d="M146 30 L150.5 43.5 L164 48 L150.5 52.5 L146 66 L141.5 52.5 L128 48 L141.5 43.5 Z" fill="#FFD34D"></path></svg>
+<span style="font-size: 26px; font-weight: 700">Trash <span style="color: #CDBBFF">Fairy</span></span>
+<span style="font-size: 15px; line-height: 22px; text-align: center; color: #C3C8D4">Kraków nie potrzebuje więcej koszy, potrzebuje wróżki.</span>
+<span style="margin-top: 32px; font-size: 13px; color: #C3C8D4">dla MPO Kraków</span>
+</div>
+</section>
+
+<section style="background: #fff; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; align-items: center">
+<h2 class="h" style="align-self: flex-start">Ekran główny i tryb aplikacji</h2>
+<div style="display: flex; gap: 24px; align-items: flex-start">
+<div style="width: 234px; height: 506px; border-radius: 28px; background: #3E4A5C; padding: 40px 18px; box-sizing: border-box; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 8px; align-content: start; box-shadow: 0 12px 32px rgba(14,18,34,.25)">
+<span class="app"><i></i>Aparat</span><span class="app"><i></i>Mapy</span><span class="app"><i></i>Bilety</span>
+<span class="app"><i></i>Pogoda</span>
+<span class="app"><svg width="56" height="56" viewBox="0 0 192 192" aria-hidden="true"><rect width="192" height="192" rx="44" fill="#0E1222"></rect><path d="M96 34 L108 84 L158 96 L108 108 L96 158 L84 108 L34 96 L84 84 Z" fill="#CDBBFF"></path><path d="M146 30 L150.5 43.5 L164 48 L150.5 52.5 L146 66 L141.5 52.5 L128 48 L141.5 43.5 Z" fill="#FFD34D"></path></svg><strong>Trash Fairy</strong></span>
+<span class="app"><i></i>Notatki</span>
+</div>
+<div style="width: 180px; display: flex; flex-direction: column; gap: 0; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 32px rgba(14,18,34,.25)">
+<span style="height: 24px; background: #0E1222"></span>
+<span style="height: 44px; background: #0E1222; color: #fff; display: flex; align-items: center; padding: 0 12px; font-size: 15px; font-weight: 700">Trash <span style="color: #CDBBFF; margin-left: 4px">Fairy</span></span>
+<span style="height: 300px; background: #F6F4EF; display: flex; flex-direction: column; gap: 8px; padding: 12px; box-sizing: border-box">
+<span style="height: 72px; border-radius: 10px; background: #E3DFD6"></span>
+<span style="height: 14px; width: 70%; border-radius: 4px; background: #CFC9BE"></span>
+<span style="flex: 1"></span>
+<span style="height: 28px; border-radius: 8px; border: 2px solid #B57D00; background: #FFF3D1"></span>
+<span style="height: 28px; border-radius: 8px; border: 2px solid #C40000; background: #FBE4E4"></span>
+<span style="height: 28px; border-radius: 8px; border: 2px solid #2F3A41; background: #E8EBED"></span>
+</span>
+</div>
+</div>
+<span style="font-size: 15px; line-height: 22px; color: #454B57; align-self: stretch">Po dodaniu do ekranu głównego: bez paska przeglądarki, pasek systemowy w kolorze granatu. Zgłoszenia offline czekają w kolejce (Background Sync) i wysyłają się same.</span>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

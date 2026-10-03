@@ -11,7 +11,7 @@ def app():
     from app import comparison, forecast
     forecast.clear_cache()
     comparison.clear_cache()
-    app = create_app({"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "TESTING": True})
+    app = create_app({"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "TESTING": True, "OSRM_URL": ""})
     with app.app_context():
         yield app
 

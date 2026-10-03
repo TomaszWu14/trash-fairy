@@ -18,7 +18,7 @@ Koncepcja (przed wydarzeniem, bez kodu): `docs/KONCEPCJA.md`. Cały kod powstaje
 
 ## Stack
 Python 3.12 (Docker) / 3.13 (lokalny venv), Flask (app factory, blueprinty), Flask-SQLAlchemy,
-PostgreSQL na produkcji (`DATABASE_URL`), SQLite lokalnie, Gunicorn, Dockerfile (port 8000), `/health` sprawdza bazę.
+PostgreSQL na produkcji (`DATABASE_URL`), SQLite lokalnie, Gunicorn, Dockerfile (port 8080, zmienna PORT), `/health` sprawdza bazę.
 Frontend: Jinja + Tailwind + DaisyUI z CDN, Leaflet (z atrybucją OSM), Chart.js. Bez builda.
 UI po polsku, WCAG 2.1 AA, kolor nigdy jedynym nośnikiem informacji. Styl: koncepcja, sekcja 9.
 

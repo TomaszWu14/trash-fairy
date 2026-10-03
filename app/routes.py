@@ -93,7 +93,7 @@ def plan_routes(now, states):
         out.append({
             "kind": kind, "label": fleet["label"], "vehicle": fleet["vehicle"],
             "run_at": run_at.isoformat(), "run_label": f"{run_at:%d.%m %H:%M}",
-            "following_label": f"{following:%d.%m %H:%M}", "km": round(meters / 1000, 1), "stops": stops,
+            "following_at": following.isoformat(), "following_label": f"{following:%d.%m %H:%M}", "km": round(meters / 1000, 1), "stops": stops,
             "path": [[DEPOT["lat"], DEPOT["lon"]]] + [[s["lat"], s["lon"]] for s in stops] + [[DEPOT["lat"], DEPOT["lon"]]],
         })
     return out

@@ -39,4 +39,15 @@ def create_app(config=None):
     app.cli.add_command(karnet_command)
     with app.app_context():
         db.create_all()
+        _add_missing_columns()
     return app
+
+
+def _add_missing_columns():
+    """Bez Alembica: dokładamy nowe, opcjonalne kolumny do istniejącej bazy (np. press.kind z ekranu /zglos)."""
+    from sqlalchemy import inspect, text
+    insp = inspect(db.engine)
+    for table, column, ddl in [("press", "kind", "VARCHAR(10)")]:
+        if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
+            db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+            db.session.commit()

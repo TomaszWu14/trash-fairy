@@ -41,14 +41,14 @@ def point_reliability(point_id):
     return reliability([r.hit for r in reversed(rows)])
 
 
-def record_press(point_id, at, ip=None, wall_at=None, resident_id=None, source="button"):
+def record_press(point_id, at, ip=None, wall_at=None, resident_id=None, source="button", kind=None):
     """Zapisuje naciśnięcie i dolicza je do otwartego zgłoszenia z ostatnich 15 min albo tworzy nowe.
 
     Zarejestrowany mieszkaniec podnosi wagę zgłoszenia do swojej wiarygodności, a dołączając do zgłoszenia
     zaczętego przez kogoś innego — potwierdza je.
     """
     from .residents import resident_reliability  # import lokalny: residents importuje ten moduł
-    press = Press(point_id=point_id, at=at, ip=ip, wall_at=wall_at, resident_id=resident_id, source=source)
+    press = Press(point_id=point_id, at=at, ip=ip, wall_at=wall_at, resident_id=resident_id, source=source, kind=kind)
     report = (Report.query.filter(Report.point_id == point_id, Report.hit.is_(None),
                                   Report.first_at > at - MERGE_WINDOW, Report.first_at <= at)
               .order_by(Report.first_at.desc()).first())
