@@ -10,9 +10,8 @@ from . import db, llm
 from .misuse import misuse_overview
 from .models import FairyReport, Point
 from .recommendations import recommendations
-from .routes import plan_routes
 from .simulation import hour_floor
-from .state import point_states
+from .state import current_routes, point_states
 
 SECTIONS = ["Najważniejsze dziś", "Trasy", "Nadużycia i powiązania", "Przyciski do sprawdzenia", "Rekomendacja inwestycyjna"]
 
@@ -39,7 +38,7 @@ def build_facts(now):
     """Wszystkie liczby do raportu — liczone w kodzie, nie przez model."""
     states = point_states(now)
     mo = misuse_overview(now)
-    fleets = plan_routes(now, states)
+    fleets = current_routes(now)
     recs = recommendations(now, mo["recommendations"])
     points = {p.id: p for p in Point.query}
     upcoming = sorted(((pid, s) for pid, s in states.items() if s["crossing"] and s["crossing"] > now.isoformat()),

@@ -94,7 +94,7 @@ Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatn
   zaakceptowanego przez autora, a uzasadnienia decyzji są w `DECYZJE.md`.
 - **Claude Design** (kanwa projektowa): trzy kierunki wizualne (A/B/C) dla widoku jury, PWA mieszkańca, PWA kierowcy i e-papieru;
   wybrany kierunek C „Marka Trash Fairy”. Paczki projektowe w `docs/widok-c/`, `docs/zgloszenie/`, `docs/epapier/`.
-- **Claude API** (`anthropic`, model z `ANTHROPIC_MODEL`, domyślnie `claude-opus-5`) w działającej aplikacji, wyłącznie przez `app/llm.py`:
+- **Claude API** (`anthropic`, model z `ANTHROPIC_MODEL`, domyślnie `claude-opus-5-5`) w działającej aplikacji, wyłącznie przez `app/llm.py`:
   analiza zdjęć koszy (Vision, structured outputs, zakaz opisywania osób), godziny i skala wydarzeń z Karnetu, raport „Wróżka podpowiada” dla dyspozytora.
 - **Playwright i Lighthouse:** audyt UX (zrzuty 6 szerokości, poziomy scroll, wydajność i dostępność), wyniki w `docs/audit/RESULTS.md`.
 
@@ -111,6 +111,10 @@ Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatn
 ## Dostępność
 UI po polsku, WCAG 2.1 AA: stan kosza to zawsze kolor + kształt + znak (✓, ↑, !), nigdy sam kolor; cele dotykowe w PWA kierowcy od 56 px;
 tryb ciemny w PWA; Lighthouse Accessibility 97–100 na wszystkich ekranach (`docs/audit/RESULTS.md`).
+
+## Licencja
+[GNU AGPL-3.0](LICENSE): kod można używać i zmieniać, także w sektorze publicznym, ale kto uruchomi zmienioną wersję
+jako usługę, musi udostępnić jej kod. Atrybucje danych i bibliotek: [NOTICE](NOTICE).
 
 ## Przejrzystość
 Koncepcja została przemyślana przed wydarzeniem i jest w `docs/KONCEPCJA.md` (bez kodu).

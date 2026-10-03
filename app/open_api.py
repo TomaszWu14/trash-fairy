@@ -10,8 +10,8 @@ from . import clock, db
 from .api import BIN_CAPACITY_L, conditions
 from .forecast import point_series
 from .models import Point
-from .routes import DEPOT, next_runs, plan_routes
-from .state import point_states
+from .routes import DEPOT, next_runs
+from .state import current_routes, point_states
 
 bp = Blueprint("open_api", __name__, url_prefix="/api/v1")
 PUBLIC = ("level", "state", "label", "fresh", "crossing")
@@ -61,7 +61,7 @@ def routes():
     fleets = [{"kind": f["kind"], "label": f["label"], "run_at": f["run_at"], "km": f["km"],
                "stops": [{"order": s["order"], "id": s["id"], "name": s["name"], "lat": s["lat"], "lon": s["lon"]}
                          for s in f["stops"]]}
-              for f in plan_routes(now, point_states(now))]
+              for f in current_routes(now)]
     return jsonify(meta=_meta(now), depot=DEPOT, fleets=fleets)
 
 

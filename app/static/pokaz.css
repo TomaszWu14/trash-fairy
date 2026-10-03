@@ -207,3 +207,13 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: "IBM
 .c-doc-get { font-size: 13px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 6px; background: var(--ok); color: var(--ok-g); }
 .c-doc pre { margin: 0; padding: 12px; border-radius: 10px; background: var(--navy); color: #fff; overflow-x: auto; font-size: 14px; }
 .c-doc-small { font-size: 14px; color: var(--muted); }
+
+/* logowanie personelu */
+.c-login-form { display: flex; flex-direction: column; gap: 8px; max-width: 360px; }
+.c-login-form label { font-weight: 600; font-size: 16px; }
+.c-login-form input { min-height: 48px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--muted); font: inherit; font-size: 16px;
+                      background: var(--surface); color: var(--text); }
+.c-login-form input[aria-invalid="true"] { border: 2px solid var(--full); }
+.c-login-form .btn { margin-top: 8px; min-height: 56px; }
+.c-login-err { padding: 12px 16px; border-radius: 12px; border: 2px solid var(--full); background: var(--surface); color: var(--text) !important; }
+.c-login a { color: var(--route); }

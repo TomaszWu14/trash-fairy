@@ -18,7 +18,7 @@ const I = {
   cam: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3"/></svg>',
 };
 
-let live = null, online = navigator.onLine, kind = 'bin', pending = null, photo = null, map = null, queued = 0;
+let live = null, online = navigator.onLine, kind = 'bin', pending = null, photo = null, map = null, queued = 0, needsLogin = false;
 let snap = load();
 let screen = snap ? 'route' : 'start';
 if (snap) kind = snap.kind;
@@ -56,9 +56,6 @@ function viewStart() {
   if (!live) return `<p class="k-muted">${online ? 'Ładuję kurs…' : 'Brak zasięgu i brak pobranego kursu. Otwórz aplikację w bazie, gdzie jest sieć.'}</p>`;
   const f = fleet(), urgent = f.stops.filter(s => s.state === 'bad').length;
   return `
-    <div class="k-row" role="group" aria-label="Flota">${['bin', 'shelter'].map(k => `
-      <button type="button" class="k-btn${k === kind ? ' k-btn-primary' : ''}" data-kind="${k}" aria-pressed="${k === kind}">${k === 'bin' ? 'Kosze uliczne' : 'Altany'}</button>`).join('')}
-    </div>
     <section class="k-card" aria-labelledby="run-h">
       <div class="k-row"><span class="k-ico">${I.truck}</span>
         <div><h1 class="k-title" id="run-h">Kurs ${f.run_label.slice(-5)}</h1><span class="k-sub">${esc(f.vehicle)} · ${esc(f.label)}</span></div></div>
@@ -151,8 +148,11 @@ function viewSummary() {
 // --- mapa (Leaflet, przebieg OSRM z migawki) ---
 function drawMap() {
   map = L.map('map', { zoomControl: false });
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'tf-tiles',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+  const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+  const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'tf-tiles', attribution }).addTo(map);
+  let errors = 0;  // bez zasięgu i bez kafelków w cache: statyczny podkład SVG obszaru demo
+  tiles.on('tileerror', () => { if (++errors === 3) { map.removeLayer(tiles);
+    L.imageOverlay('/static/img/krakow-basemap.svg', [[50.04095, 19.912], [50.07005, 19.992]], { attribution }).addTo(map); } });
   const color = getComputedStyle(document.documentElement).getPropertyValue(snap.kind === 'shelter' ? '--route2' : '--route').trim();
   if (snap.geometry?.out?.length) L.polyline(snap.geometry.out, { color, weight: 5, opacity: .85, interactive: false }).addTo(map);
   const next = nextStop();
@@ -204,6 +204,7 @@ async function sendAll() {  // ta sama wysyłka co w sw.js (flush), gdy strona n
     for (const [k, v] of Object.entries(it.fields)) body.append(k, v);
     if (it.photo) body.append('photo', it.photo, it.photoName || 'zdjecie.jpg');
     const r = await fetch(it.url, { method: 'POST', body });
+    if (r.status === 401 || r.status === 403) { needsLogin = true; return; }  // sesja wygasła: zapis zostaje w kolejce
     if (r.status >= 500) throw new Error('server');
     await tfQueue.remove(it.id);
   }
@@ -222,17 +223,27 @@ async function flush() {
 async function updateNet() {
   try { queued = (await tfQueue.all()).length; } catch (e) { queued = 0; }
   const net = $('net');
-  net.classList.toggle('off', !online);
   net.classList.toggle('queue', online && queued > 0);
-  $('net-t').textContent = !online ? `Offline${queued ? ` · ${queued} w kolejce` : ''}` : queued ? `${queued} w kolejce` : 'Online · zsynchronizowano';
+  net.classList.toggle('off', !online || (needsLogin && queued > 0));
+  $('net-t').innerHTML = needsLogin && queued ? `<a href="/logowanie?next=/kierowca">Zaloguj się ponownie</a> · ${queued} czeka`
+    : esc(!online ? `Offline${queued ? ` · ${queued} w kolejce` : ''}` : queued ? `${queued} w kolejce` : 'Online · zsynchronizowano');
 }
 
 async function refresh() {
   try {
-    const r = await fetch('/api/routes');
+    const r = await fetch('/api/kierowca/kurs');  // tylko kurs floty z loginu (decyzja 2)
+    if (r.status === 401) {
+      if (!snap) { location.href = '/logowanie?next=/kierowca'; return; }
+      needsLogin = true;  // z zapisanym kursem pracujemy dalej offline, zapisy czekają na ponowne logowanie
+      throw new Error('401');
+    }
     if (!r.ok) throw new Error(r.status);
     const before = newStops().length;
-    live = await r.json();
+    const d = await r.json();
+    live = { depot: d.depot, now: d.now, fleets: [d.fleet] };
+    kind = d.fleet.kind;
+    needsLogin = false;
+    if (snap && snap.kind !== kind) { snap = null; save(); screen = 'start'; }  // inny login na tym telefonie
     online = true;
     const now = new Date(live.now);
     $('clock').textContent = `${DAYS[now.getDay()]} ${live.now.slice(11, 16)}`;
@@ -249,7 +260,6 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button, a');
   if (!t) return;
   if (t.id === 'undo') return undo();
-  if (t.dataset.kind) { kind = t.dataset.kind; return render(); }
   if (t.id === 'begin') {
     const f = fleet();
     snap = { kind, label: f.label, vehicle: f.vehicle, run_label: f.run_label, km: f.km, geometry: f.geometry,

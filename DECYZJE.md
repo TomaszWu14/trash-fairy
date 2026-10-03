@@ -266,3 +266,25 @@ limity 3 kody/numer/h i 30/h. Bez bramki kod demo na ekranie, jak wcześniej. **
 i własną stroną `/api/docs` (bez Swagger UI z CDN); bez wiarygodności przycisków i danych mieszkańców, `meta.synthetic` wprost.
 Kod etapu 8 z sesji w chmurze nie trafił do repo, więc odtworzyliśmy go na podstawie opisu, od razu sprawdzając pola na prawdziwej odpowiedzi Open-Meteo
 i w dokumentacji TomTom i Twilio.
+
+## Przegląd przed oddaniem: 50 decyzji (sob 3.10, noc)
+
+**Pełna lista w `docs/PRZEGLAD.md`; tu tylko rozstrzygnięcia, które zmieniają charakter aplikacji.**
+Trzy role (publiczna, dyspozytor, kierowca floty) zamiast otwartej aplikacji, bo publiczny Reset, płatne wywołania AI i „Opróżniony”
+z dowolnego miejsca pozwalały komuś z sali zepsuć pokaz albo dane. Odrzuciliśmy konta osobowe (pół dnia bez efektu dla jury).
+Ekran `/telefony` pokazuje cały cykl jednego kosza (e-papier → mieszkaniec → kierowca), bo na rzutniku jury nie zobaczy PWA inaczej.
+Stan `bad` nazywa się „Do opróżnienia”, a „Przepełniony” zostaje dla prognozy ≥ 100%: 86% to nie jest przepełnienie.
+Zamiast uśrednionego „−16% godzin przepełnień” pokazujemy dwie uczciwe liczby, bo kosze mają tyle samo godzin przepełnienia,
+tylko mniej wizyt. Skalowanie na Kraków (1,4–2,7 mln zł/rok) liczy kod z harmonogramu MPO, jako przedział, a nie jedna liczba.
+
+## Fala A: bezpieczny pokaz (sob 3.10, noc)
+
+**Role i loginy (`app/auth.py`): publiczna, `dyspozytor`, `driver_bin`, `driver_altana`; wspólne hasło demo tylko w env (`DEMO_PASSWORD`).**
+Kierowca zapisuje tylko punkty **swojej floty**, a nie „bieżącego planu”: planer po opróżnieniu liczy trasę od nowa i punkt z niej wypada,
+więc reguła „tylko z planu” odrzuciłaby zapisy z kolejki offline i „Cofnij”. Pola dyspozytora filtrujemy na serwerze w jednym miejscu (`public_view`).
+**Limity (SMS, AI 30/h, logowanie 5/15 min) w tabeli `Counter`**, bo przy 2 workerach Gunicorna limity w pamięci były w praktyce podwójne.
+**Stan i trasy z cache po wersji danych** (300 + 580 ms raz na zmianę, nie raz na zapytanie); wersja obejmuje teraz problemy kierowcy i urządzenia,
+których wcześniej nie widziała (panel nie zauważał nowego problemu). Przy okazji: klucze e-papieru liczył `hash()`, losowany per proces, więc
+2 workery dawały fałszywe pełne mignięcia; teraz `hashlib`. Auto-reset demo po 30 min bezczynności, warunkowy UPDATE wybiera jeden worker.
+Biblioteki i fonty lokalnie (bez unpkg, jsDelivr i Google Fonts), licencja AGPL-3.0 z `NOTICE`, model `claude-opus-5-5` z fallbackiem po odmowie.
+**CI (GitHub Actions: pytest) i auto-merge do `main`** na prośbę autora: PR scala się sam po zielonym teście, Redeploy w Coolify zostaje ręczny.

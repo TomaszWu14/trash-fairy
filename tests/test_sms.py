@@ -1,5 +1,3 @@
-from collections import defaultdict, deque
-
 import pytest
 
 from app import http, sms
@@ -12,8 +10,6 @@ SENT = (201, {"sid": "VE123", "status": "pending", "channel": "sms", "to": "+486
 @pytest.fixture
 def twilio(app, monkeypatch):
     app.config.update(TWILIO_ACCOUNT_SID="AC1", TWILIO_AUTH_TOKEN="tok", TWILIO_VERIFY_SID="VA1", SMS_DEMO_FALLBACK="")
-    monkeypatch.setattr(sms, "_sent", defaultdict(deque))
-    monkeypatch.setattr(sms, "_global", deque())
 
     def use(routes):
         fake = FakeOpener(routes)

@@ -22,7 +22,7 @@ def props(client, point_id):
     return next(f["properties"] for f in fc["features"] if f["properties"]["id"] == point_id)
 
 
-def test_main_path_press_turns_point_red_and_top_of_list(client, demo):
+def test_main_path_press_turns_point_red_and_top_of_list(client, demo, staff):
     """Test 10 z sekcji 11: naciśnięcie → stan → punkt do opróżnienia."""
     from app.state import neighbors_map
     lonely = {pid for pid, n in neighbors_map().items() if not n}  # bez sąsiadów w 100 m → bez kary za puste otoczenie
@@ -67,7 +67,7 @@ def test_changes_only_when_version_moves(client, demo):
     assert client.get(f"/api/changes?since={v}").json["changed"] is True
 
 
-def test_clock_endpoints(client, demo):
+def test_clock_endpoints(client, demo, staff):
     data = client.post("/api/clock/advance").json
     assert data["clock"]["label"].endswith("14:30")
     press(client, Point.query.first().id)
@@ -76,7 +76,7 @@ def test_clock_endpoints(client, demo):
     assert data["summary"]["live_presses"] == 0
 
 
-def test_button_page(client, demo):
-    r = client.get(f"/przycisk/{Point.query.first().id}")
-    assert r.status_code == 200 and "PEŁNY?" in r.get_data(as_text=True)
-    assert client.get("/przycisk/99999").status_code == 404
+def test_old_button_page_redirects_to_epaper(client, demo):
+    pid = Point.query.first().id
+    r = client.get(f"/przycisk/{pid}")
+    assert r.status_code == 301 and r.headers["Location"].endswith(f"/epapier/{pid}")

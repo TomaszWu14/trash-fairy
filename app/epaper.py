@@ -4,6 +4,7 @@ Priorytet przy konflikcie: fault > overflow > confirm > enroute > emptied > nigh
 Pas stanu (head/big/sub) zawiera tylko treści stałe dla stanu → zmiana = pełne odświeżenie (mignięcie).
 Wszystko, co zmienia się w trakcie stanu (zapełnienie, czasy, liczba osób) → pola fill/b/c okna częściowego.
 """
+import hashlib
 from datetime import timedelta
 
 from . import db
@@ -12,8 +13,8 @@ from .geo import distance_m
 from .models import Device, Emptying, Event, Point, Report
 from .reports import MERGE_WINDOW
 from .residents import HEARTBEAT_LOST
-from .routes import next_runs, plan_routes
-from .state import point_states
+from .routes import next_runs
+from .state import current_routes, point_states
 
 EMPTIED_HOLD = timedelta(minutes=60)   # „Opróżniono” znika po godzinie
 ENROUTE_BEFORE = timedelta(minutes=45)  # ekipa „wyjechała”: tyle przed godziną kursu, gdy punkt jest na trasie
@@ -73,7 +74,7 @@ def display_state(point, now, states=None, routes=None):
     if report:
         fresh = now - report.last_at <= MERGE_WINDOW
         if not fresh:
-            routes = routes if routes is not None else plan_routes(now, states)
+            routes = routes if routes is not None else current_routes(now)
             for f in routes:
                 for st in f["stops"]:
                     if st["id"] == point.id:
@@ -102,4 +103,6 @@ def keys(state, data):
     """state_key zmienia się tylko przy pełnym odświeżeniu, values_key przy zmianie okna częściowego."""
     full = (state, data.get("head"), data.get("big"), data.get("sub"), data["device"]["device_no"])
     partial = (data.get("fill"), data.get("b"), data.get("c"))
-    return str(hash(full)), str(hash(partial))
+    # hashlib, nie hash(): hash() napisów jest losowany per proces, a 2 workery dawałyby różne klucze (fałszywe mignięcia)
+    digest = lambda t: hashlib.sha1(repr(t).encode()).hexdigest()[:12]
+    return digest(full), digest(partial)

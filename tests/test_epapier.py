@@ -143,7 +143,7 @@ def test_simulator_endpoints(client, demo):
     p = calm_bin()
     assert client.get(f"/epapier/{p.id}").status_code == 200
     r = client.get(f"/epapier/{p.id}.png")
-    assert r.status_code == 200 and r.mimetype == "image/png" and r.headers["Cache-Control"] == "no-store"
+    assert r.status_code == 200 and r.mimetype == "image/png" and r.headers["Cache-Control"] == "no-cache"
     assert Image.open(__import__("io").BytesIO(r.data)).size == (800, 480)
     part = client.get(f"/epapier/{p.id}.png?part=1")
     assert Image.open(__import__("io").BytesIO(part.data)).size == (752, 88)

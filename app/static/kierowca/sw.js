@@ -1,10 +1,10 @@
 // Service worker PWA kierowcy: powłoka offline + Background Sync kolejki opróżnień i problemów (IndexedDB).
 self.TF_DB_NAME = 'trash-fairy-kierowca';
 importScripts('/static/zglos/queue.js');
-const CACHE = 'tf-kierowca-v1';
+const CACHE = 'tf-kierowca-v2';
 const SHELL = ['/kierowca', '/static/kierowca/kierowca.css', '/static/kierowca/kierowca.js', '/static/zglos/queue.js',
                '/static/kierowca/manifest.webmanifest', '/static/img/icon-192.png',
-               'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'];
+               '/static/vendor/leaflet/leaflet.css', '/static/vendor/leaflet/leaflet.js', '/static/fonts/fonts.css'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.allSettled(SHELL.map(u => c.add(u)))).then(() => self.skipWaiting()));
@@ -35,8 +35,9 @@ async function flush() {
     for (const [k, v] of Object.entries(it.fields)) body.append(k, v);
     if (it.photo) body.append('photo', it.photo, it.photoName || 'zdjecie.jpg');
     const r = await fetch(it.url, { method: 'POST', body });  // brak sieci = wyjątek, sync spróbuje później
+    if (r.status === 401 || r.status === 403) break;  // sesja wygasła: zapisy czekają, strona poprosi o logowanie
     if (r.status >= 500) throw new Error('server');
-    await tfQueue.remove(it.id);  // 4xx nie ma sensu powtarzać
+    await tfQueue.remove(it.id);  // pozostałe 4xx (złe dane) nie ma sensu powtarzać
   }
   (await self.clients.matchAll({ type: 'window' })).forEach(c => c.postMessage({ type: 'tf-flushed' }));
 }

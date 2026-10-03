@@ -71,7 +71,7 @@ def test_damaged_does_not_raise_level_but_flags_point(client, demo):
     assert p["state"] == "ok" and not p["fresh"] and p["damaged_at"]
 
 
-def test_overflow_counts_as_full_and_is_noted(client, demo):
+def test_overflow_counts_as_full_and_is_noted(client, demo, staff):
     pid = Point.query.filter_by(kind="bin").first().id
     assert press(client, pid, kind="overflow").json["ok"]
     p = next(f["properties"] for f in client.get("/api/points").json["features"] if f["properties"]["id"] == pid)

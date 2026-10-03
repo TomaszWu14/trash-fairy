@@ -34,7 +34,7 @@ def test_gps_from_exif_roundtrip():
     assert photos.gps_from_exif(buf.getvalue()) is None
 
 
-def test_batch_upload_matches_nearest_bin_by_exif(client, demo):
+def test_batch_upload_matches_nearest_bin_by_exif(client, demo, staff):
     p = Point.query.filter_by(kind="bin").first()
     far_lat = p.lat + 0.02  # ~2 km dalej: brak kosza w 80 m
     data = {"photos": [(io.BytesIO(jpeg_with_gps(p.lat, p.lon)), "a.jpg"), (io.BytesIO(jpeg_with_gps(far_lat, p.lon)), "b.jpg"),
@@ -48,7 +48,7 @@ def test_batch_upload_matches_nearest_bin_by_exif(client, demo):
     assert not c["ok"]
 
 
-def test_single_upload_without_gps_needs_point(client, demo):
+def test_single_upload_without_gps_needs_point(client, demo, staff):
     buf = io.BytesIO(); Image.new("RGB", (8, 8)).save(buf, "JPEG")
     r = client.post("/api/photo", data={"photo": (io.BytesIO(buf.getvalue()), "x.jpg")}, content_type="multipart/form-data")
     assert r.status_code == 400 and "wskaż kosz" in r.json["message"]

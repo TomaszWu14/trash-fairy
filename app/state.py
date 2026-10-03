@@ -4,6 +4,7 @@ stan = max(szacunek, sygnał zgłoszenia), gdzie szacunek pochodzi z prognozy (a
 a sygnał = 100 × wiarygodność przycisku. Prawdziwego poziomu z symulacji tu nie czytamy:
 system bez czujników go nie zna. Opróżnienie zeruje szacunek i rozstrzyga zgłoszenia.
 """
+import copy
 from collections import defaultdict
 from datetime import timedelta
 
@@ -12,7 +13,7 @@ from sqlalchemy import func
 from . import db
 from .forecast import point_forecasts
 from .geo import distance_m
-from .models import Emptying, Point, Press, Report, StopIssue
+from .models import Device, Emptying, PhotoAnalysis, Point, Press, Report, StopIssue
 from .reports import MERGE_WINDOW, low_reliability, reliability
 from .simulation import hour_floor
 
@@ -106,7 +107,50 @@ def forecast_reason(f, now):
     return text + f", 85% ok. {time_label(crossing, now)}{span}"
 
 
+def data_version():
+    """Zmienia się przy każdej zmianie danych, od której zależy stan: zgłoszenie, opróżnienie, zdjęcie i jego analiza,
+    problem kierowcy, urządzenie, przewinięcie zegara, nowa prognoza pogody. Klucz cache i wersja dla pollingu."""
+    from . import clock, weather
+    last = [db.session.query(func.max(m.id)).scalar() or 0 for m in (Press, Emptying, PhotoAnalysis, StopIssue)]
+    rows = [db.session.query(func.count(m.id)).scalar() for m in (Press, Emptying)]  # SQLite potrafi powtórzyć id po resecie
+    analysed = PhotoAnalysis.query.filter(PhotoAnalysis.status != "pending").count()
+    dev = db.session.query(func.max(Device.last_heartbeat), func.max(Device.last_selftest)).one()
+    w = int(((weather._state.get("data") or {}).get("fetched_at")) or 0)
+    devices = "-".join(f"{d:%d%H%M}" if d else "0" for d in dev)
+    return f"{clock.now():%Y%m%d%H%M}-" + "-".join(map(str, last + rows + [analysed])) + f"-{devices}-{w}"
+
+
+_cache = {}
+
+
+def clear_cache():
+    """Po resecie demo i między testami: wersja danych może się powtórzyć na nowej bazie."""
+    _cache.clear()
+
+
+def _cached(name, now, compute):
+    """Jeden wynik na proces dla (zegar, wersja danych): 300–600 ms liczymy raz na zmianę danych, nie raz na zapytanie.
+    Zwracamy kopię, bo wywołujący dopisują pola (trasy: geometria, poziom przystanku)."""
+    key = (name, now, data_version())
+    if key not in _cache:
+        for k in [k for k in _cache if k[0] == name]:
+            del _cache[k]
+        _cache[key] = compute()
+    return copy.deepcopy(_cache[key])
+
+
 def point_states(now):
+    """{point_id: dict ze stanem} dla chwili `now` zegara demo (z cache po wersji danych)."""
+    return _cached("states", now, lambda: _point_states(now))
+
+
+def current_routes(now):
+    """Trasy na najbliższe kursy obu flot (z cache po wersji danych)."""
+    from .routes import plan_routes
+    return _cached("routes", now, lambda: plan_routes(now, point_states(now)))
+
+
+def _point_states(now):
     """{point_id: dict ze stanem} dla chwili `now` zegara demo."""
     hour = hour_floor(now)
 

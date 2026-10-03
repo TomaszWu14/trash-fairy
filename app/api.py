@@ -7,7 +7,7 @@ import os
 from flask import Blueprint, abort, jsonify, request, send_file, session
 from sqlalchemy import func
 
-from . import clock, db, fairy, http, llm, osrm, photos, residents, sms, traffic, weather
+from . import auth, clock, db, fairy, http, llm, osrm, photos, rate, residents, sms, traffic, weather
 from .comparison import compare
 from .events import AFTER, RADIUS_M
 from .forecast import THRESHOLD, forecast_quality, point_series
@@ -19,7 +19,7 @@ from .geo import distance_m
 from .models import Resident
 from .routes import DEPOT, next_runs, plan_routes
 from .simulation import DEMO_NOW, hour_floor
-from .state import CREW_ISSUES, point_states
+from .state import CREW_ISSUES, current_routes, data_version, point_states
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -36,10 +36,17 @@ LEVELS = (0, 25, 50, 75, 100)
 
 
 def version():
-    """Zmienia się przy naciśnięciu, opróżnieniu, zdjęciu (także po jego analizie) i przewinięciu zegara."""
-    last = [db.session.query(func.max(m.id)).scalar() or 0 for m in (Press, Emptying, PhotoAnalysis)]
-    analysed = PhotoAnalysis.query.filter(PhotoAnalysis.status != "pending").count()
-    return f"{clock.now():%Y%m%d%H%M}-" + "-".join(map(str, last + [analysed]))
+    """Wersja danych dla pollingu (app/state.data_version); ta sama służy za klucz cache stanu i tras."""
+    return data_version()
+
+
+# Pola tylko dla dyspozytora: wiarygodność przycisków, nadużycia ze zdjęć, problemy zgłoszone przez kierowcę.
+# Filtrujemy na serwerze (decyzja 7), bo ukrycie w JS i tak zostawiłoby je w odpowiedzi.
+DISPATCHER_ONLY = {"reliability", "check_reason", "misuse", "crew_issue", "photo_note", "photo_error"}
+
+
+def public_view(props):
+    return props if auth.is_dispatcher() else {k: v for k, v in props.items() if k not in DISPATCHER_ONLY}
 
 
 def conditions(now):
@@ -65,8 +72,8 @@ def snapshot():
         features.append({
             "type": "Feature",
             "geometry": {"type": "Point", "coordinates": [p.lon, p.lat]},
-            "properties": {"id": p.id, "kind": p.kind, "name": p.name, "area": p.area, **s,
-                           **mo["points"].get(p.id, {}), "recommendation": mo["recommendations"].get(p.id)},
+            "properties": public_view({"id": p.id, "kind": p.kind, "name": p.name, "area": p.area, **s,
+                                       **mo["points"].get(p.id, {}), "recommendation": mo["recommendations"].get(p.id)}),
         })
     count = lambda st: sum(f["properties"]["state"] == st for f in features)
     return {
@@ -86,7 +93,7 @@ def snapshot():
                    for e in Event.query.order_by(Event.start)
                    if e.end + AFTER > now and e.start < now + timedelta(hours=24)],
         "forecast_quality": forecast_quality(hour_floor(now)),
-        "links": mo["links"],
+        "links": mo["links"] if auth.is_dispatcher() else [],
         "features": features,
     }
 
@@ -106,10 +113,10 @@ def point_detail(point_id):
     analyses = (PhotoAnalysis.query.filter(PhotoAnalysis.point_id == point.id, PhotoAnalysis.at <= now)
                 .order_by(PhotoAnalysis.at.desc(), PhotoAnalysis.id.desc()).limit(5))
     return jsonify(
-        id=point.id, name=point.name, kind=point.kind, area=point.area, **point_states(now)[point.id],
-        **mo["points"].get(point.id, {}), recommendation=mo["recommendations"].get(point.id),
+        **public_view({**point_states(now)[point.id], **mo["points"].get(point.id, {})}),
+        id=point.id, name=point.name, kind=point.kind, area=point.area, recommendation=mo["recommendations"].get(point.id),
         investment=next((r for r in recommendations(now, mo["recommendations"]) if r["point_id"] == point.id), None),
-        analyses=[_analysis(pa) for pa in analyses],
+        analyses=[_analysis(pa) for pa in analyses] if auth.is_dispatcher() else [],
         threshold=THRESHOLD, now=now.isoformat(),
         series=[{"at": at.isoformat(), "label": f"{at:%H}:00", "est": _r(est), "low": _r(low), "high": _r(high),
                  "future": at > hour_floor(now)} for at, est, low, high in series],
@@ -124,7 +131,7 @@ def point_detail(point_id):
 def routes():
     now = clock.now()
     states = point_states(now)
-    fleets = plan_routes(now, states)
+    fleets = current_routes(now)
     for f in fleets:
         for s in f["stops"]:  # PWA kierowcy: domyślny poziom zastany i znacznik stanu bez drugiego zapytania
             st = states[s["id"]]
@@ -138,6 +145,24 @@ def routes():
         f["drive_min_free"] = traffic.drive_min(f["km"])
     return jsonify(depot=DEPOT, fleets=fleets, now=now.isoformat(),
                    traffic={"ratio": k, "delay_min": traffic.delay_min(k)} if k else None)
+
+
+@bp.get("/kierowca/kurs")
+@auth.require("driver")
+def driver_run():
+    """PWA kierowcy: tylko kurs jego floty (decyzja 2), z przebiegiem po ulicach i korektą czasu z ruchu."""
+    now = clock.now()
+    states = point_states(now)
+    f = next(f for f in current_routes(now) if f["kind"] == auth.fleet())
+    for s in f["stops"]:
+        st = states[s["id"]]
+        s.update(level=st["value"], state=st["state"], fresh=st["fresh"])
+    out, approx_out = osrm.street_path(f["path"][:-1])
+    back, approx_back = osrm.street_path(f["path"][-2:]) if f["stops"] else ([], False)
+    f["geometry"] = {"out": out, "back": back, "approx": approx_out or approx_back}
+    k = traffic.city_ratio()
+    f["drive_min"], f["drive_min_free"] = traffic.drive_min(f["km"], k), traffic.drive_min(f["km"])
+    return jsonify(depot=DEPOT, fleet=f, now=now.isoformat(), login=session.get("login"))
 
 
 @bp.get("/recommendations")
@@ -154,6 +179,7 @@ def fairy_get():
 
 
 @bp.post("/fairy")
+@auth.require("dispatcher")
 def fairy_refresh():
     """Nowy raport. Przy błędzie API: komunikat + ostatni raport (nigdy 500)."""
     now = clock.now()
@@ -203,11 +229,14 @@ def _photo_from_request(point, crew_level=None):
 
 
 @bp.post("/emptying")
+@auth.require("dispatcher", "driver")
 def emptying():
     """Ekipa MPO: punkt opróżniony, poziom zastany przed opróżnieniem, opcjonalne zdjęcie."""
     point = _point_or_none(request.form.get("point_id"))
     if point is None:
         return jsonify(ok=False, message="Nie ma takiego punktu."), 404
+    if not auth.can_touch(point):
+        return jsonify(ok=False, message="Ten punkt nie należy do Twojej floty."), 403
     try:
         level = int(request.form.get("level"))
     except (TypeError, ValueError):
@@ -218,23 +247,28 @@ def emptying():
     db.session.add(e)
     resolve_reports(e)
     db.session.commit()
+    clock.touch()
     pa, error = _photo_from_request(point, crew_level=level)
     message = "Zapisano opróżnienie." + (" Zdjęcie przekazane do analizy." if pa else "")
     return jsonify(ok=True, message=message, photo_error=error, analysis_id=pa.id if pa else None)
 
 
 @bp.post("/stop-issue")
+@auth.require("dispatcher", "driver")
 def stop_issue():
     """Kierowca: nie da się podjechać albo problem z koszem (+ opcjonalne zdjęcie). Trasy nie zmienia, decyduje dyspozytor."""
     point = _point_or_none(request.form.get("point_id"))
     if point is None:
         return jsonify(ok=False, message="Nie ma takiego punktu."), 404
+    if not auth.can_touch(point):
+        return jsonify(ok=False, message="Ten punkt nie należy do Twojej floty."), 403
     kind = request.form.get("kind")
     if kind not in CREW_ISSUES:
         return jsonify(ok=False, message="Wybierz rodzaj problemu."), 400
     note = (request.form.get("note") or "").strip()[:200] or None
     db.session.add(StopIssue(point_id=point.id, at=clock.now(), kind=kind, note=note))
     db.session.commit()
+    clock.touch()
     pa, error = _photo_from_request(point)
     return jsonify(ok=True, message=f"Przekazano dyspozytorowi: {CREW_ISSUES[kind]}.", photo_error=error,
                    analysis_id=pa.id if pa else None)
@@ -246,6 +280,7 @@ def _nearest_point(lat, lon):
 
 
 @bp.post("/photo")
+@auth.require("dispatcher")
 def photo():
     """Zdjęcie bez opróżnienia. Bez `point_id` kosz dobieramy z GPS w EXIF (zdjęcia z miasta wgrywane paczką)."""
     point = _point_or_none(request.form.get("point_id"))
@@ -289,6 +324,7 @@ def photo_file(analysis_id):
 
 @bp.get("/changes")
 def changes():
+    clock.maybe_auto_reset()  # po 30 min bez akcji następny widz zaczyna od 13:30
     if request.args.get("since") == version():
         return jsonify(changed=False)
     return jsonify(changed=True, **snapshot())
@@ -364,12 +400,14 @@ def press():
         db.session.add(Press(point_id=point.id, at=now, ip=ip, wall_at=wall, source=source, kind=kind,
                              resident_id=resident.id if resident else None))
         db.session.commit()
+        clock.touch()
         return jsonify(ok=True, message="Dziękujemy, ekipa sprawdzi kosz.", report_id=None, presses=others + 1, confirmed=False,
                        registered=resident is not None, status="merged" if others else "accepted", accepted_at=f"{now:%H:%M}",
                        merged_with_at=None, eta=f"{eta:%H:%M}", traffic_delay_min=delay, route=f"kurs {run_at:%H:%M}",
                        others_count=others)
     report = record_press(point.id, now, ip=ip, wall_at=wall,
                           resident_id=resident.id if resident else None, source=source, kind=kind)
+    clock.touch()
     merged = report.presses > 1
     return jsonify(ok=True, message="Wróżka już leci!", report_id=report.id, presses=report.presses,
                    confirmed=report.confirmed, registered=resident is not None,
@@ -511,6 +549,7 @@ def devices():
 
 
 @bp.post("/devices/<int:point_id>/selftest")
+@auth.require("dispatcher")
 def device_selftest(point_id):
     d = residents.selftest(point_id, clock.now())
     if d is None:
@@ -525,6 +564,7 @@ def clock_advance():
 
 
 @bp.post("/clock/reset")
+@auth.require("dispatcher")
 def clock_reset():
     clock.reset()
     return jsonify(snapshot())

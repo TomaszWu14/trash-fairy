@@ -5,7 +5,7 @@ import random
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, send_file, send_from_directory, url_for
 from sqlalchemy import text
 
-from . import clock, db
+from . import auth, clock, db
 from .geo import distance_m
 from .methodology import page_context
 from .models import Point
@@ -19,6 +19,7 @@ bp = Blueprint("main", __name__)
 @bp.get("/")
 def show():
     """Widok C „Pokaz dla jury”: historia w 4 krokach na jednej mapie."""
+    clock.maybe_auto_reset()  # kolejny widz po 30 min bezczynności zaczyna od 13:30
     return render_template("pokaz.html", public_url=os.environ.get("PUBLIC_URL", ""))
 
 
@@ -74,6 +75,7 @@ def api_docs():
 
 
 @bp.get("/kierowca")
+@auth.require("driver")
 def driver():
     """PWA kierowcy MPO: start zmiany → trasa → przystanek → podsumowanie (offline z kolejką)."""
     return render_template("kierowca.html")
@@ -101,12 +103,18 @@ def epaper_png(point_id):
     from . import epaper, epaper_render
     point = db.get_or_404(Point, point_id)
     state, data = epaper.display_state(point, clock.now())
-    img = epaper_render.render_partial(state, data) if request.args.get("part") else epaper_render.render(state, data)
+    part = bool(request.args.get("part"))
+    state_key, values_key = epaper.keys(state, data)
+    etag = f'"{point_id}-{int(part)}-{state_key}-{values_key}"'  # ten sam ekran = 304 bez renderowania PNG (decyzja 35)
+    if request.headers.get("If-None-Match") == etag:
+        return "", 304, {"ETag": etag, "Cache-Control": "no-cache", "X-Epaper-State": state}
+    img = epaper_render.render_partial(state, data) if part else epaper_render.render(state, data)
     buf = io.BytesIO()
     img.save(buf, "PNG")
     buf.seek(0)
     resp = send_file(buf, mimetype="image/png")
-    resp.headers["Cache-Control"] = "no-store"
+    resp.headers["Cache-Control"] = "no-cache"  # przeglądarka pyta za każdym razem, ale dostaje 304, gdy ekran się nie zmienił
+    resp.headers["ETag"] = etag
     resp.headers["X-Epaper-State"] = state
     return resp
 
@@ -128,6 +136,7 @@ def qr_program():
 
 
 @bp.get("/zdjecia")
+@auth.require("dispatcher")
 def photos_upload():
     """Wgrywanie zdjęć z miasta paczką: kosz dobiera się z GPS w EXIF."""
     return render_template("zdjecia.html")
@@ -140,12 +149,32 @@ def methodology():
 
 @bp.get("/przycisk/<int:point_id>")
 def button(point_id):
-    return render_template("przycisk.html", point=db.get_or_404(Point, point_id))
+    """Stara makieta słupka: zastąpiona symulatorem e-papieru z tym samym przyciskiem."""
+    return redirect(url_for("main.epaper_page", point_id=point_id), 301)
 
 
 @bp.get("/ekipa")
 def crew():
-    return render_template("ekipa.html")
+    """Stary widok ekipy: zastąpiony PWA kierowcy (z uprawnieniami floty)."""
+    return redirect(url_for("main.driver"), 301)
+
+
+@bp.route("/logowanie", methods=["GET", "POST"])
+def login():
+    nxt = request.values.get("next") or ""
+    safe_next = nxt if nxt.startswith("/") and not nxt.startswith("//") else ""  # tylko ścieżki w tej aplikacji
+    error = None
+    if request.method == "POST":
+        error = auth.login(request.form.get("login"), request.form.get("password"), request.remote_addr)
+        if error is None:
+            return redirect(safe_next or auth.home_for_role())
+    return render_template("logowanie.html", error=error, next=safe_next), 400 if error else 200
+
+
+@bp.post("/wyloguj")
+def logout():
+    auth.logout()
+    return redirect(url_for("main.show"))
 
 
 @bp.get("/health")

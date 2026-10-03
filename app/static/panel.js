@@ -1,8 +1,9 @@
 const map = L.map('map').setView([50.0570, 19.9460], 15);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (ODbL)'
-}).addTo(map);
+const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (ODbL)';
+const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: OSM_ATTR }).addTo(map);
+let tileErrors = 0;  // bez sieci do kafelków: statyczny podkład SVG obszaru demo (decyzja 33)
+tiles.on('tileerror', () => { if (++tileErrors === 3) { map.removeLayer(tiles);
+  L.imageOverlay('/static/img/krakow-basemap.svg', [[50.04095, 19.912], [50.07005, 19.992]], { attribution: OSM_ATTR }).addTo(map); } });
 
 const KIND = { bin: { shape: 'circle', size: 18, label: 'Kosz' }, shelter: { shape: 'square', size: 22, label: 'Altana' } };
 const POLL_MS = 2000;

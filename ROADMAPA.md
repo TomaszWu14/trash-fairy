@@ -45,3 +45,8 @@
 - Ruch drogowy w macierzy czasów OR-Tools (dziś korek zmienia tylko czas przejazdu i ETA, nie kolejność ani wybór punktów).
 - Limity SMS, cache pogody i ruchu we wspólnym magazynie (Redis/Postgres) przy kilku workerach Gunicorna; dziś pamięć procesu + plik.
 - Otwarte API: klucze i limity na klienta, wersjonowanie zmian kontraktu, webhook „kosz przepełniony” dla miasta.
+- Konta osobowe kierowców i dyspozytorów, grafik zmian, numery pojazdów (dziś: loginy floty ze wspólnym hasłem demo).
+- Web Push / SMS „Opróżniono” dla zgłaszającego; dziś status odświeżany na otwartym ekranie.
+- Model per zadanie (Sonnet 5 / Haiku 4.5 dla prostych wywołań), gdy wolumen wywołań AI wzrośnie.
+- Panel dyspozytora w układzie mobilnym i w trybie ciemnym (całodobowa dyspozytornia).
+- Pełna wersja angielska interfejsu.

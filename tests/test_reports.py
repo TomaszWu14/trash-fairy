@@ -120,7 +120,7 @@ def test_high_forecast_alone_turns_point_red(point, forecast):
     assert s["reason"] == "prognoza 90%, powyżej 85% od ok. 12:50"
 
 
-def test_long_overflow_without_presses_flags_button(point, forecast):
+def test_long_overflow_without_presses_flags_button(point, forecast, staff):
     forecast(110, recent=[110] * 6)
     s = point_states(T0)[point.id]
     assert s["check_button"] and "nikt nie nacisnął" in s["check_reason"]

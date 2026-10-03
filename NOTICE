@@ -1,0 +1,20 @@
+Trash Fairy — inteligentny odbiór odpadów dla Krakowa (HackYeah 2026, Smart City)
+Copyright (C) 2026 TomaszWu14 (autor projektu)
+
+Ten program jest wolnym oprogramowaniem na licencji GNU Affero General Public License w wersji 3 (plik LICENSE).
+Kto udostępnia zmodyfikowaną wersję jako usługę sieciową, musi udostępnić jej kod źródłowy użytkownikom tej usługi.
+
+Dane i składniki stron trzecich (każdy na własnej licencji):
+- OpenStreetMap: pozycje koszy, altan, lokali i przystanków, podkład mapy — © OpenStreetMap contributors, ODbL 1.0
+  (https://www.openstreetmap.org/copyright). Pliki data/*.geojson, data/osrm_cache.json, app/static/img/krakow-basemap.svg.
+- Leaflet 1.9.4 — BSD-2-Clause (app/static/vendor/leaflet/LICENSE)
+- Leaflet.markercluster 1.5.3 — MIT (app/static/vendor/markercluster/LICENSE)
+- Chart.js 4.4.4 — MIT (app/static/vendor/chartjs/LICENSE.md)
+- qrcode-generator 1.4.4 — MIT, Kazuhiko Arase (app/static/vendor/qrcode/LICENSE)
+- IBM Plex Sans, Fraunces — SIL Open Font License 1.1 (app/static/fonts/OFL-*.txt)
+- Biblioteki Pythona z requirements.txt (m.in. Flask BSD-3, SQLAlchemy MIT, OR-Tools Apache 2.0, anthropic MIT, Pillow HPND).
+- Open-Meteo (open-meteo.com) — dane pogodowe, CC BY 4.0.
+- Karnet Kraków (karnet.krakowculture.pl, Krakowskie Biuro Festiwalowe) — dane o wydarzeniach, cache w data/karnet.json.
+- Harmonogram oczyszczania MPO 08/2026 (https://mpo.krakow.pl/czystosc/) — statystyki w docs/kontekst-mpo.md.
+
+Wszystkie dane operacyjne (poziomy zapełnienia, opróżnienia, zgłoszenia) są syntetyczne.

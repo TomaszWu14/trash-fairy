@@ -1,6 +1,6 @@
 // Symulator ekranu e-papierowego: polling co 1 s; zmiana state_key = pełne odświeżenie z mignięciem (1,5 s),
 // zmiana values_key = podmiana wyłącznie okna częściowego 24,344–776,432 (bez mignięcia).
-const POLL_MS = 1000, FLASH_MS = 1500;
+const POLL_MS = 2000, FLASH_MS = 1500;  // prawdziwy e-papier i tak odświeża się kilka sekund
 const $ = id => document.getElementById(id);
 let stateKey = null, valuesKey = null, busy = false;
 const STATE_LABEL = { calm: '1 · spokój', confirm: '2 · zgłoszono', enroute: '3 · ekipa w drodze', emptied: '4 · opróżniono',

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pl">
+{% from "_logo.html" import logo %}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logowanie — Trash Fairy</title>
+  <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='pokaz.css') }}">
+</head>
+<body>
+<main class="c-404 c-login">
+  <div class="c-404-logo">{{ logo(56, '#5B2A9A') }}</div>
+  <h1>Logowanie personelu MPO</h1>
+  <p>Dyspozytor widzi pełny panel i steruje pokazem. Kierowca widzi tylko trasę swojej floty.
+     Mieszkańcy i jury nie muszą się logować.</p>
+  {% if error %}<p class="c-login-err" role="alert"><strong>Nie udało się:</strong> {{ error }}</p>{% endif %}
+  <form method="post" action="{{ url_for('main.login') }}" class="c-login-form">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label for="login">Login</label>
+    <input id="login" name="login" autocomplete="username" required autocapitalize="none" spellcheck="false"
+           value="{{ request.form.get('login', '') }}" {% if error %}aria-invalid="true"{% endif %}>
+    <label for="password">Hasło</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button class="btn" type="submit">Zaloguj</button>
+  </form>
+  <p class="c-404-code">Dane logowania dla jury są w opisie projektu.</p>
+  <p><a href="/">← Wróć do pokazu</a></p>
+</main>
+</body>
+</html>

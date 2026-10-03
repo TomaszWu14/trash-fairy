@@ -12,7 +12,7 @@ def demo(cache):
     clock.reset(weeks=2)
 
 
-def test_stop_issue_flags_point_until_emptying(client, demo):
+def test_stop_issue_flags_point_until_emptying(client, demo, staff):
     pid = Point.query.filter_by(kind="bin").first().id
     r = client.post("/api/stop-issue", data={"point_id": pid, "kind": "no_access", "note": "auto na kopercie"})
     assert r.status_code == 200 and "nie da się podjechać" in r.json["message"]
@@ -23,7 +23,7 @@ def test_stop_issue_flags_point_until_emptying(client, demo):
     assert point_states(clock.now())[pid]["crew_issue"] is None  # opróżnienie zamyka problem
 
 
-def test_stop_issue_rejects_bad_input(client, demo):
+def test_stop_issue_rejects_bad_input(client, demo, staff):
     pid = Point.query.first().id
     assert client.post("/api/stop-issue", data={"point_id": pid, "kind": "rm -rf"}).status_code == 400
     assert client.post("/api/stop-issue", data={"point_id": 99999, "kind": "damaged"}).status_code == 404
@@ -44,6 +44,9 @@ def test_routes_stops_carry_level_and_state(client, demo):
 
 
 def test_driver_pwa_page_sw_and_manifest(client):
+    from tests.conftest import login
+    assert client.get("/kierowca").status_code == 302  # bez logowania: na /logowanie
+    login(client, "driver_bin")
     html = client.get("/kierowca").get_data(as_text=True)
     assert "kierowca/manifest.webmanifest" in html and "kierowca.js" in html
     sw = client.get("/kierowca/sw.js")

@@ -33,6 +33,8 @@ def create_app(config=None):
     from .cli import cleanup_photos_command, karnet_command, seed_command
     from .views import bp
 
+    from . import auth
+    auth.init_app(app)
     app.register_blueprint(bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(open_api_bp)
@@ -56,7 +58,7 @@ def _add_missing_columns():
     """Bez Alembica: dokładamy nowe, opcjonalne kolumny do istniejącej bazy (np. press.kind z ekranu /zglos)."""
     from sqlalchemy import inspect, text
     insp = inspect(db.engine)
-    for table, column, ddl in [("press", "kind", "VARCHAR(10)")]:
+    for table, column, ddl in [("press", "kind", "VARCHAR(10)"), ("demo_clock", "last_activity", "TIMESTAMP")]:
         if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
             db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
             db.session.commit()

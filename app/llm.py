@@ -11,9 +11,10 @@ import re
 
 import anthropic
 
-DEFAULT_MODEL = "claude-opus-5"
-# serwerowy fallback po odmowie filtra bezpieczeństwa — wspierany przez Opus 5 i Fable 5.1
-FALLBACK_MODELS = {"claude-opus-5", "claude-fable-5-1"}
+DEFAULT_MODEL = "claude-opus-5-5"  # decyzja 38: jeden model dla Vision, raportu i Karnetu; effort ustawiamy jawnie
+# serwerowy fallback po odmowie filtra bezpieczeństwa (Opus 5.5 ma nowe kategorie: bio, reasoning_extraction)
+FALLBACK_MODELS = {"claude-opus-5-5", "claude-opus-5", "claude-fable-5-1"}
+AI_PER_HOUR = 30  # globalny limit wywołań (decyzja 6), wspólny dla workerów (app/rate.py)
 TIMEOUT_S = 60
 MAX_INPUT_CHARS = 8000   # treść zewnętrzna obcinana przed wysłaniem do modelu
 MAX_OUTPUT_TOKENS = 4000
@@ -95,6 +96,9 @@ def image_block(data, media_type):
 def _create(system, content, output_config, max_tokens):
     if not available():
         raise LLMError("Analiza AI niedostępna: brak klucza ANTHROPIC_API_KEY.")
+    from . import rate
+    if not rate.hit("ai:global", AI_PER_HOUR, 3600):
+        raise LLMError(f"Wyczerpany limit {AI_PER_HOUR} analiz AI na godzinę. Pokazuję ostatni wynik.")
     client = anthropic.Anthropic(timeout=TIMEOUT_S)
     max_tokens = min(max_tokens, MAX_OUTPUT_TOKENS)
     kwargs = {}  # nigdy `tools`: model tylko opisuje, nie działa

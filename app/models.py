@@ -157,3 +157,11 @@ class DemoClock(db.Model):
     """Zegar scenariusza demo (jeden wiersz). W bazie, bo gunicorn ma kilka procesów."""
     id = db.Column(db.Integer, primary_key=True)
     now = db.Column(db.DateTime, nullable=False)
+    last_activity = db.Column(db.DateTime)  # prawdziwy czas UTC ostatniej akcji w demo (auto-reset po bezczynności)
+
+
+class Counter(db.Model):
+    """Liczniki limitów (SMS, AI, logowanie) wspólne dla wszystkich workerów Gunicorna: okno stałe, klucz + początek okna."""
+    key = db.Column(db.String(120), primary_key=True)
+    window_start = db.Column(db.Integer, primary_key=True)  # sekundy epoki, początek okna
+    count = db.Column(db.Integer, nullable=False, default=0)
