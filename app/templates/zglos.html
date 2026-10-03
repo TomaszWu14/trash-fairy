@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="pl">
+{% from "_logo.html" import logo %}
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -17,7 +18,7 @@
 <body>
 <header class="z-head">
   <div class="z-brand">
-    <span class="z-logo">Trash <span>Fairy</span><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="#CDBBFF"/></svg></span>
+    <span class="z-logo" style="--logo-bg:var(--head)">{{ logo(26, '#CDBBFF') }}Trash <span>Fairy</span></span>
     <span class="z-sub"><span class="z-sub-phone">MPO Kraków · zgłoś stan kosza</span><span class="z-sub-wide">Kraków nie potrzebuje więcej koszy, potrzebuje wróżki.</span></span>
   </div>
   <span class="z-demo" role="status">Demo · {{ clock_label }}</span>

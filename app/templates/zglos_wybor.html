@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="pl">
+{% from "_logo.html" import logo %}
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -22,7 +23,7 @@
 <body>
 <header class="z-head">
   <div class="z-brand">
-    <span class="z-logo">Trash <span>Fairy</span></span>
+    <span class="z-logo" style="--logo-bg:var(--head)">{{ logo(26, '#CDBBFF') }}Trash <span>Fairy</span></span>
     <span class="z-sub">MPO Kraków · zgłoś stan kosza</span>
   </div>
 </header>

@@ -215,3 +215,11 @@ stan jest funkcją zgłoszeń, opróżnień, tras i urządzenia, więc nie ma cz
 Symulator `/epapier/<nr>` przy zmianie `values_key` podmienia tylko wycinek okna, co odpowiada odświeżaniu częściowemu sterownika 7,5".
 Test XOR pilnuje, że zmiana wartości nie rusza pikseli poza oknem. Fizyczny przycisk na stronie to zwykłe `POST /api/press` (źródło `button`),
 które przy okazji odświeża heartbeat urządzenia, bo nadający przycisk na pewno żyje. Etap 2 (LoRaWAN) tylko jako kontrakt w `docs/epapier/ETAP2-LORAWAN.md`.
+
+## Bezpieczeństwo AI: prompt injection i walidacja odpowiedzi (sob 3.10, wieczór)
+
+**Zewnętrzne treści traktujemy jako dane, nie polecenia:** opis wydarzenia, zdjęcie i fakty trafiają do modelu w ograniczniku
+`<dane_zewnetrzne>`, a system prompt każe ignorować instrukcje w danych, także te widoczne na zdjęciu. **AI zwraca tylko zwalidowany JSON:**
+poza structured outputs sprawdzamy sami pola, enumy, zakresy i długości, a odrzucona odpowiedź oznacza komunikat i ostatni dobry wynik.
+**Decyzje podejmują reguły w kodzie,** więc zmanipulowana odpowiedź AI nie zmieni trasy ani priorytetu: najwyżej ustawi skalę tłumu
+na „large”, czyli to, co reguła i tak dopuszcza. Odrzuciliśmy pydantic (nowa zależność dla trzech schematów) na rzecz 40-linijkowego walidatora.

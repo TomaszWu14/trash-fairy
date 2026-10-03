@@ -1,0 +1,277 @@
+{
+ "console": {
+  "360": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation"
+  ],
+  "390": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation"
+  ],
+  "768": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation"
+  ],
+  "1024": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation"
+  ],
+  "1440": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation"
+  ],
+  "1920": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation"
+  ]
+ },
+ "hscroll": [
+  {
+   "screen": "pokaz/krok3",
+   "w": 360,
+   "scrollWidth": 460
+  },
+  {
+   "screen": "pokaz/krok1",
+   "w": 360,
+   "scrollWidth": 460
+  },
+  {
+   "screen": "pokaz/krok2",
+   "w": 360,
+   "scrollWidth": 460
+  },
+  {
+   "screen": "pokaz/krok4",
+   "w": 360,
+   "scrollWidth": 460
+  },
+  {
+   "screen": "dyspozytor/sytuacja",
+   "w": 360,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "dyspozytor/trasy",
+   "w": 360,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "dyspozytor/wrozka",
+   "w": 360,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "dyspozytor/program",
+   "w": 360,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "dyspozytor/szczegoly",
+   "w": 360,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "metodologia/start",
+   "w": 360,
+   "scrollWidth": 377
+  },
+  {
+   "screen": "pokaz/krok3",
+   "w": 390,
+   "scrollWidth": 460
+  },
+  {
+   "screen": "pokaz/krok1",
+   "w": 390,
+   "scrollWidth": 460
+  },
+  {
+   "screen": "pokaz/krok2",
+   "w": 390,
+   "scrollWidth": 460
+  },
+  {
+   "screen": "pokaz/krok4",
+   "w": 390,
+   "scrollWidth": 460
+  },
+  {
+   "screen": "dyspozytor/sytuacja",
+   "w": 390,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "dyspozytor/trasy",
+   "w": 390,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "dyspozytor/wrozka",
+   "w": 390,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "dyspozytor/program",
+   "w": 390,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "dyspozytor/szczegoly",
+   "w": 390,
+   "scrollWidth": 469
+  },
+  {
+   "screen": "dyspozytor/sytuacja",
+   "w": 1024,
+   "scrollWidth": 1339
+  },
+  {
+   "screen": "dyspozytor/trasy",
+   "w": 1024,
+   "scrollWidth": 1339
+  },
+  {
+   "screen": "dyspozytor/wrozka",
+   "w": 1024,
+   "scrollWidth": 1339
+  },
+  {
+   "screen": "dyspozytor/program",
+   "w": 1024,
+   "scrollWidth": 1339
+  },
+  {
+   "screen": "dyspozytor/szczegoly",
+   "w": 1024,
+   "scrollWidth": 1339
+  }
+ ],
+ "slow": [
+  {
+   "w": 360,
+   "url": "/api/comparison",
+   "ms": 2326
+  },
+  {
+   "w": 360,
+   "url": "/epapier/18.png?part=1",
+   "ms": 466
+  },
+  {
+   "w": 360,
+   "url": "/epapier/18.png?part=1&v=1791043794829",
+   "ms": 308
+  },
+  {
+   "w": 360,
+   "url": "/epapier/18.png?v=1791043794829",
+   "ms": 308
+  },
+  {
+   "w": 360,
+   "url": "/epapier/18.png",
+   "ms": 466
+  },
+  {
+   "w": 390,
+   "url": "https://tile.openstreetmap.org/11/1137/693.png",
+   "ms": 536
+  },
+  {
+   "w": 390,
+   "url": "https://tile.openstreetmap.org/11/1138/694.png",
+   "ms": 650
+  },
+  {
+   "w": 390,
+   "url": "https://tile.openstreetmap.org/11/1138/693.png",
+   "ms": 744
+  },
+  {
+   "w": 390,
+   "url": "https://tile.openstreetmap.org/11/1137/694.png",
+   "ms": 777
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18199/11105.png",
+   "ms": 356
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18201/11105.png",
+   "ms": 390
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18201/11106.png",
+   "ms": 394
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18198/11106.png",
+   "ms": 395
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18201/11103.png",
+   "ms": 403
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18200/11104.png",
+   "ms": 403
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18200/11105.png",
+   "ms": 402
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18200/11103.png",
+   "ms": 402
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18201/11104.png",
+   "ms": 403
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18198/11105.png",
+   "ms": 412
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18199/11106.png",
+   "ms": 413
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18199/11103.png",
+   "ms": 426
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18199/11104.png",
+   "ms": 429
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18200/11106.png",
+   "ms": 427
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18198/11103.png",
+   "ms": 428
+  },
+  {
+   "w": 1024,
+   "url": "https://tile.openstreetmap.org/15/18198/11104.png",
+   "ms": 428
+  }
+ ],
+ "press_to_map_ms": 263,
+ "double_click": [
+  "sent",
+  0
+ ],
+ "errors": []
+}

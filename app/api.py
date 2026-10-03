@@ -202,16 +202,43 @@ def emptying():
     return jsonify(ok=True, message=message, photo_error=error, analysis_id=pa.id if pa else None)
 
 
+def _nearest_point(lat, lon):
+    best = min(Point.query, key=lambda q: distance_m(lat, lon, q.lat, q.lon), default=None)
+    return (best, round(distance_m(lat, lon, best.lat, best.lon))) if best else (None, None)
+
+
 @bp.post("/photo")
 def photo():
-    """Zdjęcie bez opróżnienia (np. dyspozytor wgrywa zdjęcie od mieszkańca)."""
+    """Zdjęcie bez opróżnienia. Bez `point_id` kosz dobieramy z GPS w EXIF (zdjęcia z miasta wgrywane paczką)."""
     point = _point_or_none(request.form.get("point_id"))
-    if point is None:
-        return jsonify(ok=False, message="Nie ma takiego punktu."), 404
-    pa, error = _photo_from_request(point)
-    if error or pa is None:
-        return jsonify(ok=False, message=error or "Wybierz zdjęcie."), 400
-    return jsonify(ok=True, message="Zdjęcie przekazane do analizy.", analysis_id=pa.id)
+    files = [f for f in request.files.getlist("photo") + request.files.getlist("photos") if f and f.filename]
+    if not files:
+        return jsonify(ok=False, message="Wybierz zdjęcie."), 400
+    results = []
+    for upload in files:
+        data = upload.read(photos.MAX_BYTES + 1)
+        mt, error = photos.validate(data)
+        target, dist = point, None
+        if not error and target is None:
+            gps = photos.gps_from_exif(data)
+            if gps is None:
+                error = "Brak lokalizacji w zdjęciu — wskaż kosz ręcznie."
+            else:
+                target, dist = _nearest_point(*gps)
+                if target is None or dist > photos.MATCH_M:
+                    error, target = f"Najbliższy kosz jest {dist} m od miejsca zdjęcia (limit {photos.MATCH_M} m).", None
+        if error:
+            results.append({"file": upload.filename, "ok": False, "message": error})
+            continue
+        pa = photos.save(target.id, clock.now(), data, mt)
+        photos.analyze_in_background(pa.id)
+        results.append({"file": upload.filename, "ok": True, "analysis_id": pa.id, "point_id": target.id, "point_name": target.name,
+                        "distance_m": dist, "matched_by": "exif" if dist is not None else "form"})
+    if len(results) == 1 and request.files.get("photo") is not None:
+        r = results[0]
+        return (jsonify(message="Zdjęcie przekazane do analizy.", **r) if r["ok"]
+                else (jsonify(ok=False, message=r["message"]), 400))
+    return jsonify(ok=any(r["ok"] for r in results), results=results)
 
 
 @bp.get("/photos/<int:analysis_id>")
