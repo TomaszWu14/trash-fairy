@@ -39,6 +39,16 @@ Docker: `docker build -t trash-fairy . && docker run -p 8080:8080 trash-fairy` (
 - **Claude API** (`anthropic`, model z `ANTHROPIC_MODEL`, domyślnie `claude-opus-5`): analiza zdjęć koszy (structured outputs, zakaz opisywania osób); od etapu 6 także wydarzenia i raport dla dyspozytora. Tylko przez `app/llm.py`. Bez klucza aplikacja działa, a analiza pokazuje komunikat.
 - **Harmonogram oczyszczania MPO 08/2026** (arkusz Kosze): statystyki częstotliwości w `docs/kontekst-mpo.md`. Źródło publikacji do uzupełnienia.
 
+## Bezpieczeństwo AI
+- Każda treść z zewnątrz (opisy wydarzeń z Karnetu, zdjęcia, teksty od użytkowników) trafia do modelu wyłącznie jako dane
+  w ograniczniku `<dane_zewnetrzne>…</dane_zewnetrzne>`, obcięte do 8 000 znaków; system prompt każe ignorować polecenia w danych,
+  także w tekście widocznym na zdjęciu. Model nie ma narzędzi ani dostępu do bazy (`app/llm.py`).
+- Każda odpowiedź przechodzi walidację schematu (`llm.validate`): tylko dozwolone pola, wartości z białej listy
+  (np. poziom ∈ {0, 25, 50, 75, 100}, skala tłumu ∈ {small, medium, large}), zakresy liczb i długości tekstów.
+  Odrzucona odpowiedź = komunikat w UI i ostatni dobry wynik z bazy, nigdy błąd 500.
+- Decyzje (stan, priorytet, trasa, rekomendacja) liczą reguły w kodzie ze zwalidowanych pól; wolny tekst AI jest tylko wyświetlany,
+  zawsze przez escapowanie (Jinja autoescape, `esc()` w JS), bez `|safe` i bez klikalnych linków. Testy: `tests/test_ai_safety.py`.
+
 ## Przejrzystość
 Koncepcja została przemyślana przed wydarzeniem i jest w `docs/KONCEPCJA.md` (bez kodu).
 **Cały kod powstał podczas HackYeah, 3–4.10.2026.** Historię zmian pokazują commity od tagu `start-hackyeah`,

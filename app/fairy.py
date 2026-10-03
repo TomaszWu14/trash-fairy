@@ -20,7 +20,7 @@ SCHEMA = {
     "type": "object",
     "properties": {"sections": {"type": "array", "items": {
         "type": "object",
-        "properties": {"title": {"type": "string", "enum": SECTIONS}, "text": {"type": "string"}},
+        "properties": {"title": {"type": "string", "enum": SECTIONS}, "text": {"type": "string", "maxLength": 800}},
         "required": ["title", "text"], "additionalProperties": False}}},
     "required": ["sections"],
     "additionalProperties": False,
@@ -71,7 +71,7 @@ def unknown_numbers(sections, facts):
 def generate(now):
     """Nowy raport albo LLMError (wtedy wywołujący pokazuje ostatni zapisany)."""
     facts = build_facts(now)
-    result = llm.ask_json("Fakty z systemu (JSON):\n" + json.dumps(facts, ensure_ascii=False, indent=1),
+    result = llm.ask_json("Fakty z systemu (JSON):\n" + llm.fence(json.dumps(facts, ensure_ascii=False, indent=1)),
                           SCHEMA, system=SYSTEM, max_tokens=4000)
     order = {t: i for i, t in enumerate(SECTIONS)}
     sections = sorted(result["sections"], key=lambda s: order[s["title"]])

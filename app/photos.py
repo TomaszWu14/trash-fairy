@@ -13,6 +13,25 @@ from . import db, llm
 from .models import PhotoAnalysis, Point
 
 MAX_BYTES = 8 * 1024 * 1024
+MATCH_M = 80  # zdjęcie z GPS dopasowujemy do kosza najwyżej tyle metrów od pozycji (punkty są ≥ 80 m od siebie)
+
+
+def gps_from_exif(data):
+    """(lat, lon) z EXIF zdjęcia albo None. Telefon z włączoną lokalizacją w aparacie zapisuje to sam."""
+    import io
+    from PIL import Image
+    try:
+        gps = Image.open(io.BytesIO(data)).getexif().get_ifd(0x8825)  # GPSInfo IFD
+        lat, lon = gps[2], gps[4]
+        dms = lambda v: float(v[0]) + float(v[1]) / 60 + float(v[2]) / 3600
+        lat, lon = dms(lat), dms(lon)
+        if gps.get(1) == "S":
+            lat = -lat
+        if gps.get(3) == "W":
+            lon = -lon
+        return (lat, lon) if lat and lon else None
+    except Exception:  # brak EXIF, brak GPS, uszkodzony plik — zdjęcie i tak można wgrać ręcznie
+        return None
 RETENTION = timedelta(days=7)
 DISCREPANCY_PP = 25  # różnica poziomu ze zdjęcia i od ekipy, powyżej której flagujemy
 MISUSE = ["household_bag", "clothes", "bulky", "construction", "none"]
@@ -26,8 +45,8 @@ SCHEMA = {
         "overflow_outside": {"type": "boolean"},
         "misuse": {"type": "array", "items": {"type": "string", "enum": MISUSE}},
         "damage": {"type": "boolean"},
-        "confidence": {"type": "number"},
-        "note": {"type": "string"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "note": {"type": "string", "maxLength": 500},
     },
     "required": ["fill_level", "overflow_outside", "misuse", "damage", "confidence", "note"],
     "additionalProperties": False,

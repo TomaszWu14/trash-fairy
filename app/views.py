@@ -103,6 +103,12 @@ def qr_program():
     return redirect(url_for("main.program"))
 
 
+@bp.get("/zdjecia")
+def photos_upload():
+    """Wgrywanie zdjęć z miasta paczką: kosz dobiera się z GPS w EXIF."""
+    return render_template("zdjecia.html")
+
+
 @bp.get("/metodologia")
 def methodology():
     return render_template("metodologia.html", **page_context(clock.now()))

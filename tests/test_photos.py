@@ -63,7 +63,11 @@ def test_llm_refusal_and_bad_json_become_llm_error(monkeypatch):
     with pytest.raises(llm.LLMError, match="niepoprawny JSON"):
         llm.ask_json("x", photos.SCHEMA)
     monkeypatch.setattr(llm.anthropic, "Anthropic", client_returning("end_turn", '{"fill_level": 50}'))
-    assert llm.ask_json("x", photos.SCHEMA) == {"fill_level": 50}
+    with pytest.raises(llm.LLMError, match="odrzucona"):  # niepełna odpowiedź nie przechodzi walidacji schematu
+        llm.ask_json("x", photos.SCHEMA)
+    full = '{"fill_level": 50, "overflow_outside": false, "misuse": [], "damage": false, "confidence": 0.8, "note": "ok"}'
+    monkeypatch.setattr(llm.anthropic, "Anthropic", client_returning("end_turn", full))
+    assert llm.ask_json("x", photos.SCHEMA)["fill_level"] == 50
 
 
 def test_llm_uses_model_from_env_and_fallbacks_only_where_supported(monkeypatch):

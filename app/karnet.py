@@ -27,8 +27,8 @@ MAX_ENRICH = 15
 SCHEMA = {
     "type": "object",
     "properties": {
-        "start_hour": {"type": "integer"},
-        "end_hour": {"type": "integer"},
+        "start_hour": {"type": "integer", "minimum": 0, "maximum": 24},
+        "end_hour": {"type": "integer", "minimum": 0, "maximum": 24},
         "scale": {"type": "string", "enum": ["small", "medium", "large"]},
     },
     "required": ["start_hour", "end_hour", "scale"],
@@ -95,8 +95,9 @@ def default_details(item):
 def details(item):
     """(szczegóły, źródło): z Claude albo z reguł domyślnych (przy braku klucza lub błędzie API)."""
     try:
-        d = llm.ask_json(f"Nazwa: {item['name']}\nTyp: {item['type']}\nMiejsce: {item['location']}\n"
-                         f"Daty: {item['start']} – {item['end']}\nOpis: {item['text']}", SCHEMA, system=SYSTEM, max_tokens=1000)
+        d = llm.ask_json("Opis wydarzenia ze strony Karnetu:\n" + llm.fence(
+            f"Nazwa: {item['name']}\nTyp: {item['type']}\nMiejsce: {item['location']}\n"
+            f"Daty: {item['start']} – {item['end']}\nOpis: {item['text']}"), SCHEMA, system=SYSTEM, max_tokens=1000)
         if 0 <= d["start_hour"] < d["end_hour"] <= 24:
             return d, "ai"
     except llm.LLMError:

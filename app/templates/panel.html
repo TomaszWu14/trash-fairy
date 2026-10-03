@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="pl" data-theme="light">
+{% from "_logo.html" import logo %}
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,11 +10,12 @@
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', filename='fairy.css') }}">
 </head>
 <body class="tf">
 <header class="tf-header">
-  <div class="tf-brand">Trash <span>Fairy</span> <span aria-hidden="true">✨</span></div>
+  <div class="tf-brand" style="display:flex;align-items:center;gap:8px;color:#fff;--logo-bg:#2f3b2a">{{ logo(26, '#c4b5fd') }}<span>Trash <span>Fairy</span></span></div>
   {% include "_nav.html" %}
   <div class="flex-1"></div>
   <div class="tf-clock" title="Zegar scenariusza demo (zamrożony, przewijany ręcznie)">
