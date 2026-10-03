@@ -84,3 +84,49 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 .tf-list a.tf-btnlink { font-size: 16px; font-weight: 700; color: var(--magic); padding: 4px 6px; border-radius: 6px; white-space: nowrap; }
 .tf-list a.tf-btnlink:focus-visible { outline: 3px solid var(--gold); }
 @media (prefers-reduced-motion: reduce) { .tf-pinwrap.fresh::before { animation: none; transform: scale(1.2); } }
+
+/* etap 3: prognoza, szczegóły punktu, wydarzenia */
+.tf-quality { font-size: 13px; color: var(--plant); padding: 8px 10px; border-radius: 8px; background: #f3f6ef; border: 1px solid #dfe7d6; }
+.tf-quality b { font-variant-numeric: tabular-nums; }
+.tf-back { font: 600 13px Inter, sans-serif; color: var(--plant); background: none; border: 0; padding: 4px 0; cursor: pointer; }
+.tf-back:hover { text-decoration: underline; }
+.tf-back:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.tf-dstate { margin: 8px 0 4px; font-weight: 600; }
+.tf-chart { margin: 10px 0 6px; }
+.tf-chart > div { position: relative; height: 230px; }
+.tf-chart figcaption { font-size: 12px; margin-top: 6px; }
+.tf-facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 12px; font-size: 13px; }
+.tf-facts dt { color: var(--muted); }
+.tf-facts dd { margin: 0; }
+.tf-evsw { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+           border: 2px dashed var(--gold); font-size: 11px; }
+.tf-evpin { font-size: 20px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+#details a.tf-btnlink { color: var(--magic); font-weight: 600; }
+
+/* etap 4: trasy i porównanie */
+.tf-small { font-size: 12px; margin-top: 6px !important; }
+.tf-route { border-top: 1px solid var(--line); padding: 10px 0 6px; }
+.tf-route:first-child { border-top: 0; padding-top: 0; }
+.tf-route header { display: flex; align-items: center; gap: 8px; }
+.tf-route header b { flex: 1; }
+.tf-route .meta { font-size: 13px; color: var(--muted); margin: 2px 0 6px; }
+.tf-route ol { margin: 0; padding-left: 22px; font-size: 13px; max-height: 150px; overflow-y: auto; }
+.tf-route li { margin: 2px 0; }
+.tf-route li small { color: var(--muted); display: block; }
+.tf-route label { font-size: 12px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.tf-routesw { display: inline-block; width: 22px; height: 4px; border-radius: 2px; vertical-align: middle; }
+.tf-routesw.bin { background: #2f6b3a; } .tf-routesw.shelter { background: #b8860b; }
+.tf-stop { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font: 700 10px Inter, sans-serif;
+           color: #fff; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.tf-stop.bin { background: #2f6b3a; } .tf-stop.shelter { background: #b8860b; }
+.tf-depot { font-size: 22px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+.tf-onroute { display: inline-block; font-size: 11px; font-weight: 600; color: var(--plant); background: #eef3ea;
+              border: 1px solid #d5e0cc; border-radius: 6px; padding: 0 5px; margin-top: 2px; }
+.tf-cmp { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.tf-cmp th, .tf-cmp td { padding: 4px 4px; text-align: right; border-bottom: 1px solid var(--line); }
+.tf-cmp th:first-child, .tf-cmp td:first-child { text-align: left; }
+.tf-cmp thead th { font-weight: 600; color: var(--muted); font-size: 12px; }
+.tf-cmp .grp td { font-weight: 700; color: var(--plant); padding-top: 10px; text-align: left; }
+.tf-cmp .better { color: var(--ok); font-weight: 600; }
+.tf-cmp .worse { color: var(--bad); font-weight: 600; }
+.tf-verdict { font-size: 13px; margin-top: 8px; }

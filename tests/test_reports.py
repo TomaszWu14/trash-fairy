@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from app import clock, db
-from app.models import Emptying, Forecast, Point, Report
+from app.models import Emptying, Point, Report
 from app.reports import low_reliability, record_press, reliability, resolve_reports
 from app.simulation import DEMO_NOW
 from app.state import level_state, point_states
@@ -17,11 +17,6 @@ def point():
     db.session.add(p)
     db.session.commit()
     return p
-
-
-def set_level(point, at, level):
-    db.session.add(Forecast(point_id=point.id, at=at.replace(minute=0), level=level, source="sim"))
-    db.session.commit()
 
 
 # --- test 2 z sekcji 11: scalanie ---
@@ -79,8 +74,17 @@ def test_level_state_thresholds():
     assert level_state(10, fresh_strong_report=True) == "bad"
 
 
-def test_fresh_report_turns_point_red_with_reason(point):
-    set_level(point, T0, 20)
+@pytest.fixture
+def forecast(monkeypatch, point):
+    """Podstawia szacunek prognozy dla punktu — testujemy same reguły stanu, nie statystykę."""
+    def set_forecast(est, recent=None, crossing=None):
+        f = {"est": est, "crossing": crossing, "early": None, "late": None, "recent": recent or [est]}
+        monkeypatch.setattr("app.state.point_forecasts", lambda now, last_emptying: {point.id: f})
+    return set_forecast
+
+
+def test_fresh_report_turns_point_red_with_reason(point, forecast):
+    forecast(20)
     record_press(point.id, T0)
     s = point_states(T0)[point.id]
     assert s["state"] == "bad" and s["fresh"]
@@ -90,28 +94,34 @@ def test_fresh_report_turns_point_red_with_reason(point):
     assert not later["fresh"] and later["state"] == "warn" and later["value"] == 70
 
 
-def test_report_right_after_emptying_at_low_level_is_weak(point):
+def test_report_right_after_emptying_at_low_level_is_weak(point, forecast):
     db.session.add(Emptying(point_id=point.id, at=T0 - timedelta(minutes=30), level=75))
-    set_level(point, T0, 5)
+    forecast(5)
     record_press(point.id, T0)
     s = point_states(T0)[point.id]
     assert s["value"] == 35 and s["state"] == "ok"
     assert "słaby sygnał" in s["reason"]
 
 
-def test_emptying_clears_report_signal(point):
-    set_level(point, T0, 20)
+def test_emptying_clears_report_signal(point, forecast):
+    forecast(20)
     record_press(point.id, T0)
     resolve_reports(Emptying(point_id=point.id, at=T0 + timedelta(minutes=5), level=25))
     db.session.commit()
     s = point_states(T0 + timedelta(minutes=6))[point.id]
-    assert s["state"] == "ok" and s["reason"] == "poziom 20%"
+    assert s["state"] == "ok" and s["reason"].startswith("prognoza 20%")
     assert Report.query.one().hit is False
 
 
-def test_long_overflow_without_presses_flags_button(point):
-    for h in range(6):
-        set_level(point, T0 - timedelta(hours=h), 110)
+def test_high_forecast_alone_turns_point_red(point, forecast):
+    forecast(90, crossing=T0 - timedelta(minutes=40))
+    s = point_states(T0)[point.id]
+    assert s["state"] == "bad"
+    assert s["reason"] == "prognoza 90%, powyżej 85% od ok. 12:50"
+
+
+def test_long_overflow_without_presses_flags_button(point, forecast):
+    forecast(110, recent=[110] * 6)
     s = point_states(T0)[point.id]
     assert s["check_button"] and "nikt nie nacisnął" in s["check_reason"]
     record_press(point.id, T0 - timedelta(hours=2))

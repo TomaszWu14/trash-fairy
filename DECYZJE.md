@@ -58,3 +58,51 @@ Odrzuciliśmy WebSocket i SSE, bo przy 72 punktach i demo polling wystarczy, a n
 **Łagodny limit naciśnięć: 1 na 2 s dla punktu i 120 na godzinę z jednego IP.** Plan zakładał 1 na 5 s i 30 na godzinę,
 ale na sali cała publiczność zwykle wychodzi przez jeden adres (NAT), więc ostry limit zablokowałby demo z jury.
 ProxyFix przekazuje prawdziwy adres klienta zza proxy Coolify (Traefik).
+
+## Etap 3 — prognoza (sob 3.10, ~12:30–)
+
+**Panel pokazuje szacunek systemu, a nie „prawdę” z symulacji.** System bez czujników nie zna prawdziwego poziomu.
+Zna opróżnienia, naciśnięcia i historię. Poziom z symulatora jest ukrytą „prawdą”: generuje zdarzenia i służy do liczenia błędu.
+Szacunek to suma przyrostów z profilu od ostatniego opróżnienia. Test `test_state_does_not_read_hidden_truth` pilnuje,
+żeby stan nie czytał „prawdy”. Odrzuciliśmy pokazywanie poziomu z symulacji, bo na pytanie jury „skąd to wiecie bez czujnika?”
+nie mielibyśmy uczciwej odpowiedzi.
+
+**Profil tygodniowy 7 × 24 na punkt: średnia i kwantyle p20/p80.** Profil uczymy na historii sprzed zegara.
+W godzinie opróżnienia przyrost liczymy od zera, a godziny z przepełnieniem (120%, przyrost ucięty) pomijamy.
+Godziny wydarzeń dzielimy przez mnożnik, żeby profil był bazowy. Odrzuciliśmy Holt-Winters i ML:
+przy 8 tygodniach danych zysk byłby niepewny, a profil da się wytłumaczyć jednym zdaniem.
+
+**Wydarzenia: ręczna lista zapasowa (`data/events.json`) i mnożnik zależny od skali tłumu.** Mały tłum: 200 m, ×1,3.
+Średni: 400 m, ×1,6. Duży: 800 m, ×2,0. Mnożnik działa w godzinach wydarzenia i przez godzinę po nim.
+Ten sam mnożnik stosują symulator i prognoza. Pobieranie z Karnetu zostaje na etap 6, zgodnie z kolejnością cięcia z koncepcji.
+
+**Godzina przekroczenia 85% z interpolacją w godzinie, przedział z tempa p80 (najwcześniej) i p20 (najpóźniej).**
+Prognoza nie zakłada przyszłych opróżnień, bo odpowiada na pytanie „kiedy się przepełni, jeśli nikt nie przyjedzie”.
+Na tej podstawie etap 4 wybierze punkty do trasy.
+
+**Trafność: MAE 2,5 p.p. na ostatnim tygodniu, a naiwna stała średnia ma 7,3 p.p.** Profil do tego pomiaru uczymy
+na danych sprzed tego tygodnia, więc nie ma przecieku. Odrzuciliśmy liczenie błędu na danych treningowych, bo zawyżyłoby trafność.
+
+**Prognozę liczymy na żądanie, z cache profilu na godzinę zegara, zamiast zapisywać ją do tabeli `forecast`.**
+Zmienia się przy każdym przewinięciu zegara, a obliczenie dla 72 punktów trwa około 20 ms przy gotowym profilu.
+Tabela `forecast` przechowuje historię (`source='sim'`).
+
+## Etap 4 — trasy i porównanie (sob 3.10, ~13:30–)
+
+**Wybór punktów regułami: pełny teraz, przekroczenie 85% przed *kolejnym* kursem albo bezpiecznik (kosz 3 dni, altana 7 dni).**
+Pytanie brzmi „czy zdążymy, jeśli nie weźmiemy go teraz”, a nie „czy jest pełny”. Każdy przystanek ma powód słowny.
+Odrzuciliśmy jeden próg poziomu, np. „bierz powyżej 60%”, bo ignoruje tempo i odległość do następnego kursu.
+
+**OR-Tools (routing VRP), 1 pojazd na flotę, start i koniec w bazie MPO (ul. Nowohucka 1, adres z OSM).**
+Odległość to linia prosta × 1,3. Solver działa bez metaheurystyki z limitem czasu, więc wynik jest deterministyczny
+i powtarzalny w testach. Odrzuciliśmy guided local search z limitem 1 s: przy 84 kursach w porównaniu trwałoby to ponad minutę,
+a wynik zależałby od szybkości maszyny. OSRM i kilka pojazdów są w roadmapie.
+
+**Porównanie na tych samych przyrostach zapełnienia, profil uczony na danych sprzed okresu porównania.**
+Trash Fairy decyduje tylko na podstawie własnego szacunku, bez przycisków (wariant ostrożny).
+Wynik dla 4 tygodni: przy koszach 19% mniej wizyt, 6% mniej km, puste przyjazdy spadają z 53% do 28%, a liczba godzin przepełnienia się nie zmienia.
+Przy altanach przepełnienia spadają z 338 h do 0 kosztem +158 km. W sumie kilometrów jest o 6% więcej. Pokazujemy to uczciwie,
+z rozbiciem na floty, bo sama suma ukryłaby, że dodatkowe kilometry idą na przeciążone altany, czyli na rekomendację z sekcji 6.8.
+
+**Godziny przepełnienia koszy są takie same w obu wariantach.** Przepełnienia między kursami nie da się usunąć,
+jeśli godziny kursów są stałe. Tu pomagają kompaktor albo większy kosz (rekomendacje, etap 6), a nie trasa.

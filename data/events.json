@@ -1,0 +1,10 @@
+[
+  {"name": "Jarmark na Rynku Głównym", "venue": "Rynek Główny", "lat": 50.0617, "lon": 19.9373,
+   "start": "2026-10-03T10:00", "end": "2026-10-03T20:00", "scale": "large"},
+  {"name": "Koncert plenerowy na Placu Nowym", "venue": "Plac Nowy, Kazimierz", "lat": 50.0513, "lon": 19.9447,
+   "start": "2026-10-03T19:00", "end": "2026-10-03T23:00", "scale": "medium"},
+  {"name": "Jarmark na Rynku Głównym (dzień 2)", "venue": "Rynek Główny", "lat": 50.0617, "lon": 19.9373,
+   "start": "2026-10-04T10:00", "end": "2026-10-04T18:00", "scale": "large"},
+  {"name": "Spacer z przewodnikiem po Plantach", "venue": "Planty przy Barbakanie", "lat": 50.0655, "lon": 19.9415,
+   "start": "2026-10-04T11:00", "end": "2026-10-04T13:00", "scale": "small"}
+]

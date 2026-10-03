@@ -1,7 +1,8 @@
 """Stan punktu — wyłącznie reguły w kodzie (koncepcja, sekcje 6.1–6.2).
 
-stan = max(poziom, sygnał zgłoszenia), gdzie sygnał = 100 × wiarygodność przycisku.
-Opróżnienie rozstrzyga zgłoszenia, więc sygnał znika („reset po opróżnieniu”).
+stan = max(szacunek, sygnał zgłoszenia), gdzie szacunek pochodzi z prognozy (app/forecast.py),
+a sygnał = 100 × wiarygodność przycisku. Prawdziwego poziomu z symulacji tu nie czytamy:
+system bez czujników go nie zna. Opróżnienie zeruje szacunek i rozstrzyga zgłoszenia.
 """
 from collections import defaultdict
 from datetime import timedelta
@@ -9,7 +10,8 @@ from datetime import timedelta
 from sqlalchemy import func
 
 from . import db
-from .models import Emptying, Forecast, Press, Report
+from .forecast import point_forecasts
+from .models import Emptying, Press, Report
 from .reports import MERGE_WINDOW, low_reliability, reliability
 from .simulation import hour_floor
 
@@ -18,7 +20,7 @@ BAD_ABOVE = 85
 FRESH_BAD_WEIGHT = 0.7  # świeże zgłoszenie z przycisku o takiej wadze = od razu czerwony
 WEAK_AFTER_EMPTYING = timedelta(hours=2)
 WEAK_BELOW_LEVEL = 30
-OVERFLOW_HOURS = 6  # przepełniony tyle godzin bez naciśnięcia → przycisk może nie działać
+OVERFLOW_HOURS = 6  # przepełniony (wg szacunku) tyle godzin bez naciśnięcia → przycisk może nie działać
 
 # kolor nigdy nie jest jedynym nośnikiem informacji: każdy stan ma też symbol i opis
 STATES = {
@@ -44,10 +46,31 @@ def report_signal(report, level, last_emptying):
     return (signal / 2 if weak else signal), weak
 
 
+def time_label(at, now):
+    if at is None:
+        return None
+    day = "" if at.date() == now.date() else ("jutro " if at.date() > now.date() else "wczoraj ")
+    return f"{day}{at:%H:%M}"
+
+
+def forecast_reason(f, now):
+    text = f"prognoza {round(f['est'])}%"
+    crossing = f["crossing"]
+    if crossing is None:
+        return text + ", bez przekroczenia 85% w 24 h"
+    if crossing <= now:
+        return text + f", powyżej 85% od ok. {time_label(crossing, now)}"
+    span = ""
+    if f["early"] and f["late"]:
+        span = f" ({time_label(f['early'], now)}–{time_label(f['late'], now)})"
+    elif f["early"]:
+        span = f" (najwcześniej {time_label(f['early'], now)})"
+    return text + f", 85% ok. {time_label(crossing, now)}{span}"
+
+
 def point_states(now):
     """{point_id: dict ze stanem} dla chwili `now` zegara demo."""
     hour = hour_floor(now)
-    levels = dict(db.session.query(Forecast.point_id, Forecast.level).filter_by(source="sim", at=hour).all())
 
     open_reports = {}
     for r in Report.query.filter(Report.hit.is_(None), Report.first_at <= now).order_by(Report.first_at):
@@ -62,16 +85,12 @@ def point_states(now):
                          .filter(Emptying.at <= now).group_by(Emptying.point_id).all())
 
     window_start = hour - timedelta(hours=OVERFLOW_HOURS - 1)
-    overflow_hours = defaultdict(int)
-    for pid, level in (db.session.query(Forecast.point_id, Forecast.level)
-                       .filter(Forecast.source == "sim", Forecast.at >= window_start, Forecast.at <= hour)):
-        overflow_hours[pid] += level > 100
     pressed_recently = {pid for (pid,) in db.session.query(Press.point_id).distinct()
                         .filter(Press.at >= window_start, Press.at <= now)}
 
     out = {}
-    for pid, level in levels.items():
-        rel = reliability([hit for _, hit in resolved[pid]])
+    for pid, f in point_forecasts(now, last_emptying).items():
+        level = f["est"]
         report = open_reports.get(pid)
         signal, weak, fresh = 0.0, False, False
         if report:
@@ -81,20 +100,23 @@ def point_states(now):
         state = level_state(value, fresh and not weak and report.weight >= FRESH_BAD_WEIGHT)
 
         check_reason = None
+        overflow_hours = sum(v is not None and v > 100 for v in f["recent"])
         if low_reliability(resolved[pid], now):
             check_reason = "mało trafnych zgłoszeń w ostatnich 7 dniach"
-        elif overflow_hours[pid] == OVERFLOW_HOURS and pid not in pressed_recently:
-            check_reason = f"przepełniony od {OVERFLOW_HOURS} h, a nikt nie nacisnął"
+        elif overflow_hours == OVERFLOW_HOURS and pid not in pressed_recently:
+            check_reason = f"wg prognozy przepełniony od {OVERFLOW_HOURS} h, a nikt nie nacisnął"
 
         if report and signal >= level:
             reason = (f"zgłoszenie: {report.presses}× naciśnięty, wiarygodność {round(report.weight * 100)}%"
                       + (" (słaby sygnał: tuż po opróżnieniu)" if weak else ""))
         else:
-            reason = f"poziom {round(level)}%"
+            reason = forecast_reason(f, now)
 
         out[pid] = {
             "level": round(level), "value": round(value), "state": state, **STATES[state],
-            "reason": reason, "fresh": fresh, "reliability": round(rel * 100),
+            "reason": reason, "fresh": fresh, "reliability": round(reliability([h for _, h in resolved[pid]]) * 100),
             "check_button": check_reason is not None, "check_reason": check_reason,
+            "crossing": f["crossing"].isoformat() if f["crossing"] else None,
+            "crossing_label": time_label(f["crossing"], now),
         }
     return out

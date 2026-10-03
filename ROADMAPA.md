@@ -25,3 +25,8 @@
 - Kafelki mapy z własnego serwera lub komercyjnego dostawcy przy większym ruchu (polityka użycia tile.openstreetmap.org).
 - Autoryzacja endpointów zegara demo (`/api/clock/*`). Na demo są otwarte, w pilotażu tylko dla dyspozytora.
 - Prawdziwe opróżnienia od ekipy (etap 5) zamiast harmonogramu z symulacji jako źródło trafności zgłoszeń.
+- Profil uczony na prawdziwych odczytach ekip przy opróżnieniu (etap 5) zamiast na historii z symulacji (pilotaż).
+- Prognoza świadoma planu tras: przyszłe opróżnienia z harmonogramu w trajektorii.
+- Kilka pojazdów na flotę (OR-Tools: wymiar czasu/ładowności) i okna czasowe.
+- Paliwo, CO₂ i złotówki z jawnych, konfigurowalnych współczynników na stronie Metodologia (etap 6).
+- Dodatkowe kursy poza 6:00/14:00 dla punktów krytycznych (np. wieczorem przy wydarzeniach).

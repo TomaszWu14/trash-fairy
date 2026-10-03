@@ -15,7 +15,7 @@ Trash Fairy to mózg dla MPO, który nie zależy od sprzętu. Zbiera tanie sygna
 zdjęcia), przewiduje zapełnienie, rozpoznaje przyczynę, planuje trasy i podpowiada, gdzie opłaca się czujnik,
 kompaktor albo większy kosz. Decyzje podejmują jawne reguły w kodzie, a AI tylko opisuje i rozpoznaje.
 
-**Stan prac:** etap 2. Mapa 60 koszy i 12 altan z OSM, 8 tygodni symulowanej historii z naciśnięciami, wirtualny przycisk `/przycisk/<id>`, scalanie zgłoszeń i wiarygodność przycisków, stan na żywo w panelu (polling co 2 s), zegar demo z przewijaniem.
+**Stan prac:** etapy 1–4 gotowe. Etap 1–2: mapa 60 koszy i 12 altan z OSM, 8 tygodni symulowanej historii z naciśnięciami, wirtualny przycisk `/przycisk/<id>`, scalanie zgłoszeń i wiarygodność przycisków, stan na żywo w panelu (polling co 2 s), zegar demo z przewijaniem. Etap 3: prognoza z profilu tygodniowego i wydarzeń (godzina przekroczenia 85% z przedziałem, MAE), szczegóły punktu z wykresem. Etap 4: trasy OR-Tools dla dwóch flot (kosze, altany) z bazy MPO i porównanie 4 tygodni ze stałym harmonogramem.
 
 ## Uruchomienie
 ```bash
@@ -52,7 +52,7 @@ bags from overflowing housing-estate shelters. Trash Fairy collects cheap signal
 crew reports, photos), forecasts fill levels, detects the cause, plans routes and recommends where a sensor,
 a compactor or a bigger bin pays off. All decisions are made by explicit rules in code. AI only describes and recognises.
 
-**Status:** stage 2. OSM map of 60 bins and 12 shelters, 8 weeks of simulated history incl. button presses, virtual button `/przycisk/<id>`, report merging and button reliability, live dispatcher panel (2 s polling), demo clock with fast-forward.
+**Status:** stages 1–4 done. Stages 1–2: OSM map of 60 bins and 12 shelters, 8 weeks of simulated history incl. button presses, virtual button `/przycisk/<id>`, report merging and button reliability, live dispatcher panel (2 s polling), demo clock with fast-forward. Stage 3: forecast from a weekly profile and events (time of crossing 85% with an interval, MAE), point details with a chart. Stage 4: OR-Tools routes for two fleets (bins, shelters) from the MPO depot and a 4-week comparison with the fixed schedule.
 
 **Run:** see the commands above. **Data:** © OpenStreetMap contributors (ODbL 1.0). All operational data is synthetic.
 **AI tools:** Claude Code during development, Claude API for photo analysis and reports (later stages).

@@ -4,9 +4,13 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 
 from . import clock, db
-from .models import Point, Press, Report
+from .comparison import compare
+from .events import AFTER, RADIUS_M
+from .forecast import THRESHOLD, forecast_quality, point_series
+from .models import Emptying, Event, Point, Press, Report
 from .reports import record_press
-from .simulation import DEMO_NOW
+from .routes import DEPOT, plan_routes
+from .simulation import DEMO_NOW, hour_floor
 from .state import point_states
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -48,6 +52,12 @@ def snapshot():
             "live_presses": Press.query.filter(Press.wall_at.isnot(None)).count(),
             "live_reports": Report.query.filter(Report.first_at >= DEMO_NOW).count(),
         },
+        "events": [{"name": e.name, "venue": e.venue, "lat": e.lat, "lon": e.lon, "scale": e.scale,
+                    "radius_m": RADIUS_M[e.scale], "active": e.start <= now < e.end + AFTER,
+                    "hours": f"{e.start:%d.%m %H:%M}–{e.end:%H:%M}"}
+                   for e in Event.query.order_by(Event.start)
+                   if e.end + AFTER > now and e.start < now + timedelta(hours=24)],
+        "forecast_quality": forecast_quality(hour_floor(now)),
         "features": features,
     }
 
@@ -55,6 +65,40 @@ def snapshot():
 @bp.get("/points")
 def points():
     return jsonify(snapshot())
+
+
+@bp.get("/points/<int:point_id>")
+def point_detail(point_id):
+    point = db.get_or_404(Point, point_id)
+    now = clock.now()
+    series = point_series(point, now)
+    since = series[0][0] if series else now
+    return jsonify(
+        id=point.id, name=point.name, kind=point.kind, area=point.area, **point_states(now)[point.id],
+        threshold=THRESHOLD, now=now.isoformat(),
+        series=[{"at": at.isoformat(), "label": f"{at:%H}:00", "est": _r(est), "low": _r(low), "high": _r(high),
+                 "future": at > hour_floor(now)} for at, est, low, high in series],
+        emptyings=[{"at": e.at.isoformat(), "level": e.level} for e in Emptying.query
+                   .filter(Emptying.point_id == point.id, Emptying.at >= since, Emptying.at <= now).order_by(Emptying.at)],
+        presses=[p.at.isoformat() for p in Press.query
+                 .filter(Press.point_id == point.id, Press.at >= since, Press.at <= now).order_by(Press.at)],
+    )
+
+
+@bp.get("/routes")
+def routes():
+    now = clock.now()
+    return jsonify(depot=DEPOT, fleets=plan_routes(now, point_states(now)))
+
+
+@bp.get("/comparison")
+def comparison():
+    # porównanie dotyczy 4 tygodni przed startem scenariusza — nie zależy od przewijania zegara
+    return jsonify(compare(DEMO_NOW))
+
+
+def _r(v):
+    return None if v is None else round(v, 1)
 
 
 @bp.get("/changes")

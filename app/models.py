@@ -62,6 +62,19 @@ class Forecast(db.Model):
     __table_args__ = (db.Index("ix_forecast_point_at", "point_id", "at"),)
 
 
+class Event(db.Model):
+    """Wydarzenie, które zwiększa tempo zapełniania koszy w promieniu zależnym od skali tłumu."""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    venue = db.Column(db.String(200), nullable=False)
+    lat = db.Column(db.Float, nullable=False)
+    lon = db.Column(db.Float, nullable=False)
+    start = db.Column(db.DateTime, nullable=False)
+    end = db.Column(db.DateTime, nullable=False)
+    scale = db.Column(db.String(10), nullable=False)  # small / medium / large
+    source = db.Column(db.String(10), nullable=False, default="manual")  # manual / karnet (etap 6)
+
+
 class DemoClock(db.Model):
     """Zegar scenariusza demo (jeden wiersz). W bazie, bo gunicorn ma kilka procesów."""
     id = db.Column(db.Integer, primary_key=True)

@@ -3,6 +3,7 @@
 - poziom zapełnienia co godzinę: `weeks` tygodni historii + FUTURE_HOURS „przyszłości”,
   którą odsłania przewijanie zegara demo;
 - opróżnienia według dzisiejszego, stałego harmonogramu MPO: kosze o 6:00 i 14:00, altany co 3 dni o 6:00;
+- wydarzenia (tabela event) mnożą tempo w swoim promieniu, tak samo jak w prognozie;
 - naciśnięcia przycisków (tylko w przeszłości): przy poziomie > 80%, rzadkie fałszywe alarmy,
   2 trollowane przyciski w dni robocze 14–16. Zgłoszenia budowane tymi samymi regułami co na żywo.
 """
@@ -12,8 +13,9 @@ from datetime import datetime, timedelta
 from sqlalchemy import insert
 
 from . import db
+from .events import events_near, multiplier
 from .geo import distance_m
-from .models import Emptying, Forecast, Point, Press, Report
+from .models import Emptying, Event, Forecast, Point, Press, Report
 from .osm_import import KAZIMIERZ
 from .reports import MERGE_WINDOW, is_hit, reliability
 
@@ -53,6 +55,15 @@ def hourly_multiplier(point, at, nightlife):
     return m
 
 
+def is_nightlife(point):
+    return point.kind == "bin" and distance_m(point.lat, point.lon, *KAZIMIERZ) <= NIGHTLIFE_RADIUS_M
+
+
+def rate_factor(point, at, nightlife, near_events):
+    """Mnożnik tempa w danej godzinie: profil dnia, weekend, nocne życie, wydarzenia."""
+    return hourly_multiplier(point, at, nightlife) * multiplier(at, near_events)
+
+
 def is_emptying_time(point, at, start):
     if point.kind == "bin":
         return at.hour in BIN_EMPTY_HOURS
@@ -87,10 +98,12 @@ def simulate(weeks=8, seed=7, now=DEMO_NOW):
         db.session.query(model).delete()
 
     points = Point.query.order_by(Point.id).all()
+    events = Event.query.all()
     trolled = trolled_ids(points)
     levels, emptyings, presses, reports = [], [], [], []
     for p in points:
-        nightlife = p.kind == "bin" and distance_m(p.lat, p.lon, *KAZIMIERZ) <= NIGHTLIFE_RADIUS_M
+        nightlife = is_nightlife(p)
+        near = events_near(p.lat, p.lon, events)
         level, at = rng.uniform(0, 30), start
         outcomes, open_reports = [], []
         while at <= end:
@@ -103,7 +116,7 @@ def simulate(weeks=8, seed=7, now=DEMO_NOW):
                         outcomes.append(r["hit"])
                     open_reports = []
                 level = 0.0
-            mult = hourly_multiplier(p, at, nightlife)
+            mult = rate_factor(p, at, nightlife, near)
             level = min(MAX_LEVEL, level + p.base_rate * mult * max(0.0, rng.gauss(1.0, 0.25)))
             levels.append({"point_id": p.id, "at": at, "level": round(level, 1), "source": "sim"})
 
@@ -123,4 +136,7 @@ def simulate(weeks=8, seed=7, now=DEMO_NOW):
         if rows:
             db.session.execute(insert(model), rows)
     db.session.commit()
+    from . import comparison, forecast  # import lokalny: oba moduły importują stałe z tego modułu
+    forecast.clear_cache()
+    comparison.clear_cache()
     return {"levels": len(levels), "emptyings": len(emptyings), "presses": len(presses), "reports": len(reports)}

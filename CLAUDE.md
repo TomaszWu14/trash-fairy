@@ -6,7 +6,8 @@ Koncepcja (przed wydarzeniem, bez kodu): `docs/KONCEPCJA.md`. Cały kod powstaje
 - Pracujemy etapami. Przed etapem plan w 6–8 punktach i akceptacja; po etapie: jak to sprawdzić.
 - Wszystko spoza bieżącego etapu → `ROADMAPA.md`, nie implementujemy.
 - Po każdym większym kroku 2–3 zdania w `DECYZJE.md`: CO, DLACZEGO, JAKA alternatywa odrzucona.
-- Commit po polsku + push po każdym ukończonym i przetestowanym kroku. Nie commitujemy niedziałającego kodu.
+- **Limit ~10–20 commitów na cały hackathon:** bez `git add`/commit/push, dopóki użytkownik wyraźnie nie poprosi.
+  Commit po polsku, tylko działający i przetestowany kod. Gałęzie: `main` zostaje na „Initial commit”, cała praca z sesji idzie na `etap_1`.
 - `pytest` musi przechodzić przed commitem.
 
 ## Reguły architektury
