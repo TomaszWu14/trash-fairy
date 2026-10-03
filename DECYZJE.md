@@ -321,3 +321,12 @@ flagę w panelu, bez blokady. Wstrzymanie punktów programu do potwierdzenia prz
 Lista punktów w panelu posortowana po pilności, dymek pinu na `/` prowadzi do szczegółów w panelu, `scripts/smoke.py` (11 kontroli).
 **Testy równolegle (`pytest-xdist -n auto`)**: 207 testów w 43 s zamiast 149 s, bez zmiany treści testów (każdy ma własną bazę w pamięci).
 Pocięte: „Wyślij do kierowcy”, „Moje zgłoszenia”, tabela punktów pod mapą, osobna sekcja „Pilne teraz” (jest sortowanie).
+
+## Materiały i poprawka produkcji (niedz. 4.10, noc)
+
+**Pula połączeń z bazą zamykana przed forkiem Gunicorna (`app/wsgi.py`, `db.engine.dispose()`).** Zrzuty do slajdów pokazały 500
+w ramkach e-papieru i mieszkańca na `/telefony`: `--preload` z fali C otwierał połączenia z Postgresem w procesie głównym (porównanie,
+kasowanie starych IP), a oba workery dziedziczyły to samo gniazdo, więc równoległe zapytania z trzech ramek się zderzały.
+Lokalnie (SQLite, jeden proces) i w smoke teście (zapytania po kolei) nie było tego widać; test `tests/test_wsgi.py` pilnuje pustej puli.
+Odrzuciliśmy rezygnację z `--preload` (wracałoby 2–5 s liczenia porównania w każdym workerze). MAE stałej średniej to 7,1 p.p. o 13:30
+i 7,2 od 14:00 (liczone do bieżącej godziny zegara), więc slajdy podają wartość ze startu demo.
