@@ -12,7 +12,7 @@ from datetime import timedelta
 from functools import lru_cache
 from statistics import mean, quantiles
 
-from . import db
+from . import db, weather
 from .events import events_near, multiplier
 from .models import Emptying, Event, Forecast, Point
 from .simulation import MAX_LEVEL, hour_floor
@@ -78,10 +78,11 @@ def _cell(profile, at):
     return profile["cells"].get((at.weekday(), at.hour), (avg, avg * 0.7, avg * 1.3))
 
 
-def trajectory(profile, near, resets, start, end, now):
+def trajectory(profile, near, resets, start, end, now, weather_at=None):
     """Godzina po godzinie [(at, est, low, high)]. Do `now` zerujemy na opróżnieniach, dalej to prognoza.
 
-    Przed pierwszym znanym opróżnieniem szacunku nie ma (None).
+    Przed pierwszym znanym opróżnieniem szacunku nie ma (None). `weather_at(at)` (app/weather.py) mnoży tylko
+    godziny po `now`: przeszłość to szacunek z profilu, a profil, MAE i porównanie liczymy bez pogody.
     """
     out, est, low, high = [], None, None, None
     at = start
@@ -90,6 +91,8 @@ def trajectory(profile, near, resets, start, end, now):
             est = low = high = 0.0
         if est is not None:
             m, (mid, lo, hi) = multiplier(at, near), _cell(profile, at)
+            if weather_at and at > now:
+                m *= weather_at(at)
             est, low, high = (min(MAX_LEVEL, v + r * m) for v, r in ((est, mid), (low, lo), (high, hi)))
         out.append((at, est, low, high))
         at += HOUR
@@ -114,11 +117,12 @@ def point_forecasts(now, last_emptying):
     hour = hour_floor(now)
     profiles = build_profiles(hour)
     events = Event.query.all()
+    weather_at = weather.factor_at()
     out = {}
     for p in Point.query.order_by(Point.id):
         le = last_emptying.get(p.id)
         start = hour_floor(le) if le else hour - timedelta(hours=72)
-        traj = trajectory(profiles.get(p.id), events_near(p.lat, p.lon, events), {start}, start, hour + HORIZON, now)
+        traj = trajectory(profiles.get(p.id), events_near(p.lat, p.lon, events), {start}, start, hour + HORIZON, now, weather_at)
         by_hour = {row[0]: row for row in traj}
         out[p.id] = {
             "est": by_hour[hour][EST] or 0.0,
@@ -138,7 +142,7 @@ def point_series(point, now, hours_back=48):
               .filter(Emptying.point_id == point.id, Emptying.at <= now, Emptying.at >= window_start - timedelta(days=4))}
     start = min(resets) if resets else window_start
     near = events_near(point.lat, point.lon, Event.query.all())
-    traj = trajectory(build_profiles(hour).get(point.id), near, resets, start, hour + HORIZON, now)
+    traj = trajectory(build_profiles(hour).get(point.id), near, resets, start, hour + HORIZON, now, weather.factor_at())
     return [row for row in traj if row[0] >= window_start]
 
 

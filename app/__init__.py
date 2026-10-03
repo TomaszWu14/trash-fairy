@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -29,11 +29,22 @@ def create_app(config=None):
 
     from . import models  # noqa: F401  rejestracja tabel
     from .api import bp as api_bp
+    from .open_api import bp as open_api_bp
     from .cli import cleanup_photos_command, karnet_command, seed_command
     from .views import bp
 
+    from . import auth
+    auth.init_app(app)
     app.register_blueprint(bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(open_api_bp)
+
+    @app.errorhandler(404)
+    def not_found(_e):
+        # stara naklejka z QR albo literówka: polska strona zamiast surowego „Not Found”; API dalej dostaje JSON
+        if request.path.startswith("/api/"):
+            return jsonify(ok=False, message="Nie znaleziono."), 404
+        return render_template("404.html"), 404
     app.cli.add_command(seed_command)
     app.cli.add_command(cleanup_photos_command)
     app.cli.add_command(karnet_command)
@@ -47,7 +58,7 @@ def _add_missing_columns():
     """Bez Alembica: dokładamy nowe, opcjonalne kolumny do istniejącej bazy (np. press.kind z ekranu /zglos)."""
     from sqlalchemy import inspect, text
     insp = inspect(db.engine)
-    for table, column, ddl in [("press", "kind", "VARCHAR(10)")]:
+    for table, column, ddl in [("press", "kind", "VARCHAR(10)"), ("demo_clock", "last_activity", "TIMESTAMP")]:
         if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
             db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
             db.session.commit()

@@ -223,3 +223,68 @@ które przy okazji odświeża heartbeat urządzenia, bo nadający przycisk na pe
 poza structured outputs sprawdzamy sami pola, enumy, zakresy i długości, a odrzucona odpowiedź oznacza komunikat i ostatni dobry wynik.
 **Decyzje podejmują reguły w kodzie,** więc zmanipulowana odpowiedź AI nie zmieni trasy ani priorytetu: najwyżej ustawi skalę tłumu
 na „large”, czyli to, co reguła i tak dopuszcza. Odrzuciliśmy pydantic (nowa zależność dla trzech schematów) na rzecz 40-linijkowego walidatora.
+
+## Audyt UX, Fala 1: poprawki P0 przed demo (sob 3.10, wieczór)
+
+**Naprawiliśmy to, co jury zobaczy na telefonie i rzutniku: brak poziomego scrolla w widoku C i panelu (360–1440 px), zwijaną legendę,
+„Najbliższe przepełnienia” nad kodem QR, trasy w panelu po ulicach (OSRM, jak w widoku C), polską stronę 404 i wskaźnik świeżości danych.**
+Panel rozpychał nagłówek, bo `body` było gridem z kolumną `auto`; `minmax(0, 1fr)` naprawia to u źródła zamiast ukrywać `overflow-x`.
+Po 3 nieudanych pollach pokazujemy „Brak połączenia · dane z hh:mm” tekstem i trójkątem, nie samym kolorem. Odrzuciliśmy przepisanie panelu na tokeny widoku C (Fala 2, ROADMAPA).
+
+**Blokada odległości 150 m odejmuje dokładność GPS, obciętą do 150 m, tą samą regułą na serwerze i w telefonie.**
+Słaby GPS w kamienicy (233 m ± 120 m) nie blokuje już mieszkańca stojącego przy koszu, a podanie „dokładności 5 km” nie wyłącza kontroli.
+Odrzuciliśmy zostawienie przycisków aktywnych w stanie `far`, bo serwer i tak odrzuciłby zgłoszenie, a dwie różne reguły to gorszy błąd niż jedna łagodniejsza.
+
+## PWA kierowcy `/kierowca` (sob 3.10, wieczór)
+
+**Kierowca dostaje aplikację w czterech krokach (start zmiany → trasa z następnym przystankiem → przystanek → podsumowanie),
+w kierunku C z kanwy, z celami dotykowymi od 56 px i trybem ciemnym.** Kurs zapisujemy w telefonie jako migawkę w chwili „Rozpocznij trasę”,
+bo po każdym „Opróżniony” serwer planuje trasę od nowa i opróżniony punkt z niej wypada. Bez migawki numeracja „32/53” skakałaby, a bez zasięgu nie byłoby trasy.
+Nowe punkty z aktualnego planu pokazujemy jako „Nowy pilny punkt · +n”, a kierowca sam dopisuje je na koniec. Odrzuciliśmy ciche przestawianie kolejności w trakcie jazdy.
+
+**„Nie da się podjechać” i „Problem” to nowy `POST /api/stop-issue` (tabela `StopIssue`), który nie zmienia trasy, tylko pokazuje flagę dyspozytorowi do opróżnienia, najwyżej 12 h.**
+Decyzję, czy wysłać kogoś ponownie, zostawiamy człowiekowi. Odrzuciliśmy automatyczne przeplanowanie, bo jedno zgłoszenie z drogi nie powinno samo przestawiać floty.
+Zapisy idą przez tę samą kolejkę IndexedDB co zgłoszenia mieszkańców, ale w osobnej bazie i z własnym SW (zakres `/kierowca`), z 5 s na „Cofnij”.
+Ikony PNG 192/512 i maskable dostał przy okazji także manifest `/zglos`.
+
+**Pomiar przed i po (`docs/audit/RESULTS.md`) złapał regresję, której nie widać gołym okiem:** CLS panelu 0,18 → 0,5.
+Menu z `overflow-x: auto` dostawało pasek przewijania w trakcie ładowania fontów i nagłówek rósł. Ukryliśmy pasek (przewijalność
+pokazuje cień krawędzi) i skróciliśmy plakietkę do „DEMO · SYMULACJA”; CLS 0,13. Przyczynę potwierdziliśmy pomiarem tej samej strony na `main`,
+zamiast zgadywać po kolejnych poprawkach CSS.
+
+## Etap 8: integracje API (pogoda, ruch, SMS, otwarte API) (sob 3.10, wieczór)
+
+**Pogoda z Open-Meteo zmienia tylko prognozę na godziny przyszłe, regułą w kodzie: opad ≥ 1 mm/h ×0,8, ciepły (≥ 20 °C), suchy weekend 10–22 ×1,25.**
+Profil, MAE i porównanie 4 tygodni liczymy bez pogody, żeby wyniki na slajdach nie zależały od dnia pokazu. Sprawdzone na żywo:
+sobota 3.10, 13:00, 20,7 °C i bezchmurnie dały ×1,25, a kurs 14:00 urósł z 53 do 54 punktów. Odrzuciliśmy pogodę w profilu historycznym
+(symulacja nie ma pogody, więc model nauczyłby się szumu). Bez sieci zostaje `data/weather_cache.json`, a bez niego mnożnik 1,0.
+
+**Ruch z TomTom zmienia tylko czas (przejazdu i ETA), nigdy wyboru punktów ani km.** Trasa odpowiada na pytanie „kogo trzeba odwiedzić”,
+a korek nie zmienia potrzeby; korek w macierzy OR-Tools to osobny krok (ROADMAPA.md). Bez klucza lub przy starym pomiarze (> 2 h) nie ma korekty,
+a nie „brak korków”. **SMS przez Twilio Verify, bez SDK** (`urllib` w `app/http.py`): w sesji tylko SID weryfikacji, numer tylko jako HMAC,
+limity 3 kody/numer/h i 30/h. Bez bramki kod demo na ekranie, jak wcześniej. **Otwarte API `/api/v1` tylko do odczytu** z kontraktem OpenAPI 3.1
+i własną stroną `/api/docs` (bez Swagger UI z CDN); bez wiarygodności przycisków i danych mieszkańców, `meta.synthetic` wprost.
+Kod etapu 8 z sesji w chmurze nie trafił do repo, więc odtworzyliśmy go na podstawie opisu, od razu sprawdzając pola na prawdziwej odpowiedzi Open-Meteo
+i w dokumentacji TomTom i Twilio.
+
+## Przegląd przed oddaniem: 50 decyzji (sob 3.10, noc)
+
+**Pełna lista w `docs/PRZEGLAD.md`; tu tylko rozstrzygnięcia, które zmieniają charakter aplikacji.**
+Trzy role (publiczna, dyspozytor, kierowca floty) zamiast otwartej aplikacji, bo publiczny Reset, płatne wywołania AI i „Opróżniony”
+z dowolnego miejsca pozwalały komuś z sali zepsuć pokaz albo dane. Odrzuciliśmy konta osobowe (pół dnia bez efektu dla jury).
+Ekran `/telefony` pokazuje cały cykl jednego kosza (e-papier → mieszkaniec → kierowca), bo na rzutniku jury nie zobaczy PWA inaczej.
+Stan `bad` nazywa się „Do opróżnienia”, a „Przepełniony” zostaje dla prognozy ≥ 100%: 86% to nie jest przepełnienie.
+Zamiast uśrednionego „−16% godzin przepełnień” pokazujemy dwie uczciwe liczby, bo kosze mają tyle samo godzin przepełnienia,
+tylko mniej wizyt. Skalowanie na Kraków (1,4–2,7 mln zł/rok) liczy kod z harmonogramu MPO, jako przedział, a nie jedna liczba.
+
+## Fala A: bezpieczny pokaz (sob 3.10, noc)
+
+**Role i loginy (`app/auth.py`): publiczna, `dyspozytor`, `driver_bin`, `driver_altana`; wspólne hasło demo tylko w env (`DEMO_PASSWORD`).**
+Kierowca zapisuje tylko punkty **swojej floty**, a nie „bieżącego planu”: planer po opróżnieniu liczy trasę od nowa i punkt z niej wypada,
+więc reguła „tylko z planu” odrzuciłaby zapisy z kolejki offline i „Cofnij”. Pola dyspozytora filtrujemy na serwerze w jednym miejscu (`public_view`).
+**Limity (SMS, AI 30/h, logowanie 5/15 min) w tabeli `Counter`**, bo przy 2 workerach Gunicorna limity w pamięci były w praktyce podwójne.
+**Stan i trasy z cache po wersji danych** (300 + 580 ms raz na zmianę, nie raz na zapytanie); wersja obejmuje teraz problemy kierowcy i urządzenia,
+których wcześniej nie widziała (panel nie zauważał nowego problemu). Przy okazji: klucze e-papieru liczył `hash()`, losowany per proces, więc
+2 workery dawały fałszywe pełne mignięcia; teraz `hashlib`. Auto-reset demo po 30 min bezczynności, warunkowy UPDATE wybiera jeden worker.
+Biblioteki i fonty lokalnie (bez unpkg, jsDelivr i Google Fonts), licencja AGPL-3.0 z `NOTICE`, model `claude-opus-5-5` z fallbackiem po odmowie.
+**CI (GitHub Actions: pytest) i auto-merge do `main`** na prośbę autora: PR scala się sam po zielonym teście, Redeploy w Coolify zostaje ręczny.

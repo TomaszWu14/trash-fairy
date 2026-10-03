@@ -4,6 +4,7 @@ stan = max(szacunek, sygnał zgłoszenia), gdzie szacunek pochodzi z prognozy (a
 a sygnał = 100 × wiarygodność przycisku. Prawdziwego poziomu z symulacji tu nie czytamy:
 system bez czujników go nie zna. Opróżnienie zeruje szacunek i rozstrzyga zgłoszenia.
 """
+import copy
 from collections import defaultdict
 from datetime import timedelta
 
@@ -12,7 +13,7 @@ from sqlalchemy import func
 from . import db
 from .forecast import point_forecasts
 from .geo import distance_m
-from .models import Emptying, Point, Press, Report
+from .models import Device, Emptying, PhotoAnalysis, Point, Press, Report, StopIssue
 from .reports import MERGE_WINDOW, low_reliability, reliability
 from .simulation import hour_floor
 
@@ -22,6 +23,9 @@ FRESH_BAD_WEIGHT = 0.7  # świeże zgłoszenie z przycisku o takiej wadze = od r
 WEAK_AFTER_EMPTYING = timedelta(hours=2)
 WEAK_BELOW_LEVEL = 30
 OVERFLOW_HOURS = 6  # przepełniony (wg szacunku) tyle godzin bez naciśnięcia → przycisk może nie działać
+CREW_ISSUE_WINDOW = timedelta(hours=12)  # zgłoszenie kierowcy z przystanku widać w panelu do opróżnienia, najwyżej 12 h
+CREW_ISSUES = {"no_access": "nie da się podjechać", "damaged": "kosz uszkodzony", "blocked": "zablokowany dojazd",
+               "overflow": "odpady obok kosza"}
 DAMAGE_WINDOW = timedelta(hours=48)  # zgłoszenie „uszkodzony” z /zglos trzyma flagę do opróżnienia, najwyżej 48 h
 NEIGHBOR_RADIUS_M = 100
 NEIGHBORS_EMPTY_BELOW = 30
@@ -103,7 +107,50 @@ def forecast_reason(f, now):
     return text + f", 85% ok. {time_label(crossing, now)}{span}"
 
 
+def data_version():
+    """Zmienia się przy każdej zmianie danych, od której zależy stan: zgłoszenie, opróżnienie, zdjęcie i jego analiza,
+    problem kierowcy, urządzenie, przewinięcie zegara, nowa prognoza pogody. Klucz cache i wersja dla pollingu."""
+    from . import clock, weather
+    last = [db.session.query(func.max(m.id)).scalar() or 0 for m in (Press, Emptying, PhotoAnalysis, StopIssue)]
+    rows = [db.session.query(func.count(m.id)).scalar() for m in (Press, Emptying)]  # SQLite potrafi powtórzyć id po resecie
+    analysed = PhotoAnalysis.query.filter(PhotoAnalysis.status != "pending").count()
+    dev = db.session.query(func.max(Device.last_heartbeat), func.max(Device.last_selftest)).one()
+    w = int(((weather._state.get("data") or {}).get("fetched_at")) or 0)
+    devices = "-".join(f"{d:%d%H%M}" if d else "0" for d in dev)
+    return f"{clock.now():%Y%m%d%H%M}-" + "-".join(map(str, last + rows + [analysed])) + f"-{devices}-{w}"
+
+
+_cache = {}
+
+
+def clear_cache():
+    """Po resecie demo i między testami: wersja danych może się powtórzyć na nowej bazie."""
+    _cache.clear()
+
+
+def _cached(name, now, compute):
+    """Jeden wynik na proces dla (zegar, wersja danych): 300–600 ms liczymy raz na zmianę danych, nie raz na zapytanie.
+    Zwracamy kopię, bo wywołujący dopisują pola (trasy: geometria, poziom przystanku)."""
+    key = (name, now, data_version())
+    if key not in _cache:
+        for k in [k for k in _cache if k[0] == name]:
+            del _cache[k]
+        _cache[key] = compute()
+    return copy.deepcopy(_cache[key])
+
+
 def point_states(now):
+    """{point_id: dict ze stanem} dla chwili `now` zegara demo (z cache po wersji danych)."""
+    return _cached("states", now, lambda: _point_states(now))
+
+
+def current_routes(now):
+    """Trasy na najbliższe kursy obu flot (z cache po wersji danych)."""
+    from .routes import plan_routes
+    return _cached("routes", now, lambda: plan_routes(now, point_states(now)))
+
+
+def _point_states(now):
     """{point_id: dict ze stanem} dla chwili `now` zegara demo."""
     hour = hour_floor(now)
 
@@ -133,6 +180,10 @@ def point_states(now):
                if last_emptying.get(pid) is None or last_emptying[pid] < at}
     overflow_reported = {pid for (pid,) in db.session.query(Press.point_id).distinct()
                          .filter(Press.kind == "overflow", Press.at > now - MERGE_WINDOW, Press.at <= now)}
+    crew_issue = {}
+    for i in StopIssue.query.filter(StopIssue.at > now - CREW_ISSUE_WINDOW, StopIssue.at <= now).order_by(StopIssue.at):
+        if last_emptying.get(i.point_id) is None or last_emptying[i.point_id] < i.at:
+            crew_issue[i.point_id] = {"kind": i.kind, "label": CREW_ISSUES[i.kind], "at": i.at.isoformat(), "note": i.note}
     out = {}
     for pid, f in forecasts.items():
         level = f["est"]
@@ -167,6 +218,7 @@ def point_states(now):
             "check_button": check_reason is not None, "check_reason": check_reason,
             "damaged_at": damaged[pid].isoformat() if pid in damaged else None,
             "overflow_reported": pid in overflow_reported,
+            "crew_issue": crew_issue.get(pid),
             "crossing": f["crossing"].isoformat() if f["crossing"] else None,
             "crossing_label": time_label(f["crossing"], now),
         }

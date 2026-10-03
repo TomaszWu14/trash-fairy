@@ -4,8 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Trash Fairy — metodologia</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='fairy.css') }}">
   <style>
     body.tf { display: block; }
@@ -14,6 +13,7 @@
     .doc h2 { font: 600 19px Fraunces, Georgia, serif; color: var(--plant); margin: 28px 0 8px; }
     .doc p, .doc li { line-height: 1.55; }
     .doc table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; border: 1px solid var(--line); }
+    @media (max-width: 480px) { .doc table { display: block; overflow-x: auto; } }  /* wąski telefon: tabela przewija się sama, nie strona */
     .doc th, .doc td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
     .doc th { background: #f3efe4; font-weight: 600; }
     .doc td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -83,6 +83,8 @@
   <ul>
     <li><b>OpenStreetMap</b>: pozycje koszy, altan, lokali i przystanków oraz podkład mapy. © OpenStreetMap contributors, licencja ODbL 1.0 (pobrane przez Overpass API, cache w <code>data/*.geojson</code>).</li>
     <li><b>Harmonogram oczyszczania MPO 08/2026</b>, arkusz „Kosze”: 9 383 kosze w Krakowie, w Dzielnicy I 43% opróżnianych 3× dziennie. To kontekst dla stałego harmonogramu.</li>
+    <li><b>Open-Meteo</b> (open-meteo.com, CC BY 4.0, bez klucza): prognoza godzinowa temperatury, opadu i kodu pogody dla Rynku Głównego.</li>
+    <li><b>TomTom Traffic Flow</b> (klucz w <code>TOMTOM_API_KEY</code>): prędkość obecna i swobodna w 8 punktach na głównych drogach. Bez klucza czasy są bez korekty.</li>
     <li><b>KRKnews, 8.09.2026</b>: apel MPO o niewyrzucanie domowych śmieci do koszy ulicznych.</li>
     <li><b>Analiza stanu gospodarki odpadami komunalnymi w GMK za 2025 r.</b>: skala kosztów systemu (dotyczy odpadów z nieruchomości, nie koszy ulicznych).</li>
     <li><b>Wszystkie dane operacyjne</b> (poziomy, opróżnienia, naciśnięcia, zdjęcia demo) są <b>syntetyczne</b>.</li>

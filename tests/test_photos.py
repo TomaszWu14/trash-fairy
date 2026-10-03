@@ -117,7 +117,7 @@ def test_cleanup_removes_photo_files_after_7_days_but_keeps_analysis(demo, visio
 
 # --- widok ekipy: opróżnienie ---
 
-def test_crew_emptying_resolves_reports_and_resets_estimate(client, demo):
+def test_crew_emptying_resolves_reports_and_resets_estimate(client, demo, staff):
     p = bin_point("Rynek")
     record_press(p.id, clock.now() - timedelta(minutes=5))
     r = client.post("/api/emptying", data={"point_id": p.id, "level": 100})
@@ -128,14 +128,14 @@ def test_crew_emptying_resolves_reports_and_resets_estimate(client, demo):
     assert props["level"] < 30 and props["state"] == "ok"
 
 
-def test_crew_emptying_validates_level(client, demo):
+def test_crew_emptying_validates_level(client, demo, staff):
     p = bin_point()
     assert client.post("/api/emptying", data={"point_id": p.id, "level": 60}).status_code == 400
     assert client.post("/api/emptying", data={"point_id": 99999, "level": 50}).status_code == 404
     assert Emptying.query.filter_by(point_id=p.id, at=clock.now()).count() == 0
 
 
-def test_crew_photo_is_analysed_and_flags_discrepancy(client, demo, vision):
+def test_crew_photo_is_analysed_and_flags_discrepancy(client, demo, vision, staff):
     p = bin_point("Rynek")
     r = client.post("/api/emptying", data={"point_id": p.id, "level": 25, "photo": (io.BytesIO(PNG), "kosz.png")},
                     content_type="multipart/form-data")
@@ -144,7 +144,7 @@ def test_crew_photo_is_analysed_and_flags_discrepancy(client, demo, vision):
     assert photos.discrepancy(pa)  # ekipa 25%, zdjęcie 100%
 
 
-def test_bad_photo_is_rejected_but_emptying_saved(client, demo, vision):
+def test_bad_photo_is_rejected_but_emptying_saved(client, demo, vision, staff):
     p = bin_point()
     r = client.post("/api/emptying", data={"point_id": p.id, "level": 50, "photo": (io.BytesIO(b"not an image"), "x.png")},
                     content_type="multipart/form-data")
@@ -154,7 +154,7 @@ def test_bad_photo_is_rejected_but_emptying_saved(client, demo, vision):
 
 # --- test 9 z sekcji 11: błąd API → komunikat i ostatni wynik, nie 500 ---
 
-def test_api_error_shows_message_and_last_result(client, demo, vision):
+def test_api_error_shows_message_and_last_result(client, demo, vision, staff):
     p = bin_point("Rynek")
     client.post("/api/photo", data={"point_id": p.id, "photo": (io.BytesIO(PNG), "a.png")}, content_type="multipart/form-data")
     vision["error"] = "Analiza AI chwilowo niedostępna (limit zapytań). Spróbuj za minutę."
@@ -196,6 +196,6 @@ def test_old_analyses_and_other_misuse_do_not_link(demo):
     assert mo["links"] == [] and mo["points"][b.id]["misuse"] == ["ubrania lub buty"]
 
 
-def test_crew_page_renders(client, demo):
+def test_old_crew_page_redirects_to_driver_pwa(client, demo):
     r = client.get("/ekipa")
-    assert r.status_code == 200 and "ekipa MPO" in r.get_data(as_text=True)
+    assert r.status_code == 301 and r.headers["Location"].endswith("/kierowca")

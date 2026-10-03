@@ -71,7 +71,7 @@ def test_damaged_does_not_raise_level_but_flags_point(client, demo):
     assert p["state"] == "ok" and not p["fresh"] and p["damaged_at"]
 
 
-def test_overflow_counts_as_full_and_is_noted(client, demo):
+def test_overflow_counts_as_full_and_is_noted(client, demo, staff):
     pid = Point.query.filter_by(kind="bin").first().id
     assert press(client, pid, kind="overflow").json["ok"]
     p = next(f["properties"] for f in client.get("/api/points").json["features"] if f["properties"]["id"] == pid)
@@ -104,3 +104,18 @@ def test_service_worker_scope_and_manifest(client):
     assert r.status_code == 200 and r.headers["Service-Worker-Allowed"] == "/zglos"
     m = client.get("/static/zglos/manifest.webmanifest").json
     assert m["start_url"] == "/zglos" and m["display"] == "standalone" and m["theme_color"] == "#0E1222"
+
+
+def test_press_distance_allows_gps_accuracy_but_caps_it(client, demo):
+    p = Point.query.filter_by(kind="bin").first()
+    ok = press(client, p.id, ip="10.0.0.7", lat=p.lat + 0.0021, lon=p.lon, accuracy_m=120)  # ~233 m, GPS ±120 m
+    assert ok.status_code == 200, ok.json
+    spoof = press(client, p.id, ip="10.0.0.8", lat=p.lat + 0.0036, lon=p.lon, accuracy_m=5000)  # ~400 m, „±5 km” obcięte do 150
+    assert spoof.status_code == 403 and spoof.json["reason"] == "too_far"
+
+
+def test_404_is_polish_html_and_api_stays_json(client):
+    page = client.get("/nie-ma-takiej-strony")
+    assert page.status_code == 404 and "Nie znaleźliśmy tej strony" in page.get_data(as_text=True)
+    api_r = client.get("/api/nie-ma")
+    assert api_r.status_code == 404 and api_r.json["ok"] is False

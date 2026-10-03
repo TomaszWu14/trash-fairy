@@ -4,7 +4,7 @@ Złotówki i CO₂ to wyłącznie konfigurowalne założenia (env), nie dane MPO
 """
 import os
 
-from . import comparison, events, forecast, misuse, osm_import, photos, recommendations, reports, routes, simulation, state
+from . import comparison, events, forecast, misuse, osm_import, photos, recommendations, reports, routes, simulation, state, traffic, weather
 
 
 def _env_float(name, default):
@@ -12,6 +12,10 @@ def _env_float(name, default):
         return float(os.environ.get(name, default))
     except ValueError:
         return default
+
+
+def _pl(v):
+    return f"{v:g}".replace(".", ",")
 
 
 def money_assumptions():
@@ -42,6 +46,13 @@ def assumptions():
         ("Prognoza", "Profil", "7 dni × 24 h na punkt: średnia i kwantyle p20/p80 z historii sprzed zegara"),
         ("Prognoza", "Wydarzenia (promień, mnożnik)", ", ".join(f"{e.SCALE_PL[k]}: {e.RADIUS_M[k]} m ×{str(e.MULTIPLIER[k]).replace('.', ',')}"
                                                                for k in e.RADIUS_M) + ", także godzinę po"),
+        ("Prognoza", "Pogoda (Open-Meteo), tylko godziny przyszłe",
+         f"opad ≥ {_pl(weather.RAIN_MM)} mm/h ×{_pl(weather.RAIN_FACTOR)}; weekend {weather.NICE_HOURS.start}–{weather.NICE_HOURS.stop}, "
+         f"≥ {_pl(weather.WARM_C)} °C i sucho ×{_pl(weather.NICE_FACTOR)}; inaczej ×1,0. Profil, MAE i porównanie bez pogody"),
+        ("Trasy", "Ruch (TomTom), tylko czas",
+         f"korek = prędkość swobodna / obecna, {_pl(traffic.MIN_RATIO)}–{_pl(traffic.MAX_RATIO)}, średnia z {len(traffic.SAMPLES)} punktów; "
+         f"czas jazdy = km / {traffic.CITY_KMH} km/h × korek, ETA + dojazd {traffic.APPROACH_KM} km; pomiar starszy niż "
+         f"{traffic.MAX_AGE_S // 3600} h pomijany. Nie zmienia wyboru punktów ani km"),
         ("Trasy", "Wybór punktu", "pełny teraz, 85% przed kolejnym kursem albo bezpiecznik "
                                   f"(kosz {routes.FLEETS['bin']['safety'].days} dni, altana {routes.FLEETS['shelter']['safety'].days} dni)"),
         ("Trasy", "Odległości", f"linia prosta ×{str(routes.DETOUR).replace('.', ',')}, baza: {routes.DEPOT['name']}"),

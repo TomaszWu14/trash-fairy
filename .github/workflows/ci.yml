@@ -1,0 +1,26 @@
+# CI: testy na każdym PR do main i po każdym pushu do main. Wymagany check „pytest” odblokowuje auto-merge.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    name: pytest
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"  # jak w Dockerfile
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q

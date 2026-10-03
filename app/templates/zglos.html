@@ -10,9 +10,8 @@
   <title>Zgłoś kosz — {{ point.name }} · Trash Fairy</title>
   <link rel="manifest" href="{{ url_for('static', filename='zglos/manifest.webmanifest') }}">
   <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='zglos/zglos.css') }}">
 </head>
 <body>
@@ -48,7 +47,7 @@
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
 <script>
   window.ZGLOS = { pointId: {{ point.id }}, name: {{ point.name|tojson }}, jury: {{ (request.args.get('jury') == '1')|tojson }},
                    basemap: {{ url_for('static', filename='img/krakow-basemap.svg')|tojson }},

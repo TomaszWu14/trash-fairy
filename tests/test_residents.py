@@ -144,7 +144,7 @@ def test_require_geo_switch(client, demo, monkeypatch):
 
 # --- urządzenia ---
 
-def test_selftest_does_not_create_press_or_report(client, demo):
+def test_selftest_does_not_create_press_or_report(client, demo, staff):
     p = a_bin()
     before = (Press.query.count(), Report.query.count())
     assert client.post(f"/api/devices/{p.id}/selftest").json["ok"]
@@ -152,7 +152,7 @@ def test_selftest_does_not_create_press_or_report(client, demo):
     assert db.session.get(Device, p.id).last_selftest == clock.now()
 
 
-def test_device_without_heartbeat_48h_flagged(client, demo):
+def test_device_without_heartbeat_48h_flagged(client, demo, staff):
     p = a_bin()
     db.session.get(Device, p.id).last_heartbeat = DEMO_NOW - timedelta(hours=49)
     db.session.commit()

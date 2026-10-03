@@ -12,3 +12,4 @@ graphify-out/cost.json
 graphify-out/manifest.json
 graphify-out/.graphify_*
 graphify-out/20*/
+data/traffic_cache.json

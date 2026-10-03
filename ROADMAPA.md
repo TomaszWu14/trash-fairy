@@ -38,3 +38,15 @@
 - Ekran „Zgłoś kosz”: zdjęcie od mieszkańca (upload do `/api/photo` po wysłaniu), zapis komentarza przy zgłoszeniu, status po opróżnieniu z powiadomieniem (Web Push),
   ikony PNG 192/512 obok SVG dla starszych Androidów, Lighthouse w CI.
 - E-papier etap 2: firmware LoRaWAN wg `docs/epapier/ETAP2-LORAWAN.md` (downlink 12 B, uplink przycisk/heartbeat, QR i fonty rastrowe na urządzeniu), test w słońcu i mrozie.
+- Audyt UX, Fala 2 (poza hackathonem): jeden zestaw tokenów i jedna biblioteka stanów dla panelu i widoku C (B3, D1–D3),
+  klastry w panelu (C1), menu per rola (B4), cache `point_states`/tras per wersja danych (A2, I1), `ETag` dla PNG e-papieru (I3).
+- PWA kierowcy: czas opróżnienia z telefonu (pole `at` przy wysyłce z kolejki offline; dziś serwer zapisuje chwilę dotarcia),
+  logowanie kierowcy i numer pojazdu, kafelki mapy pobierane z góry na cały obszar kursu, odczyt QR kosza zamiast „Jestem”.
+- Ruch drogowy w macierzy czasów OR-Tools (dziś korek zmienia tylko czas przejazdu i ETA, nie kolejność ani wybór punktów).
+- Limity SMS, cache pogody i ruchu we wspólnym magazynie (Redis/Postgres) przy kilku workerach Gunicorna; dziś pamięć procesu + plik.
+- Otwarte API: klucze i limity na klienta, wersjonowanie zmian kontraktu, webhook „kosz przepełniony” dla miasta.
+- Konta osobowe kierowców i dyspozytorów, grafik zmian, numery pojazdów (dziś: loginy floty ze wspólnym hasłem demo).
+- Web Push / SMS „Opróżniono” dla zgłaszającego; dziś status odświeżany na otwartym ekranie.
+- Model per zadanie (Sonnet 5 / Haiku 4.5 dla prostych wywołań), gdy wolumen wywołań AI wzrośnie.
+- Panel dyspozytora w układzie mobilnym i w trybie ciemnym (całodobowa dyspozytornia).
+- Pełna wersja angielska interfejsu.

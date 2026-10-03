@@ -1,9 +1,9 @@
 // Service worker ekranu „Zgłoś kosz”: powłoka offline + Background Sync kolejki zgłoszeń (IndexedDB).
 importScripts('/static/zglos/queue.js');
-const CACHE = 'tf-zglos-v1';
+const CACHE = 'tf-zglos-v2';
 const SHELL = ['/static/zglos/zglos.css', '/static/zglos/zglos.js', '/static/zglos/queue.js', '/static/zglos/icon.svg',
                '/static/zglos/manifest.webmanifest', '/static/img/krakow-basemap.svg',
-               'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'];
+               '/static/vendor/leaflet/leaflet.css', '/static/vendor/leaflet/leaflet.js', '/static/fonts/fonts.css'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.allSettled(SHELL.map(u => c.add(u)))).then(() => self.skipWaiting()));

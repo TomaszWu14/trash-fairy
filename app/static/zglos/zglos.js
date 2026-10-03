@@ -83,8 +83,10 @@ function locate() {
     S.dist = Math.round(distM(S.pos.lat, S.pos.lon, S.bin.lat, S.bin.lon));
     $('dist-txt').textContent = `Jesteś ok. ${S.dist < 1000 ? S.dist + ' m' : (S.dist / 1000).toFixed(1).replace('.', ',') + ' km'} od kosza`;
     $('dist').hidden = false;
-    if (S.dist > FAR_M && S.screen === 'start' && !Z.jury) setScreen('far');  // jury klika z sali, więc dla niego nie blokujemy
-    else if (S.dist <= FAR_M && S.screen === 'far') setScreen('start');
+    // ta sama reguła co serwer: odległość minus dokładność GPS (max 150 m), żeby słaby GPS w kamienicy nie blokował
+    const far = S.dist - Math.min(S.pos.acc || 0, FAR_M) > FAR_M;
+    if (far && S.screen === 'start' && !Z.jury) setScreen('far');  // jury klika z sali, więc dla niego nie blokujemy
+    else if (!far && S.screen === 'far') setScreen('start');
     else updateMap();
   }, () => { /* bez lokalizacji: wysyłamy bez niej */ }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 });
 }

@@ -7,19 +7,19 @@ import os
 from flask import Blueprint, abort, jsonify, request, send_file, session
 from sqlalchemy import func
 
-from . import clock, db, fairy, llm, osrm, photos, residents
+from . import auth, clock, db, fairy, http, llm, osrm, photos, rate, residents, sms, traffic, weather
 from .comparison import compare
 from .events import AFTER, RADIUS_M
 from .forecast import THRESHOLD, forecast_quality, point_series
 from .misuse import misuse_overview
-from .models import Device, Emptying, Event, PhotoAnalysis, Point, Press, Report
+from .models import Device, Emptying, Event, PhotoAnalysis, Point, Press, Report, StopIssue
 from .recommendations import recommendations
 from .reports import MERGE_WINDOW, record_press, resolve_reports
 from .geo import distance_m
 from .models import Resident
 from .routes import DEPOT, next_runs, plan_routes
 from .simulation import DEMO_NOW, hour_floor
-from .state import point_states
+from .state import CREW_ISSUES, current_routes, data_version, point_states
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -36,10 +36,28 @@ LEVELS = (0, 25, 50, 75, 100)
 
 
 def version():
-    """Zmienia się przy naciśnięciu, opróżnieniu, zdjęciu (także po jego analizie) i przewinięciu zegara."""
-    last = [db.session.query(func.max(m.id)).scalar() or 0 for m in (Press, Emptying, PhotoAnalysis)]
-    analysed = PhotoAnalysis.query.filter(PhotoAnalysis.status != "pending").count()
-    return f"{clock.now():%Y%m%d%H%M}-" + "-".join(map(str, last + [analysed]))
+    """Wersja danych dla pollingu (app/state.data_version); ta sama służy za klucz cache stanu i tras."""
+    return data_version()
+
+
+# Pola tylko dla dyspozytora: wiarygodność przycisków, nadużycia ze zdjęć, problemy zgłoszone przez kierowcę.
+# Filtrujemy na serwerze (decyzja 7), bo ukrycie w JS i tak zostawiłoby je w odpowiedzi.
+DISPATCHER_ONLY = {"reliability", "check_reason", "misuse", "crew_issue", "photo_note", "photo_error"}
+
+
+def public_view(props):
+    return props if auth.is_dispatcher() else {k: v for k, v in props.items() if k not in DISPATCHER_ONLY}
+
+
+def conditions(now):
+    """Pogoda (mnożnik prognozy) i ruch (mnożnik czasu przejazdu) — panel i /api/v1/conditions."""
+    return {"weather": weather.conditions(now), "traffic": traffic.conditions()}
+
+
+def _eta(run_at):
+    """(ETA kursu z opóźnieniem dojazdu w korku, opóźnienie w min). Bez danych o ruchu opóźnienie = 0."""
+    delay = traffic.delay_min(traffic.city_ratio())
+    return run_at + timedelta(minutes=delay), delay
 
 
 def snapshot():
@@ -54,13 +72,14 @@ def snapshot():
         features.append({
             "type": "Feature",
             "geometry": {"type": "Point", "coordinates": [p.lon, p.lat]},
-            "properties": {"id": p.id, "kind": p.kind, "name": p.name, "area": p.area, **s,
-                           **mo["points"].get(p.id, {}), "recommendation": mo["recommendations"].get(p.id)},
+            "properties": public_view({"id": p.id, "kind": p.kind, "name": p.name, "area": p.area, **s,
+                                       **mo["points"].get(p.id, {}), "recommendation": mo["recommendations"].get(p.id)}),
         })
     count = lambda st: sum(f["properties"]["state"] == st for f in features)
     return {
         "type": "FeatureCollection",
         "version": version(),
+        "conditions": conditions(now),
         "clock": {"now": now.isoformat(), "label": f"{now:%d.%m.%Y}, {WEEKDAYS[now.weekday()]} {now:%H:%M}",
                   "can_advance": now < clock.MAX_NOW},
         "summary": {
@@ -74,7 +93,7 @@ def snapshot():
                    for e in Event.query.order_by(Event.start)
                    if e.end + AFTER > now and e.start < now + timedelta(hours=24)],
         "forecast_quality": forecast_quality(hour_floor(now)),
-        "links": mo["links"],
+        "links": mo["links"] if auth.is_dispatcher() else [],
         "features": features,
     }
 
@@ -94,10 +113,10 @@ def point_detail(point_id):
     analyses = (PhotoAnalysis.query.filter(PhotoAnalysis.point_id == point.id, PhotoAnalysis.at <= now)
                 .order_by(PhotoAnalysis.at.desc(), PhotoAnalysis.id.desc()).limit(5))
     return jsonify(
-        id=point.id, name=point.name, kind=point.kind, area=point.area, **point_states(now)[point.id],
-        **mo["points"].get(point.id, {}), recommendation=mo["recommendations"].get(point.id),
+        **public_view({**point_states(now)[point.id], **mo["points"].get(point.id, {})}),
+        id=point.id, name=point.name, kind=point.kind, area=point.area, recommendation=mo["recommendations"].get(point.id),
         investment=next((r for r in recommendations(now, mo["recommendations"]) if r["point_id"] == point.id), None),
-        analyses=[_analysis(pa) for pa in analyses],
+        analyses=[_analysis(pa) for pa in analyses] if auth.is_dispatcher() else [],
         threshold=THRESHOLD, now=now.isoformat(),
         series=[{"at": at.isoformat(), "label": f"{at:%H}:00", "est": _r(est), "low": _r(low), "high": _r(high),
                  "future": at > hour_floor(now)} for at, est, low, high in series],
@@ -111,12 +130,39 @@ def point_detail(point_id):
 @bp.get("/routes")
 def routes():
     now = clock.now()
-    fleets = plan_routes(now, point_states(now))
-    for f in fleets:  # przebieg po ulicach tylko do rysowania; km zostają z road_m
+    states = point_states(now)
+    fleets = current_routes(now)
+    for f in fleets:
+        for s in f["stops"]:  # PWA kierowcy: domyślny poziom zastany i znacznik stanu bez drugiego zapytania
+            st = states[s["id"]]
+            s.update(level=st["value"], state=st["state"], fresh=st["fresh"])  # przebieg po ulicach tylko do rysowania; km zostają z road_m
         out, approx_out = osrm.street_path(f["path"][:-1])
         back, approx_back = osrm.street_path(f["path"][-2:]) if f["stops"] else ([], False)
         f["geometry"] = {"out": out, "back": back, "approx": approx_out or approx_back}
-    return jsonify(depot=DEPOT, fleets=fleets)
+    k = traffic.city_ratio()
+    for f in fleets:  # ruch zmienia tylko czas przejazdu, nigdy punktów ani km
+        f["drive_min"] = traffic.drive_min(f["km"], k)
+        f["drive_min_free"] = traffic.drive_min(f["km"])
+    return jsonify(depot=DEPOT, fleets=fleets, now=now.isoformat(),
+                   traffic={"ratio": k, "delay_min": traffic.delay_min(k)} if k else None)
+
+
+@bp.get("/kierowca/kurs")
+@auth.require("driver")
+def driver_run():
+    """PWA kierowcy: tylko kurs jego floty (decyzja 2), z przebiegiem po ulicach i korektą czasu z ruchu."""
+    now = clock.now()
+    states = point_states(now)
+    f = next(f for f in current_routes(now) if f["kind"] == auth.fleet())
+    for s in f["stops"]:
+        st = states[s["id"]]
+        s.update(level=st["value"], state=st["state"], fresh=st["fresh"])
+    out, approx_out = osrm.street_path(f["path"][:-1])
+    back, approx_back = osrm.street_path(f["path"][-2:]) if f["stops"] else ([], False)
+    f["geometry"] = {"out": out, "back": back, "approx": approx_out or approx_back}
+    k = traffic.city_ratio()
+    f["drive_min"], f["drive_min_free"] = traffic.drive_min(f["km"], k), traffic.drive_min(f["km"])
+    return jsonify(depot=DEPOT, fleet=f, now=now.isoformat(), login=session.get("login"))
 
 
 @bp.get("/recommendations")
@@ -133,6 +179,7 @@ def fairy_get():
 
 
 @bp.post("/fairy")
+@auth.require("dispatcher")
 def fairy_refresh():
     """Nowy raport. Przy błędzie API: komunikat + ostatni raport (nigdy 500)."""
     now = clock.now()
@@ -182,11 +229,14 @@ def _photo_from_request(point, crew_level=None):
 
 
 @bp.post("/emptying")
+@auth.require("dispatcher", "driver")
 def emptying():
     """Ekipa MPO: punkt opróżniony, poziom zastany przed opróżnieniem, opcjonalne zdjęcie."""
     point = _point_or_none(request.form.get("point_id"))
     if point is None:
         return jsonify(ok=False, message="Nie ma takiego punktu."), 404
+    if not auth.can_touch(point):
+        return jsonify(ok=False, message="Ten punkt nie należy do Twojej floty."), 403
     try:
         level = int(request.form.get("level"))
     except (TypeError, ValueError):
@@ -197,9 +247,31 @@ def emptying():
     db.session.add(e)
     resolve_reports(e)
     db.session.commit()
+    clock.touch()
     pa, error = _photo_from_request(point, crew_level=level)
     message = "Zapisano opróżnienie." + (" Zdjęcie przekazane do analizy." if pa else "")
     return jsonify(ok=True, message=message, photo_error=error, analysis_id=pa.id if pa else None)
+
+
+@bp.post("/stop-issue")
+@auth.require("dispatcher", "driver")
+def stop_issue():
+    """Kierowca: nie da się podjechać albo problem z koszem (+ opcjonalne zdjęcie). Trasy nie zmienia, decyduje dyspozytor."""
+    point = _point_or_none(request.form.get("point_id"))
+    if point is None:
+        return jsonify(ok=False, message="Nie ma takiego punktu."), 404
+    if not auth.can_touch(point):
+        return jsonify(ok=False, message="Ten punkt nie należy do Twojej floty."), 403
+    kind = request.form.get("kind")
+    if kind not in CREW_ISSUES:
+        return jsonify(ok=False, message="Wybierz rodzaj problemu."), 400
+    note = (request.form.get("note") or "").strip()[:200] or None
+    db.session.add(StopIssue(point_id=point.id, at=clock.now(), kind=kind, note=note))
+    db.session.commit()
+    clock.touch()
+    pa, error = _photo_from_request(point)
+    return jsonify(ok=True, message=f"Przekazano dyspozytorowi: {CREW_ISSUES[kind]}.", photo_error=error,
+                   analysis_id=pa.id if pa else None)
 
 
 def _nearest_point(lat, lon):
@@ -208,6 +280,7 @@ def _nearest_point(lat, lon):
 
 
 @bp.post("/photo")
+@auth.require("dispatcher")
 def photo():
     """Zdjęcie bez opróżnienia. Bez `point_id` kosz dobieramy z GPS w EXIF (zdjęcia z miasta wgrywane paczką)."""
     point = _point_or_none(request.form.get("point_id"))
@@ -251,6 +324,7 @@ def photo_file(analysis_id):
 
 @bp.get("/changes")
 def changes():
+    clock.maybe_auto_reset()  # po 30 min bez akcji następny widz zaczyna od 13:30
     if request.args.get("since") == version():
         return jsonify(changed=False)
     return jsonify(changed=True, **snapshot())
@@ -275,6 +349,15 @@ def _retry_at(now, recent_same, ip, wall):
     return now + ((oldest + timedelta(hours=1)) - wall if oldest else timedelta(minutes=30))
 
 
+def _accuracy_m(data):
+    """Dokładność GPS z telefonu (m), obcięta do 150 m: słaby GPS w kamienicy nie blokuje zgłoszenia przy koszu,
+    a podane „accuracy 5 km” nie wyłącza kontroli odległości."""
+    try:
+        return min(max(float(data.get("accuracy_m") or 0), 0.0), GEO_RADIUS_M)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 @bp.post("/press")
 def press():
     data = request.get_json(silent=True) or request.form
@@ -289,7 +372,7 @@ def press():
             dist = distance_m(float(lat), float(lon), point.lat, point.lon)
         except (TypeError, ValueError):
             dist = None
-        if dist is None or dist > GEO_RADIUS_M:
+        if dist is None or dist - _accuracy_m(data) > GEO_RADIUS_M:
             return jsonify(ok=False, reason="too_far", distance_m=round(dist) if dist else None,
                            message="Jesteś za daleko od tego kosza (ponad 150 m)."), 403
     elif source == "qr" and os.environ.get("REQUIRE_GEO") == "1":
@@ -307,6 +390,7 @@ def press():
 
     resident = current_resident()
     run_at, _ = next_runs(point.kind, now)
+    eta, delay = _eta(run_at)
     if source == "button":  # fizyczny przycisk nadaje: urządzenie żyje
         dev = db.session.get(Device, point.id)
         if dev:
@@ -316,17 +400,21 @@ def press():
         db.session.add(Press(point_id=point.id, at=now, ip=ip, wall_at=wall, source=source, kind=kind,
                              resident_id=resident.id if resident else None))
         db.session.commit()
+        clock.touch()
         return jsonify(ok=True, message="Dziękujemy, ekipa sprawdzi kosz.", report_id=None, presses=others + 1, confirmed=False,
                        registered=resident is not None, status="merged" if others else "accepted", accepted_at=f"{now:%H:%M}",
-                       merged_with_at=None, eta=f"{run_at:%H:%M}", route=f"kurs {run_at:%H:%M}", others_count=others)
+                       merged_with_at=None, eta=f"{eta:%H:%M}", traffic_delay_min=delay, route=f"kurs {run_at:%H:%M}",
+                       others_count=others)
     report = record_press(point.id, now, ip=ip, wall_at=wall,
                           resident_id=resident.id if resident else None, source=source, kind=kind)
+    clock.touch()
     merged = report.presses > 1
     return jsonify(ok=True, message="Wróżka już leci!", report_id=report.id, presses=report.presses,
                    confirmed=report.confirmed, registered=resident is not None,
                    status="merged" if merged else "accepted", accepted_at=f"{report.first_at:%H:%M}",
                    merged_with_at=f"{report.first_at:%H:%M}" if merged else None,
-                   eta=f"{run_at:%H:%M}", route=f"kurs {run_at:%H:%M}", others_count=report.presses - 1)
+                   eta=f"{eta:%H:%M}", traffic_delay_min=delay, route=f"kurs {run_at:%H:%M}",
+                   others_count=report.presses - 1)
 
 
 @bp.get("/zglos/<int:point_id>")
@@ -346,7 +434,7 @@ def zglos_public(point_id):
         id=point.id, name=point.name, address=point.osm_tags.get("addr:street") or point.area,
         type="kosz uliczny" if point.kind == "bin" else "altana osiedlowa", capacity_l=BIN_CAPACITY_L[point.kind],
         lat=point.lat, lon=point.lon, fill_pct=s["level"], state=s["state"],
-        next_pickup=f"{run_at:%H:%M}", next_route=f"kurs {run_at:%H:%M}",
+        next_pickup=f"{_eta(run_at)[0]:%H:%M}", next_route=f"kurs {run_at:%H:%M}", traffic_delay_min=_eta(run_at)[1],
         button_offline=point.id in device_flags(now),
         open_report_at=f"{open_report.first_at:%H:%M}" if open_report else None,
         neighbors=[{"id": q.id, "name": q.name, "lat": q.lat, "lon": q.lon, "state": states[q.id]["state"],
@@ -404,16 +492,35 @@ def residents_register():
     except residents.RegistrationError as e:
         return jsonify(ok=False, message=str(e)), 400
     session["pending_resident_id"] = r.id
-    # DEMO: zamiast SMS pokazujemy kod na ekranie (prawdziwy SMS w ROADMAPA.md)
-    return jsonify(ok=True, message="Wysłaliśmy kod SMS (w demo pokazujemy go tutaj).", demo_code=r.code)
+    session.pop("verification_sid", None)
+    if sms.configured():
+        try:
+            session["verification_sid"] = sms.send_code(residents.normalize_phone(data.get("phone")), r.phone_hash)
+            return jsonify(ok=True, message="Wysłaliśmy kod SMS. Wpisz go poniżej.", demo_code=None)
+        except sms.SmsError as e:
+            if e.status == 429 or http.config("SMS_DEMO_FALLBACK") != "1":
+                return jsonify(ok=False, message=str(e)), e.status
+    # bez bramki albo przy jej awarii (SMS_DEMO_FALLBACK=1): kod na ekranie, wyraźnie oznaczony jako demo
+    return jsonify(ok=True, message="Tryb demo: zamiast SMS-a pokazujemy kod tutaj.", demo_code=r.code)
 
 
 @bp.post("/residents/verify")
 def residents_verify():
     data = request.get_json(silent=True) or request.form
     r = db.session.get(Resident, session.get("pending_resident_id") or 0)
-    if r is None or not residents.verify(r, (data.get("code") or "").strip()):
+    code, sid = (data.get("code") or "").strip(), session.get("verification_sid")
+    if r is not None and sid:
+        try:
+            ok = sms.check_code(sid, code)
+        except sms.SmsError as e:
+            return jsonify(ok=False, message=str(e)), e.status
+        if ok:
+            residents.mark_verified(r)
+    else:
+        ok = r is not None and residents.verify(r, code)
+    if not ok:
         return jsonify(ok=False, message="Nieprawidłowy kod."), 400
+    session.pop("verification_sid", None)
     session.pop("pending_resident_id", None)
     session["resident_id"] = r.id
     return jsonify(ok=True, message=f"Witaj w programie, {r.nick}!")
@@ -442,6 +549,7 @@ def devices():
 
 
 @bp.post("/devices/<int:point_id>/selftest")
+@auth.require("dispatcher")
 def device_selftest(point_id):
     d = residents.selftest(point_id, clock.now())
     if d is None:
@@ -456,6 +564,7 @@ def clock_advance():
 
 
 @bp.post("/clock/reset")
+@auth.require("dispatcher")
 def clock_reset():
     clock.reset()
     return jsonify(snapshot())

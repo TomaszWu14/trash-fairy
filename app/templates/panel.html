@@ -5,11 +5,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Trash Fairy — panel dyspozytora</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', filename='fairy.css') }}">
 </head>
@@ -23,7 +22,8 @@
   </div>
   <button type="button" id="btn-advance" class="tf-hbtn">Przewiń +1 h</button>
   <button type="button" id="btn-reset" class="tf-hbtn tf-hbtn-ghost" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo">Reset</button>
-  <div class="tf-demo" role="status">DANE DEMONSTRACYJNE · SYMULACJA</div>
+  <div class="tf-demo" role="status" title="Dane demonstracyjne, symulacja">DEMO · SYMULACJA</div>
+  <span class="tf-fresh" id="fresh" role="status">Łączę…</span>
 </header>
 
 <main class="tf-main">
@@ -75,6 +75,7 @@
         <div class="tf-stat"><b id="n-ok">–</b><small><span class="tf-sym ok" aria-hidden="true">✓</span> w porządku</small></div>
       </div>
       <p class="tf-muted mt-2" id="n-total"></p>
+      <dl class="tf-cond" id="conditions" aria-live="polite"></dl>
       <p class="tf-presses mt-2" aria-live="polite">
         <span aria-hidden="true">🔴</span> W demo: <b id="n-presses">0</b> naciśnięć → <b id="n-reports">0</b> zgłoszeń
         <small class="tf-muted block">naciśnięcia jednego punktu w ciągu 15 minut łączą się w jedno zgłoszenie</small>
@@ -122,6 +123,7 @@
       <h2 id="h-routes"><span aria-hidden="true">🚚</span> Trasy na najbliższy kurs</h2>
       <div id="routes"></div>
       <p class="tf-muted tf-small">Start i koniec: baza MPO, ul. Nowohucka 1. Odległości w linii prostej × 1,3.</p>
+      <p><a class="tf-hbtn tf-link-btn" href="/kierowca" target="_blank" rel="noopener">Otwórz w aplikacji kierowcy ↗</a></p>
     </section>
 
     <section class="tf-card" aria-labelledby="h-compare" data-tab="trasy">
@@ -155,15 +157,16 @@
         <li><span class="tf-pinwrap" aria-hidden="true"><span class="tf-pin circle bad">!</span><span class="tf-badge left">🛍</span></span> nadużycie wykryte na zdjęciu</li>
         <li><span class="tf-linksw" aria-hidden="true"></span> powiązanie: worki domowe przy przepełnionej altanie</li>
         <li><span class="tf-routesw bin" aria-hidden="true"></span> trasa koszy · <span class="tf-routesw shelter" aria-hidden="true"></span> trasa altan</li>
+        <li><span class="tf-jam" aria-hidden="true">korek ×1,8</span> punkt pomiaru ruchu (TomTom): prędkość swobodna / obecna; przy korku ≥ 1,5 trasa kropkowana</li>
       </ul>
     </section>
     </div>
   </aside>
 </main>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/qrcode/qrcode.min.js') }}"></script>
 <script>window.PUBLIC_URL = {{ public_url|tojson }};</script>
 <script src="{{ url_for('static', filename='panel.js') }}"></script>
 </body>

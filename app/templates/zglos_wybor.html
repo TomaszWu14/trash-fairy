@@ -8,7 +8,7 @@
   <title>Zgłoś kosz · Trash Fairy</title>
   <link rel="manifest" href="{{ url_for('static', filename='zglos/manifest.webmanifest') }}">
   <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='zglos/zglos.css') }}">
   <style>
     .w-list { list-style: none; margin: 0; padding: 16px; display: flex; flex-direction: column; gap: 10px; max-width: 560px; }

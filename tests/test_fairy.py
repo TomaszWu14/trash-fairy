@@ -98,7 +98,7 @@ def test_unknown_numbers_are_flagged():
     assert fairy.unknown_numbers(bad, facts) == ["35"]
 
 
-def test_refresh_saves_report_and_get_returns_it(client, demo, model):
+def test_refresh_saves_report_and_get_returns_it(client, demo, model, staff):
     data = client.post("/api/fairy").json
     assert data["error"] is None and data["fresh"]
     assert [s["title"] for s in data["report"]["sections"]] == fairy.SECTIONS
@@ -106,7 +106,7 @@ def test_refresh_saves_report_and_get_returns_it(client, demo, model):
     assert client.get("/api/fairy").json["report"]["label"] == data["report"]["label"]
 
 
-def test_api_error_returns_message_and_last_report(client, demo, model):
+def test_api_error_returns_message_and_last_report(client, demo, model, staff):
     client.post("/api/fairy")
     model["error"] = "Analiza AI chwilowo niedostępna (limit zapytań). Spróbuj za minutę."
     r = client.post("/api/fairy")

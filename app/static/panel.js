@@ -1,8 +1,9 @@
 const map = L.map('map').setView([50.0570, 19.9460], 15);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (ODbL)'
-}).addTo(map);
+const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (ODbL)';
+const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: OSM_ATTR }).addTo(map);
+let tileErrors = 0;  // bez sieci do kafelków: statyczny podkład SVG obszaru demo (decyzja 33)
+tiles.on('tileerror', () => { if (++tileErrors === 3) { map.removeLayer(tiles);
+  L.imageOverlay('/static/img/krakow-basemap.svg', [[50.04095, 19.912], [50.07005, 19.992]], { attribution: OSM_ATTR }).addTo(map); } });
 
 const KIND = { bin: { shape: 'circle', size: 18, label: 'Kosz' }, shelter: { shape: 'square', size: 22, label: 'Altana' } };
 const POLL_MS = 2000;
@@ -10,6 +11,8 @@ const markers = {};
 const eventLayer = L.layerGroup().addTo(map);
 const linkLayer = L.layerGroup().addTo(map);
 const routeLayers = { bin: L.layerGroup().addTo(map), shelter: L.layerGroup().addTo(map) };
+const trafficLayer = L.layerGroup().addTo(map);
+const JAM = 1.5;  // od tego korka trasa na mapie jest kropkowana
 const ROUTE_COLOR = { bin: '#2f6b3a', shelter: '#b8860b' };
 let onRoute = {};  // point_id → przystanek na najbliższym kursie
 let points = [];
@@ -28,7 +31,8 @@ const pinHtml = p => `<span class="tf-pinwrap${p.fresh ? ' fresh' : ''}" aria-hi
 const describe = p => `${KIND[p.kind].label}: ${p.name}, ${p.label}, ${p.reason}`
   + (p.fresh ? ', świeże zgłoszenie' : '') + (p.check_button ? `, sprawdź przycisk: ${p.check_reason}` : '')
   + (p.misuse?.length ? `, nadużycie: ${p.misuse.join(', ')}` : '') + (p.recommendation ? ', jest rekomendacja' : '')
-  + (p.damaged_at ? ', zgłoszono uszkodzenie' : '') + (p.overflow_reported ? ', zgłoszono odpady obok' : '');
+  + (p.damaged_at ? ', zgłoszono uszkodzenie' : '') + (p.overflow_reported ? ', zgłoszono odpady obok' : '')
+  + (p.crew_issue ? `, kierowca: ${p.crew_issue.label}` : '');
 const popup = p => `<b>${esc(p.name)}</b><br>${KIND[p.kind].label} · ${esc(p.area)}<br>`
   + `Stan: <b>${p.symbol} ${p.label}</b> — ${esc(p.reason)}<br>Poziom: ${p.level}% · wiarygodność przycisku: ${p.reliability}%`
   + (p.check_button ? `<br>⚠ Sprawdź przycisk: ${esc(p.check_reason)}` : '')
@@ -61,6 +65,7 @@ function renderList() {
           ${p.misuse?.length ? `<small class="misuse">🛍 ${esc(p.misuse.join(', '))}</small>` : ''}
           ${p.damaged_at ? `<small class="check">🛠 mieszkaniec zgłosił uszkodzenie (${p.damaged_at.slice(11, 16)})</small>` : ''}
           ${p.overflow_reported ? '<small class="misuse">🛍 zgłoszenie: odpady obok kosza</small>' : ''}
+          ${p.crew_issue ? `<small class="check">Kierowca ${p.crew_issue.at.slice(11, 16)}: ${esc(p.crew_issue.label)}${p.crew_issue.note ? ` (${esc(p.crew_issue.note)})` : ''}</small>` : ''}
           ${p.recommendation ? '<small class="rec">✨ rekomendacja: zwiększ częstotliwość odbioru</small>' : ''}
         </span>
         <span class="lvl">${p.value}%</span></button>
@@ -105,6 +110,7 @@ function apply(data) {
   $('btn-advance').disabled = !data.clock.can_advance;
   renderEvents(data.events);
   renderLinks(data.links);
+  renderConditions(data.conditions);
   const q = data.forecast_quality;
   $('quality').innerHTML = q
     ? `<span aria-hidden="true">📈</span> Trafność prognozy (ostatnie ${q.days} dni): średni błąd <b>${q.mae} p.p.</b>, `
@@ -183,6 +189,24 @@ function renderJuryQr() {
     ? ' (localhost działa tylko na tym komputerze: ustaw PUBLIC_URL albo otwórz panel przez adres IP w sieci)' : '');
 }
 
+// --- pogoda i ruch (etap 8): tylko mnożniki z reguł w kodzie, opis tekstem ---
+const dec = v => String(v).replace('.', ',');
+function renderConditions(c) {
+  if (!c) return;
+  const w = c.weather, t = c.traffic;
+  $('conditions').innerHTML =
+    `<dt>Pogoda</dt><dd>${w.available ? `${esc(w.label)}, ${dec(w.temp_c)} °C, opad ${dec(w.rain_mm)} mm · prognoza ×${dec(w.factor)} (${esc(w.effect)})`
+                                     : 'brak danych · prognoza bez korekty'}</dd>`
+    + `<dt>Ruch</dt><dd>${t.available ? `${esc(t.label)}, korek ×${dec(t.ratio)} · dojazd z bazy +${t.delay_min} min`
+                                     : 'brak danych · czasy bez korekty'}</dd>`;
+  trafficLayer.clearLayers();
+  for (const s of (t.available ? t.samples : []).filter(s => s.ratio >= 1.2 || s.closed)) {
+    const txt = s.closed ? 'zamknięte' : `korek ×${dec(s.ratio)}`;
+    L.marker([s.lat, s.lon], { keyboard: false, interactive: false, title: `${s.name}: ${txt}`,
+      icon: L.divIcon({ className: '', iconSize: [0, 0], html: `<span class="tf-jam">${txt}</span>` }) }).addTo(trafficLayer);
+  }
+}
+
 // --- trasy (etap 4) ---
 
 async function loadRoutes() {
@@ -194,6 +218,7 @@ async function loadRoutes() {
       <header><span class="tf-routesw ${f.kind}" aria-hidden="true"></span><b>${esc(f.label)}</b>
         <label><input type="checkbox" data-route="${f.kind}" ${map.hasLayer(routeLayers[f.kind]) ? 'checked' : ''}> na mapie</label></header>
       <p class="meta">Kurs ${f.run_label} · ${f.vehicle} · <b>${f.stops.length}</b> punktów · <b>${f.km} km</b>
+        · jazda ok. <b>${f.drive_min} min</b>${data.traffic ? ` (bez korków ${f.drive_min_free} min)` : ''}
         · kolejny kurs ${f.following_label}</p>
       ${f.stops.length ? `<ol>${f.stops.map(s => `<li>${esc(s.name)}<small>${esc(s.reason)}</small></li>`).join('')}</ol>`
                        : '<p class="tf-muted">Na ten kurs nie trzeba nikogo wysyłać.</p>'}
@@ -202,7 +227,11 @@ async function loadRoutes() {
     const layer = routeLayers[f.kind];
     layer.clearLayers();
     if (!f.stops.length) continue;
-    L.polyline(f.path, { color: ROUTE_COLOR[f.kind], weight: 4, opacity: 0.75, dashArray: f.kind === 'shelter' ? '10 6' : null })
+    // przebieg po ulicach z OSRM (jak w widoku C); bez sieci serwer zwraca linię prostą
+    L.polyline(f.geometry.back, { color: ROUTE_COLOR[f.kind], weight: 2, opacity: 0.6, dashArray: '3 6', interactive: false }).addTo(layer);
+    const jam = data.traffic?.ratio >= JAM;  // korek: kropki zamiast linii (kształt, nie tylko kolor)
+    L.polyline(f.geometry.out, { color: ROUTE_COLOR[f.kind], weight: 4, opacity: 0.8,
+                                 dashArray: jam ? '2 8' : f.kind === 'shelter' ? '10 6' : null, lineCap: 'round' })
       .addTo(layer);
     L.marker([data.depot.lat, data.depot.lon], { icon: depotIcon, title: data.depot.name, alt: data.depot.name, keyboard: false })
       .bindPopup(`<b>${esc(data.depot.name)}</b><br>start i koniec tras`).addTo(layer);
@@ -386,12 +415,24 @@ function renderChart(d) {
 $('btn-back').addEventListener('click', closeDetails);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && detailId) closeDetails(); });
 
+// świeżość danych: po 3 nieudanych pollach baner „brak połączenia” (tekst + kształt, nie sam kolor)
+let fails = 0, lastOk = null;
+function markFresh(ok) {
+  fails = ok ? 0 : fails + 1;
+  if (ok) lastOk = new Date();
+  const off = fails >= 3, t = lastOk ? lastOk.toTimeString().slice(0, 8) : '–';
+  $('fresh').classList.toggle('off', off);
+  $('fresh').textContent = off ? `Brak połączenia · dane z ${t}` : `Aktualizacja ${t}`;
+}
+
 async function poll() {
   try {
     const r = await fetch(`/api/changes?since=${encodeURIComponent(version ?? '')}`);
+    if (!r.ok) throw new Error(r.status);
     const data = await r.json();
+    markFresh(true);
     if (data.changed) apply(data);
-  } catch (e) { /* chwilowy brak sieci — spróbujemy za 2 s */ }
+  } catch (e) { markFresh(false); }  // chwilowy brak sieci — spróbujemy za 2 s
   setTimeout(poll, POLL_MS);
 }
 

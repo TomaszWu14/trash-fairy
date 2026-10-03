@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pl">
+{% from "_logo.html" import logo %}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0E1222">
+  <title>Trash Fairy · kierowca MPO</title>
+  <link rel="manifest" href="{{ url_for('static', filename='kierowca/manifest.webmanifest') }}">
+  <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon-192.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='kierowca/kierowca.css') }}">
+</head>
+<body>
+<header class="k-head">
+  <span class="k-brand" style="--logo-bg:var(--navy)">{{ logo(26, '#FFD34D') }}<span id="head-t">Trash Fairy · kierowca</span></span>
+  <span class="k-net" id="net" role="status"><span class="k-net-dot" aria-hidden="true"></span><span id="net-t">Łączę…</span></span>
+  {% if user %}<form method="post" action="{{ url_for('main.logout') }}" class="k-logout">
+    <span>{{ user.login }}</span><button type="submit">Wyloguj</button></form>{% endif %}
+</header>
+<p class="k-demo">Demo · zegar <time id="clock">…</time></p>
+<main id="app" class="k-main" tabindex="-1"><p class="k-muted">Ładuję kurs…</p></main>
+<div class="k-toast" id="toast" role="status" hidden></div>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script>self.TF_DB_NAME = 'trash-fairy-kierowca';</script>
+<script src="{{ url_for('static', filename='zglos/queue.js') }}"></script>
+<script src="{{ url_for('static', filename='kierowca/kierowca.js') }}"></script>
+</body>
+</html>

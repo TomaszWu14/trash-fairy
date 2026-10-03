@@ -1,6 +1,7 @@
 // Kolejka zgłoszeń offline w IndexedDB. Ten sam plik ładuje strona (<script>) i service worker (importScripts),
 // żeby Background Sync wysłał zgłoszenie także po zamknięciu aplikacji.
-const TF_DB = 'trash-fairy', TF_STORE = 'queue';
+// osobna baza na aplikację (self.TF_DB_NAME ustawione przed załadowaniem), żeby SW zgłoszeń nie wysyłał kolejki kierowcy
+const TF_DB = self.TF_DB_NAME || 'trash-fairy', TF_STORE = 'queue';
 function tfDb() {
   return new Promise((ok, err) => {
     const r = indexedDB.open(TF_DB, 1);
