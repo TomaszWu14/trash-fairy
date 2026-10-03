@@ -73,6 +73,26 @@
     </tbody>
   </table>
 
+  <h2 id="krakow">Skala: cały Kraków</h2>
+  <p>Wynik koszy z porównania ({{ city.visit_cut_pct }}% mniej wizyt, {{ city.km_cut_pct }}% mniej km, {{ city.km_per_visit|string|replace('.', ',') }} km na wizytę)
+     przykładamy do liczby wizyt z <a href="https://mpo.krakow.pl/czystosc/">harmonogramu oczyszczania MPO 08/2026</a>.
+     Wizyta {{ city.assumptions.cost_per_visit|int }} zł, kilometr {{ city.assumptions.cost_per_km|int }} zł (te same założenia co wyżej). Altan nie skalujemy, bo nie znamy ich liczby w mieście.</p>
+  <table>
+    <thead><tr><th scope="col">Częstotliwość</th><th scope="col">Koszy</th><th scope="col">Wizyt na 30 dni</th></tr></thead>
+    <tbody>{% for r in city.rows %}<tr><td>{{ r.label }}</td><td>{{ "{:,}".format(r.bins).replace(",", " ") }}</td><td>{{ "{:,}".format(r.visits).replace(",", " ") }}</td></tr>{% endfor %}</tbody>
+  </table>
+  <table>
+    <thead><tr><th scope="col">Wariant</th><th scope="col">Koszy</th><th scope="col">Mniej wizyt / mies.</th><th scope="col">Oszczędność / mies.</th><th scope="col">Oszczędność / rok</th></tr></thead>
+    <tbody>
+      {% for name, v in [('Ostrożny: kosze opróżniane codziennie lub częściej', city.careful), ('Pełny: wszystkie kosze w Krakowie', city.full)] %}
+      <tr><td>{{ name }}</td><td>{{ "{:,}".format(v.bins).replace(",", " ") }}</td><td>{{ "{:,}".format(v.saved_visits).replace(",", " ") }}</td>
+          <td>{{ "{:,.0f}".format(v.pln_month).replace(",", " ") }} zł</td><td><b>{{ "%.1f"|format(v.pln_year / 1000000)|replace('.', ',') }} mln zł</b></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="note">Przedział, a nie jedna liczba: w centrum puste przyjazdy są najczęstsze, więc tam efekt modelu jest najpewniejszy.
+     Kolejny krok to pilotaż w Dzielnicy I (43% koszy opróżnianych 3× dziennie).</p>
+
   <h2>Reguły i parametry</h2>
   <table>
     <thead><tr><th>Obszar</th><th>Założenie</th><th>Wartość</th></tr></thead>

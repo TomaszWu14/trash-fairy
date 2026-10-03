@@ -99,5 +99,6 @@
 <script src="{{ url_for('static', filename='vendor/qrcode/qrcode.min.js') }}"></script>
 <script>window.PUBLIC_URL = {{ public_url|tojson }}; window.BASEMAP_SVG = {{ url_for('static', filename='img/krakow-basemap.svg')|tojson }};</script>
 <script src="{{ url_for('static', filename='pokaz.js') }}"></script>
+{% include "_footer.html" %}
 </body>
 </html>

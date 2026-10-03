@@ -301,3 +301,13 @@ tylko przy szacunku ≥ 100%, a karta 4 pokazuje puste przyjazdy 57% → 27% i a
 (dla daltonisty ten sam kolor), a śliwka różni się od dymka zgłoszenia typem znaku (linia przerywana vs kształt). Kontrasty tekstu: biały na niebieskim
 trasy 7,5:1, ciemny znak na bursztynie 8,9:1, bursztynowy tekst `#7A4F00` na bieli 7,1:1, fiolet AI `#6A3FD6` na bieli 6,4:1.
 Pocięte (decyzja 48): ikony SVG zamiast emoji i jeden plik `tokens.css` dla wszystkich ekranów — w ROADMAPA.md.
+
+## Fala C, część 1 (niedz. 4.10, noc)
+
+**Skalowanie na Kraków liczy kod (`methodology.city_scale`): 1,5–2,8 mln zł/rok.** Wizyty z harmonogramu MPO 08/2026 (≈217,7 tys./mies.)
+× spadek wizyt (−24%) i km (−5%) koszy z porównania, przy jawnych założeniach 4 zł/wizyta i 5 zł/km. Przedział, bo efekt jest pewny w centrum
+(kosze opróżniane codziennie lub częściej: wariant ostrożny), a mniej pewny na przedmieściach. Odrzuciliśmy mnożenie przez liczbę koszy
+(2 976 zł / 72 × 9 383): ignorowało, że przedmieścia opróżnia się 2–5× w tygodniu, a nie 2× dziennie.
+**`/dostepnosc` i `/prywatnosc`**, IP zgłoszeń kasowane po 24 h przy starcie aplikacji (bez crona), zgoda przy rejestracji w programie.
+**Gunicorn z `--preload` (`app/wsgi.py`)**: porównanie liczy się raz przed forkiem workerów, zamiast 2–5 s w każdym workerze przy pierwszym wejściu.
+Pozostałe punkty fali C (postęp kierowcy, Pilne w panelu, flaga GPS, dymek → szczegóły, smoke.py) zostają na część 2.

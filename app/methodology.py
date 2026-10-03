@@ -83,7 +83,36 @@ def money(result):
     }
 
 
+# Harmonogram oczyszczania MPO 08/2026, arkusz „Kosze” (docs/kontekst-mpo.md): (częstotliwość, koszy, wizyt na 30 dni).
+# „Rzadziej” to kosze spoza zestawienia (9 383 − 7 759); przyjmujemy 2× w tygodniu.
+MPO_SCHEDULE = [("3× dziennie", 498, 90), ("2× dziennie", 456, 60), ("1× dziennie", 1433, 30),
+                ("5× w tygodniu", 1581, 30 * 5 / 7), ("4× w tygodniu", 1409, 30 * 4 / 7), ("3× w tygodniu", 2382, 30 * 3 / 7),
+                ("rzadziej (przyjęte 2× w tygodniu)", 1624, 30 * 2 / 7)]
+DAILY_OR_MORE = 3  # pierwsze trzy wiersze: tu puste przyjazdy są najczęstsze, więc efekt modelu najpewniejszy
+
+
+def city_scale(result):
+    """Skalowanie wyniku koszy na cały Kraków (decyzja 43): wizyty z harmonogramu MPO × spadek wizyt i km z modelu.
+    Przedział: ostrożny (tylko kosze opróżniane codziennie lub częściej) i pełny (wszystkie 9 383). Altan nie skalujemy."""
+    a = money_assumptions()
+    fixed, fairy = result["fixed"]["bin"], result["fairy"]["bin"]
+    visit_cut = (fixed["visits"] - fairy["visits"]) / fixed["visits"]
+    km_per_visit = fixed["km"] / fixed["visits"]
+    km_cut = (fixed["km"] - fairy["km"]) / fixed["km"]
+    rows = [{"label": l, "bins": n, "visits": round(n * v)} for l, n, v in MPO_SCHEDULE]
+
+    def variant(selected):
+        visits = sum(r["visits"] for r in selected)
+        saved_visits, saved_km = visits * visit_cut, visits * km_per_visit * km_cut
+        pln = saved_visits * a["cost_per_visit"] + saved_km * a["cost_per_km"]
+        return {"bins": sum(r["bins"] for r in selected), "visits": visits, "saved_visits": round(saved_visits),
+                "saved_km": round(saved_km), "pln_month": round(pln, -3), "pln_year": round(pln * 12, -4)}
+    return {"rows": rows, "visit_cut_pct": round(visit_cut * 100), "km_cut_pct": round(km_cut * 100),
+            "km_per_visit": round(km_per_visit, 2), "careful": variant(rows[:DAILY_OR_MORE]), "full": variant(rows),
+            "assumptions": a}
+
+
 def page_context(now):
     result = comparison.compare(simulation.DEMO_NOW)
-    return {"assumptions": assumptions(), "money": money(result), "result": result,
+    return {"assumptions": assumptions(), "money": money(result), "result": result, "city": city_scale(result),
             "quality": forecast.forecast_quality(simulation.hour_floor(now))}
