@@ -86,7 +86,7 @@ def api_docs():
 def driver():
     """PWA kierowcy MPO: start zmiany → trasa → przystanek → podsumowanie (offline z kolejką).
     ?podglad=1: dla jury (ramka na /telefony), bez logowania, prawdziwa trasa floty koszy, zapisy wyłączone (decyzja 11)."""
-    preview = request.args.get("podglad") == "1"
+    preview = request.args.get("podglad") == "1" and auth.role() != "driver"  # zalogowany kierowca: pełna aplikacja (jak API)
     if not preview and auth.role() != "driver":
         return redirect(url_for("main.login", next="/kierowca"))
     return render_template("kierowca.html", preview=preview)

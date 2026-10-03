@@ -330,3 +330,6 @@ kasowanie starych IP), a oba workery dziedziczyły to samo gniazdo, więc równo
 Lokalnie (SQLite, jeden proces) i w smoke teście (zapytania po kolei) nie było tego widać; test `tests/test_wsgi.py` pilnuje pustej puli.
 Odrzuciliśmy rezygnację z `--preload` (wracałoby 2–5 s liczenia porównania w każdym workerze). MAE stałej średniej to 7,1 p.p. o 13:30
 i 7,2 od 14:00 (liczone do bieżącej godziny zegara), więc slajdy podają wartość ze startu demo.
+Przy scenariuszu nagrania wyszło, że ramka kierowcy na `/telefony` (`/kierowca?podglad=1`) zostawała w podglądzie także po zalogowaniu
+`driver_bin`, choć API już wtedy przyjmowało zapisy: widok liczy teraz podgląd tą samą regułą co API (`podglad=1` i rola różna od kierowcy),
+więc scena „Opróżniony” na nagraniu działa w ramce. Materiały: deck 10 slajdów EN (artefakt Slides), `docs/video/` (scenariusz PL | EN, `pl.srt`, `en.srt`).

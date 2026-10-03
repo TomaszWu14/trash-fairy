@@ -1,0 +1,94 @@
+1
+00:00:00,500 --> 00:00:05,000
+Na Floriańskiej każdy kosz opróżnia się
+trzy razy dziennie, pełny czy pusty.
+
+2
+00:00:05,000 --> 00:00:09,500
+W Krakowie 9 383 kosze
+opróżnia się według kalendarza,
+
+3
+00:00:09,500 --> 00:00:14,800
+a przepełnione altany osiedlowe
+wypychają worki na ulicę.
+
+4
+00:00:15,000 --> 00:00:19,500
+Trash Fairy to mózg dla MPO,
+który nie potrzebuje czujników.
+
+5
+00:00:19,500 --> 00:00:25,000
+Zbiera tanie sygnały: przycisk na koszu,
+zgłoszenia z telefonu i dane od kierowców.
+
+6
+00:00:25,000 --> 00:00:29,000
+Krok pierwszy:
+co jest przepełnione teraz.
+
+7
+00:00:29,000 --> 00:00:35,500
+Krok drugi: kiedy kosz przekroczy 85%,
+z wydarzeniami z Karnetu i pogodą.
+
+8
+00:00:35,500 --> 00:00:42,000
+Krok trzeci: trasa na jutro rano, kilkadziesiąt
+przystanków po prawdziwych ulicach.
+
+9
+00:00:42,000 --> 00:00:49,500
+Decyzje podejmują jawne reguły w kodzie.
+AI tylko opisuje.
+
+10
+00:00:50,000 --> 00:00:54,500
+Teraz jeden kosz, numer 18,
+na trzech urządzeniach.
+
+11
+00:00:54,500 --> 00:01:00,000
+Mieszkaniec skanuje QR i klika „Pełny”.
+Po dwóch sekundach kosz pokazuje „Zgłoszono”.
+
+12
+00:01:00,000 --> 00:01:07,500
+Przewijam czas o godzinę: kosz trafia na trasę,
+a e-papier pokazuje „Ekipa w drodze”.
+
+13
+00:01:07,500 --> 00:01:13,500
+Kierowca klika „Opróżniony”
+i zgłoszenie się zamyka.
+
+14
+00:01:13,500 --> 00:01:24,500
+Punkty w programie mieszkańców
+są tylko za trafne zgłoszenia.
+
+15
+00:01:25,000 --> 00:01:31,500
+W czterech tygodniach symulacji puste przyjazdy
+spadają z 57 do 27 procent,
+
+16
+00:01:31,500 --> 00:01:36,500
+a przepełnione altany
+z 338 godzin do zera.
+
+17
+00:01:36,500 --> 00:01:44,500
+Dla całego Krakowa
+to od 1,5 do 2,8 mln zł rocznie.
+
+18
+00:01:45,000 --> 00:01:51,000
+Kod otwarty, dane syntetyczne pokazane wprost,
+sprzęt tylko tam, gdzie się zwraca.
+
+19
+00:01:51,000 --> 00:01:59,500
+Kraków nie potrzebuje więcej koszy.
+Potrzebuje wróżki.
