@@ -12,3 +12,8 @@ with app.app_context():
         compare(DEMO_NOW)
     except Exception:  # pusta baza przed seed: policzy się przy pierwszym zapytaniu
         pass
+    # Połączenia otwarte przed forkiem dziedziczą oba workery: dwa procesy na jednym gnieździe Postgresa = 500 przy
+    # równoległych zapytaniach (/telefony). Zamykamy pulę, każdy worker otworzy własne połączenia.
+    from . import db
+    db.session.remove()
+    db.engine.dispose()

@@ -72,11 +72,11 @@ Każda integracja ma wyłącznik i bezpieczny stan bez sieci: brak danych oznacz
 python -m venv .venv && .venv/Scripts/activate      # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 flask --app app seed        # import punktów z data/*.geojson + 8 tygodni symulacji
-flask --app app run         # http://localhost:5000
-python -m pytest -q         # 189 testów
+flask --app app run         # http://localhost:5000 (albo -p 5050)
+python -m pytest -q -n auto # 208 testów (pytest-xdist)
 ```
 Docker: `docker build -t trash-fairy . && docker run -p 8080:8080 trash-fairy` (z `-e DATABASE_URL=...` dla PostgreSQL).
-Zmienne środowiskowe: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `PUBLIC_URL` (adres w kodach QR), `SECRET_KEY`, `DATABASE_URL`,
+Zmienne środowiskowe: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `PUBLIC_URL` (adres w kodach QR), `SECRET_KEY`, `DATABASE_URL`, `DEMO_PASSWORD` (bez niego logowanie jest wyłączone),
 `TOMTOM_API_KEY`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SID`, `SMS_DEMO_FALLBACK=1`, `WEATHER_URL=""` (wyłącza pogodę).
 Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatni zapisany wynik.
 
@@ -87,7 +87,7 @@ Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatn
   Źródło: [mpo.krakow.pl/czystosc](https://mpo.krakow.pl/czystosc/), plik [harmonogram_oczyszczania_08_2026.xlsx](https://mpo.krakow.pl/wp/wp-content/uploads/2026/08/harmonogram_oczyszczania_08_2026.xlsx).
 - **Karnet Kraków** (karnet.krakowculture.pl, Krakowskie Biuro Festiwalowe): nazwy, miejsca, daty i współrzędne wydarzeń, cache w `data/karnet.json`. Wydarzenia służą tylko jako sygnał tłumu w prognozie.
 - **Wszystkie dane operacyjne** (poziomy zapełnienia, opróżnienia, zgłoszenia) są **syntetyczne**. Widok jury, panel i PWA kierowcy pokazują to na stałym pasku.
-- Biblioteki: Flask, SQLAlchemy, OR-Tools (Apache 2.0), anthropic (MIT), Leaflet i Leaflet.markercluster (BSD-2), Chart.js (MIT), qrcode-generator (MIT), Pillow (HPND), Tailwind CSS i DaisyUI (MIT, tylko panel).
+- Biblioteki: Flask, SQLAlchemy, OR-Tools (Apache 2.0), anthropic (MIT), Leaflet i Leaflet.markercluster (BSD-2), Chart.js (MIT), qrcode-generator (MIT), Pillow (HPND), IBM Plex i Fraunces (SIL OFL 1.1); wszystko lokalnie, bez CDN.
 
 ## Narzędzia AI
 - **Claude Code** (Anthropic, Claude Opus 5.5): pisanie kodu, testów i dokumentacji podczas HackYeah; każdy etap zaczynał się od planu

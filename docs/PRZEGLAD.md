@@ -75,7 +75,7 @@ Każda decyzja ma falę wdrożenia: **A** bezpieczny pokaz, **B** jedna aplikacj
 |---|---|---|
 | 41 | Dwie liczby główne: puste przyjazdy 57% → 27% i przepełnione altany 338 h → 0 h (zamiast „−16%”). | B, M |
 | 42 | Porównanie kategorii („czujnik w każdym koszu”) bez nazw firm i liczb o konkurencji. | M |
-| 43 | Skalowanie na Kraków liczone w kodzie: 1,4–2,7 mln zł/rok (wariant ostrożny / pełny). | C, M |
+| 43 | Skalowanie na Kraków liczone w kodzie: 1,5–2,8 mln zł/rok (wariant ostrożny / pełny). | C, M |
 | 44 | Nagranie 2:00: problem → `/` → `/telefony` → liczby → hasło. | M |
 | 45 | Lektor PL (autor), napisy EN wtopione, `.srt` PL w repo. | M |
 | 46 | PDF 10 slajdów EN (artefakt Slides). | M |
