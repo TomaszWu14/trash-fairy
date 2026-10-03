@@ -1,0 +1,8 @@
+{# Wspólne menu ekranów — aria-current wskazuje bieżący ekran (nie tylko kolor) #}
+{% set screens = [('/', 'Panel'), ('/program', 'Program'), ('/ekipa', 'Ekipa'), ('/jury', 'Jury'), ('/metodologia', 'Metodologia')] %}
+<nav class="tf-nav" aria-label="Ekrany aplikacji">
+  {% for href, label in screens %}
+  <a href="{{ href }}"{% if request.path == href or (href != '/' and request.path.startswith(href)) %} aria-current="page"{% endif %}
+     {% if href == '/jury' %} target="_blank" rel="noopener" title="Losowy przycisk przy Rynku (tryb dla jury)"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>

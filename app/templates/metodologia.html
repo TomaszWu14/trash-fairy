@@ -28,9 +28,8 @@
 <body class="tf">
 <header class="tf-header">
   <div class="tf-brand">Trash <span>Fairy</span> <span aria-hidden="true">✨</span></div>
-  <div class="tf-sub">Metodologia</div>
-  <div class="flex-1" style="flex:1"></div>
-  <a class="tf-hbtn" href="{{ url_for('main.panel') }}">← Panel</a>
+  {% include "_nav.html" %}
+  <div style="flex:1"></div>
   <div class="tf-demo">DANE DEMONSTRACYJNE</div>
 </header>
 <main class="doc">

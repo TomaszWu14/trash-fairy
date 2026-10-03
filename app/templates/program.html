@@ -36,12 +36,16 @@
     .how li { margin: 6px 0; }
     a { color: #5b21b6; }
   </style>
+<style>.tf-nav{display:flex;gap:4px;overflow-x:auto;margin-top:10px;justify-content:center}
+.tf-nav a{color:#e9e4f7;text-decoration:none;font:600 13px Inter,sans-serif;padding:5px 9px;border-radius:8px;white-space:nowrap}
+.tf-nav a[aria-current="page"]{background:#f4f1ea;color:#2f3b2a}.tf-nav a:focus-visible{outline:3px solid #c9a227}</style>
 </head>
 <body>
 <header>
   <h1>Przyjaciele <span>Wróżki</span> ✨</h1>
   <p>Zgłaszaj pełne kosze, zbieraj punkty za trafne zgłoszenia, wygrywaj nagrody dla siebie i swojej dzielnicy.</p>
   <span class="demo">DANE DEMONSTRACYJNE</span>
+  {% include "_nav.html" %}
 </header>
 <main>
   <section class="card" id="account" aria-live="polite"></section>

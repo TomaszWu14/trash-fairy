@@ -246,6 +246,23 @@ async function loadComparison() {
     <p class="tf-muted tf-small">Ten sam przebieg zapełniania dla obu wariantów. Wróżka decyduje tylko na podstawie własnej prognozy, bez przycisków.</p>`;
 }
 
+function showTab(tab) {
+  document.querySelectorAll('.tf-tabs [role=tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  document.querySelectorAll('#overview section[data-tab]').forEach(sec => { sec.hidden = sec.dataset.tab !== tab; });
+  try { localStorage.setItem('tf-tab', tab); } catch (e) { /* bez pamięci zakładki */ }
+}
+document.querySelectorAll('.tf-tabs [role=tab]').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+document.querySelector('.tf-tabs').addEventListener('keydown', e => {  // strzałki między zakładkami (WAI-ARIA)
+  const tabs = [...document.querySelectorAll('.tf-tabs [role=tab]')];
+  const i = tabs.indexOf(document.activeElement);
+  if (i < 0 || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+  const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+  next.focus(); showTab(next.dataset.tab);
+});
+let savedTab = 'sytuacja';
+try { savedTab = localStorage.getItem('tf-tab') || 'sytuacja'; } catch (e) { /* domyślna */ }
+showTab(savedTab);
+
 loadComparison();
 loadFairy();
 renderJuryQr();

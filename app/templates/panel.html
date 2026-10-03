@@ -14,12 +14,11 @@
 <body class="tf">
 <header class="tf-header">
   <div class="tf-brand">Trash <span>Fairy</span> <span aria-hidden="true">✨</span></div>
-  <div class="tf-sub hidden md:block">Panel dyspozytora MPO · Stare Miasto, Kazimierz, Grzegórzki</div>
+  {% include "_nav.html" %}
   <div class="flex-1"></div>
   <div class="tf-clock" title="Zegar scenariusza demo (zamrożony, przewijany ręcznie)">
     <span aria-hidden="true">🕐</span> <span id="clock" aria-live="polite">…</span>
   </div>
-  <a class="tf-hlink" href="/metodologia">Metodologia</a>
   <button type="button" id="btn-advance" class="tf-hbtn">Przewiń +1 h</button>
   <button type="button" id="btn-reset" class="tf-hbtn tf-hbtn-ghost" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo">Reset</button>
   <div class="tf-demo" role="status">DANE DEMONSTRACYJNE · SYMULACJA</div>
@@ -59,7 +58,13 @@
     </section>
 
     <div id="overview">
-    <section class="tf-card" aria-labelledby="h-summary">
+    <div class="tf-tabs" role="tablist" aria-label="Sekcje panelu">
+      <button type="button" role="tab" data-tab="sytuacja" aria-selected="true">Sytuacja</button>
+      <button type="button" role="tab" data-tab="trasy" aria-selected="false">Trasy</button>
+      <button type="button" role="tab" data-tab="wrozka" aria-selected="false">✨ Wróżka</button>
+      <button type="button" role="tab" data-tab="program" aria-selected="false">Program</button>
+    </div>
+    <section class="tf-card" aria-labelledby="h-summary" data-tab="sytuacja">
       <h2 id="h-summary">Sytuacja teraz</h2>
       <div class="grid grid-cols-3 gap-2 text-center">
         <div class="tf-stat"><b id="n-bad">–</b><small><span class="tf-sym bad" aria-hidden="true">!</span> do opróżnienia</small></div>
@@ -74,7 +79,7 @@
       <p class="tf-quality mt-2" id="quality"></p>
     </section>
 
-    <section class="tf-card tf-fairy" aria-labelledby="h-fairy">
+    <section class="tf-card tf-fairy" aria-labelledby="h-fairy" data-tab="wrozka">
       <div class="flex items-center justify-between">
         <h2 id="h-fairy" class="!mb-0"><span aria-hidden="true">✨</span> Wróżka podpowiada</h2>
         <button type="button" id="btn-fairy" class="tf-fairybtn">Odśwież raport</button>
@@ -83,25 +88,25 @@
       <p class="tf-muted tf-small">Liczby policzył system, a AI tylko je opisuje. <a href="/metodologia">Metodologia</a></p>
     </section>
 
-    <section class="tf-card" aria-labelledby="h-recs">
+    <section class="tf-card" aria-labelledby="h-recs" data-tab="wrozka">
       <h2 id="h-recs">Rekomendacje inwestycyjne</h2>
       <ul id="recs" class="tf-recs"></ul>
       <p class="tf-muted tf-small">Na podstawie poziomów zastanych przy opróżnieniach z ostatnich 4 tygodni.</p>
     </section>
 
-    <section class="tf-card" aria-labelledby="h-friends">
+    <section class="tf-card" aria-labelledby="h-friends" data-tab="program">
       <h2 id="h-friends">Przyjaciele Wróżki</h2>
       <p class="tf-muted tf-small" id="friends-sum"></p>
       <ol id="friends" class="tf-friends"></ol>
       <p class="tf-small"><a href="/program">Strona programu</a> · <a href="/program/regulamin">regulamin</a></p>
     </section>
 
-    <section class="tf-card" aria-labelledby="h-devices">
+    <section class="tf-card" aria-labelledby="h-devices" data-tab="program">
       <h2 id="h-devices">Stan urządzeń</h2>
       <div id="devices" class="tf-small"></div>
     </section>
 
-    <section class="tf-card" aria-labelledby="h-jury">
+    <section class="tf-card" aria-labelledby="h-jury" data-tab="program">
       <h2 id="h-jury">Tryb dla jury</h2>
       <div class="tf-jury">
         <div id="qr" role="img" aria-label="Kod QR do trybu jury"></div>
@@ -110,18 +115,18 @@
       </div>
     </section>
 
-    <section class="tf-card" aria-labelledby="h-routes">
+    <section class="tf-card" aria-labelledby="h-routes" data-tab="trasy">
       <h2 id="h-routes"><span aria-hidden="true">🚚</span> Trasy na najbliższy kurs</h2>
       <div id="routes"></div>
       <p class="tf-muted tf-small">Start i koniec: baza MPO, ul. Nowohucka 1. Odległości w linii prostej × 1,3.</p>
     </section>
 
-    <section class="tf-card" aria-labelledby="h-compare">
+    <section class="tf-card" aria-labelledby="h-compare" data-tab="trasy">
       <h2 id="h-compare">Przed i po: 4 tygodnie</h2>
       <div id="compare"><p class="tf-muted">Liczę porównanie…</p></div>
     </section>
 
-    <section class="tf-card" aria-labelledby="h-list">
+    <section class="tf-card" aria-labelledby="h-list" data-tab="sytuacja">
       <div class="flex items-center justify-between mb-2">
         <h2 id="h-list" class="!mb-0">Punkty</h2>
         <div class="join" role="group" aria-label="Filtr typu punktu">
@@ -133,7 +138,7 @@
       <ul id="point-list" class="tf-list" aria-label="Punkty posortowane od najbardziej zapełnionych"></ul>
     </section>
 
-    <section class="tf-card" aria-labelledby="h-legend">
+    <section class="tf-card" aria-labelledby="h-legend" data-tab="sytuacja">
       <h2 id="h-legend">Legenda</h2>
       <ul class="tf-legend">
         <li><span class="tf-pin circle neutral" aria-hidden="true"></span> kosz uliczny (koło)</li>

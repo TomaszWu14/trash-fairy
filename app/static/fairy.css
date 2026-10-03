@@ -173,3 +173,17 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 .tf-friends { margin: 4px 0 6px; padding-left: 20px; font-size: 13px; }
 .tf-friends small { color: var(--muted); }
 #devices p { margin: 4px 0; }
+
+/* menu ekranów i zakładki panelu */
+.tf-nav { display: flex; gap: 4px; overflow-x: auto; }
+.tf-nav a { color: #d6dfcf; text-decoration: none; font: 600 14px Inter, sans-serif; padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
+.tf-nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.tf-nav a[aria-current="page"] { background: var(--cream); color: var(--plant); }
+.tf-nav a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.tf-tabs { display: flex; gap: 2px; margin: -4px 0 14px; border-bottom: 2px solid var(--line); position: sticky; top: -16px;
+           background: var(--paper); z-index: 2; padding-top: 4px; }
+.tf-tabs button { flex: 1; font: 600 13px Inter, sans-serif; padding: 8px 4px; border: 0; background: none; color: var(--muted);
+                  border-bottom: 3px solid transparent; margin-bottom: -2px; cursor: pointer; }
+.tf-tabs button[aria-selected="true"] { color: var(--plant); border-bottom-color: var(--gold); }
+.tf-tabs button:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; }
+@media (max-width: 860px) { .tf-header { flex-wrap: wrap; } .tf-nav { order: 3; width: 100%; } }
