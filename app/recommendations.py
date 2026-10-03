@@ -67,7 +67,7 @@ def recommendations(now, shelter_interventions=None):
     """Lista rekomendacji, od najważniejszych. `shelter_interventions`: {shelter_id: tekst} z reguły altana → kosz."""
     stats = point_stats(now)
     out = []
-    for p in Point.query.order_by(Point.id):
+    for p in Point.live_query().order_by(Point.id):
         if shelter_interventions and p.id in shelter_interventions:
             out.append({"point_id": p.id, "name": p.name, "kind": p.kind, "type": "shelter_intervention",
                         "label": "interwencja przy altanie", "reason": "worki domowe w koszach ulicznych obok",

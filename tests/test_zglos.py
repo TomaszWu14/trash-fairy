@@ -1,11 +1,13 @@
-"""Publiczny ekran „Zgłoś kosz”: dane bez wiarygodności, stany odpowiedzi API, /jury na nowy ekran."""
-from unittest.mock import patch
+"""Zgłoszenie mieszkańca (POST /api/zgloszenia) i reguły stanu dla rodzajów zgłoszeń."""
+from datetime import UTC, datetime
 
 import pytest
 
-from app import api, clock
+from app import clock, db
+from app.api_pl import qr_token
 from app.models import Point, Press
 from app.osm_import import import_points
+from app.state import point_states
 
 
 @pytest.fixture
@@ -14,108 +16,52 @@ def demo(cache):
     clock.reset(weeks=2)
 
 
-def press(client, pid, ip="10.0.0.1", **extra):
-    return client.post("/api/press", json={"point_id": pid, "source": "qr", "kind": "full", **extra}, environ_base={"REMOTE_ADDR": ip})
+def report(client, p, klient="t1", **extra):
+    body = {"kosz": p.id, "typ": "przepelniony", "qr": qr_token(p.id), "lat": p.lat, "lon": p.lon, "klient": klient, **extra}
+    return client.post("/api/zgloszenia", json=body)
 
 
-def test_public_bin_has_no_internal_fields(client, demo):
-    pid = Point.query.filter_by(kind="bin").first().id
-    d = client.get(f"/api/zglos/{pid}").json
-    assert {"name", "address", "fill_pct", "next_pickup", "neighbors", "button_offline", "clock_label"} <= d.keys()
-    assert "reliability" not in d and "reason" not in d
-    assert all(n["distance_m"] <= api.NEIGHBOR_PUBLIC_M for n in d["neighbors"])
+def a_bin():
+    return Point.query.filter_by(kind="bin").first()
 
 
-def test_report_screen_and_jury_redirect(client, demo):
-    pid = Point.query.filter_by(kind="bin").first().id
-    html = client.get(f"/zglos/{pid}").get_data(as_text=True)
-    assert 'id="sheet"' in html and "manifest.webmanifest" in html
-    assert client.get("/zglos").status_code == 200
-    r = client.get("/jury")
-    assert r.status_code == 302 and "/zglos/" in r.headers["Location"]
+def test_reports_from_two_phones_merge(client, demo):
+    p = a_bin()
+    a = report(client, p, klient="a")
+    assert a.status_code == 201
+    b = report(client, p, klient="b")
+    assert b.status_code == 201 and b.json["dolaczone"] and b.json["numer"] == a.json["numer"]
+    assert Press.query.filter_by(point_id=p.id, kind="full").count() == 2
 
 
-def test_press_returns_accepted_then_merged(client, demo):
-    pid = Point.query.filter_by(kind="bin").first().id
-    a = press(client, pid, ip="10.0.0.1").json
-    assert a["ok"] and a["status"] in ("accepted", "merged") and a["eta"] and a["accepted_at"]
-    b = press(client, pid, ip="10.0.0.2").json
-    assert b["status"] == "merged" and b["merged_with_at"] == a["accepted_at"] and b["others_count"] >= 1
-    assert Press.query.filter_by(point_id=pid, kind="full").count() == 2
+def test_report_distance_allows_gps_accuracy_but_caps_it(client, demo):
+    p = a_bin()
+    ok = report(client, p, klient="a", lat=p.lat + 0.0021, dokladnosc=120)  # ~233 m, GPS ±120 m
+    assert ok.status_code == 201, ok.json
+    spoof = report(client, p, klient="b", lat=p.lat + 0.0036, dokladnosc=5000)  # ~400 m, „±5 km” obcięte do 150
+    assert spoof.status_code == 403 and spoof.json["kod"] == "za_daleko"
 
 
-def test_press_too_far_and_limit_payloads(client, demo):
-    p = Point.query.filter_by(kind="bin").first()
-    far = press(client, p.id, lat=p.lat + 0.01, lon=p.lon)
-    assert far.status_code == 403 and far.json["reason"] == "too_far" and far.json["distance_m"] > 150
-    assert press(client, p.id).status_code == 200
-    again = press(client, p.id)  # ten sam punkt w ciągu 2 s
-    assert again.status_code == 429 and len(again.json["retry_at"]) == 5
+def test_overflow_counts_as_full_and_is_noted(client, demo):
+    p = a_bin()
+    assert report(client, p, typ="odpady_obok").status_code == 201
+    s = point_states(clock.now())[p.id]
+    assert s["fresh"] and s["overflow_reported"]
 
 
-def test_status_endpoint(client, demo):
-    pid = Point.query.filter_by(kind="bin").first().id
-    rid = press(client, pid).json["report_id"]
-    st = client.get(f"/api/zglos/status/{rid}").json
-    assert st["accepted_at"] and st["emptied_at"] is None and "run_label" in st
-
-
-def test_damaged_does_not_raise_level_but_flags_point(client, demo):
+def test_damaged_press_does_not_raise_level_but_flags_point(demo):
     from app.state import neighbors_map
     lonely = {pid for pid, n in neighbors_map().items() if not n}
-    calm = min((f["properties"] for f in client.get("/api/points").json["features"]
-                if f["properties"]["state"] == "ok" and f["properties"]["id"] in lonely), key=lambda p: p["value"])
-    r = press(client, calm["id"], kind="damaged")
-    assert r.status_code == 200 and r.json["status"] == "accepted" and r.json["report_id"] is None
-    p = next(f["properties"] for f in client.get("/api/points").json["features"] if f["properties"]["id"] == calm["id"])
-    assert p["state"] == "ok" and not p["fresh"] and p["damaged_at"]
-
-
-def test_overflow_counts_as_full_and_is_noted(client, demo, staff):
-    pid = Point.query.filter_by(kind="bin").first().id
-    assert press(client, pid, kind="overflow").json["ok"]
-    p = next(f["properties"] for f in client.get("/api/points").json["features"] if f["properties"]["id"] == pid)
-    assert p["fresh"] and p["overflow_reported"]
-
-
-def test_nosignal_flag_and_member_in_public_payload(client, demo):
-    from datetime import timedelta
-    from app import db
-    from app.models import Device, Resident
-    from app.residents import HEARTBEAT_LOST
-    pid = Point.query.filter_by(kind="bin").first().id
-    dev = Device.query.filter_by(point_id=pid).first()
-    if dev is None:
-        dev = Device(point_id=pid, last_heartbeat=clock.now(), battery=80, last_selftest=clock.now())
-        db.session.add(dev)
-    dev.last_heartbeat = clock.now() - HEARTBEAT_LOST - timedelta(hours=1)
+    states = point_states(clock.now())
+    pid = min((pid for pid, s in states.items() if s["state"] == "ok" and pid in lonely), key=lambda i: states[i]["value"])
+    db.session.add(Press(point_id=pid, at=clock.now(), wall_at=datetime.now(UTC).replace(tzinfo=None), source="qr", kind="damaged"))
     db.session.commit()
-    assert client.get(f"/api/zglos/{pid}").json["button_offline"] is True
-    res = Resident(nick="Smok", phone_hash="x" * 64, district="Stare Miasto", verified=True)
-    db.session.add(res)
-    db.session.commit()
-    with client.session_transaction() as sess:
-        sess["resident_id"] = res.id
-    assert client.get(f"/api/zglos/{pid}").json["member"] == {"nick": "Smok", "district": "Stare Miasto"}
-
-
-def test_service_worker_scope_and_manifest(client):
-    r = client.get("/zglos/sw.js")
-    assert r.status_code == 200 and r.headers["Service-Worker-Allowed"] == "/zglos"
-    m = client.get("/static/zglos/manifest.webmanifest").json
-    assert m["start_url"] == "/zglos" and m["display"] == "standalone" and m["theme_color"] == "#0E1222"
-
-
-def test_press_distance_allows_gps_accuracy_but_caps_it(client, demo):
-    p = Point.query.filter_by(kind="bin").first()
-    ok = press(client, p.id, ip="10.0.0.7", lat=p.lat + 0.0021, lon=p.lon, accuracy_m=120)  # ~233 m, GPS ±120 m
-    assert ok.status_code == 200, ok.json
-    spoof = press(client, p.id, ip="10.0.0.8", lat=p.lat + 0.0036, lon=p.lon, accuracy_m=5000)  # ~400 m, „±5 km” obcięte do 150
-    assert spoof.status_code == 403 and spoof.json["reason"] == "too_far"
+    s = point_states(clock.now())[pid]
+    assert s["state"] == "ok" and not s["fresh"] and s["damaged_at"]
 
 
 def test_404_is_polish_html_and_api_stays_json(client):
     page = client.get("/nie-ma-takiej-strony")
-    assert page.status_code == 404 and "Nie znaleźliśmy tej strony" in page.get_data(as_text=True)
+    assert page.status_code == 404 and "lang=\"pl\"" in page.get_data(as_text=True)
     api_r = client.get("/api/nie-ma")
-    assert api_r.status_code == 404 and api_r.json["ok"] is False
+    assert api_r.status_code == 404 and set(api_r.json) == {"blad", "kod"}

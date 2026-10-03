@@ -55,16 +55,17 @@ def test_stale_measurements_ignored(live):
 
 
 def test_routes_keep_points_and_km_but_eta_moves(client, app, live, cache):
+    from app.state import current_routes
     import_points(cache)
     clock.reset(weeks=2)
     app.config["TOMTOM_API_KEY"] = ""
-    calm = client.get("/api/routes").json
+    assert traffic.city_ratio() is None
+    calm, calm_left = current_routes(clock.now()), client.get("/api/trasa").json["postep"]["pozostalo_min"]
     app.config["TOMTOM_API_KEY"] = "test-key"
     live({"tomtom.com": (200, SEG)})
-    jam = client.get("/api/routes").json
-    for a, b in zip(calm["fleets"], jam["fleets"]):
+    k = traffic.city_ratio()
+    assert k == 2.0 and traffic.delay_min(k) == 18
+    for a, b in zip(calm, current_routes(clock.now())):  # ruch zmienia tylko czas przejazdu, nigdy punktów ani km
         assert [s["id"] for s in a["stops"]] == [s["id"] for s in b["stops"]] and a["km"] == b["km"]
-        assert b["drive_min"] == traffic.drive_min(a["km"], 2.0) and a["drive_min"] == traffic.drive_min(a["km"])
-    assert jam["traffic"] == {"ratio": 2.0, "delay_min": 18} and calm["traffic"] is None
-    pid = jam["fleets"][0]["stops"][0]["id"]
-    assert client.get(f"/api/zglos/{pid}").json["traffic_delay_min"] == 18
+        assert traffic.drive_min(a["km"], k) > traffic.drive_min(a["km"])
+    assert client.get("/api/trasa").json["postep"]["pozostalo_min"] > calm_left

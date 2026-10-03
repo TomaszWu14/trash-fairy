@@ -98,26 +98,27 @@ def test_unknown_numbers_are_flagged():
     assert fairy.unknown_numbers(bad, facts) == ["35"]
 
 
-def test_refresh_saves_report_and_get_returns_it(client, demo, model, staff):
-    data = client.post("/api/fairy").json
-    assert data["error"] is None and data["fresh"]
-    assert [s["title"] for s in data["report"]["sections"]] == fairy.SECTIONS
+def test_generate_saves_report_and_latest_returns_it(demo, model):
+    report = fairy.generate(DEMO_NOW)
+    data = fairy.to_dict(report)
+    assert fairy.is_fresh(report, DEMO_NOW)
+    assert [s["title"] for s in data["sections"]] == fairy.SECTIONS
     assert FairyReport.query.count() == 1
-    assert client.get("/api/fairy").json["report"]["label"] == data["report"]["label"]
+    assert fairy.to_dict(fairy.latest(DEMO_NOW))["label"] == data["label"]
 
 
-def test_api_error_returns_message_and_last_report(client, demo, model, staff):
-    client.post("/api/fairy")
+def test_api_error_raises_llm_error_and_last_report_stays(demo, model):
+    fairy.generate(DEMO_NOW)
     model["error"] = "Analiza AI chwilowo niedostępna (limit zapytań). Spróbuj za minutę."
-    r = client.post("/api/fairy")
-    assert r.status_code == 200
-    assert "limit zapytań" in r.json["error"] and r.json["report"] is not None
+    with pytest.raises(llm.LLMError, match="limit zapytań"):
+        fairy.generate(DEMO_NOW)
+    assert fairy.latest(DEMO_NOW) is not None  # wywołujący pokazuje komunikat + ostatni raport, nie 500
 
 
-def test_report_older_than_current_hour_is_not_fresh(client, demo, model):
-    client.post("/api/fairy")
+def test_report_older_than_current_hour_is_not_fresh(demo, model):
+    fairy.generate(clock.now())
     clock.advance(1)
-    assert client.get("/api/fairy").json["fresh"] is False
+    assert fairy.is_fresh(fairy.latest(clock.now()), clock.now()) is False
 
 
 def test_reset_clears_reports(demo, model):
@@ -127,17 +128,6 @@ def test_reset_clears_reports(demo, model):
 
 
 # --- tryb jury i metodologia ---
-
-def test_jury_redirects_to_button_near_rynek(client, demo):
-    from app.views import jury_pool
-    pool = {p.id for p in jury_pool()}
-    assert len(pool) == 6
-    for _ in range(10):
-        r = client.get("/jury")
-        assert r.status_code == 302
-        pid = int(r.headers["Location"].split("/zglos/")[1].split("?")[0])
-        assert pid in pool
-
 
 def test_methodology_page_shows_assumptions_and_money(client, demo):
     html = client.get("/metodologia").get_data(as_text=True)
@@ -150,3 +140,12 @@ def test_money_uses_configurable_assumptions(monkeypatch):
     monkeypatch.setenv("COST_PER_VISIT_PLN", "10")
     m = money(result)
     assert m["visits_month"] == 300 and m["pln_month"] == 3000 and m["km_month"] == 0
+
+
+def test_city_scale_range_is_computed_from_mpo_schedule(client, demo):
+    from app import comparison
+    from app.methodology import MPO_SCHEDULE, city_scale
+    c = city_scale(comparison.compare(clock.DEMO_NOW))
+    assert sum(n for _, n, _ in MPO_SCHEDULE) == 9383 and c["full"]["bins"] == 9383
+    assert 0 < c["careful"]["pln_year"] < c["full"]["pln_year"]
+    assert "Skala: cały Kraków" in client.get("/metodologia").get_data(as_text=True)

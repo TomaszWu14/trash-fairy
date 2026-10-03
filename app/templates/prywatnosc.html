@@ -1,38 +1,22 @@
-<!doctype html>
-<html lang="pl">
-{% from "_logo.html" import logo %}
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Jak używamy danych — Trash Fairy</title>
-  <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
-  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='pokaz.css') }}">
-</head>
-<body>
-<header class="c-head">
-  <div class="c-brand" style="--logo-bg:#0E1222">{{ logo(34, '#CDBBFF') }}Trash&nbsp;<span>Fairy</span></div>
-  <span class="c-sub">Jak używamy danych</span>
-  {% include "_nav.html" %}
-</header>
-<main class="c-doc">
+{% extends "ui/base.html" %}
+{% block title %}Jak używamy danych{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">{% endblock %}
+{% block content %}
+<div class="shell page"><article class="doc">
   <h1>Jak używamy danych</h1>
-  <p>Administrator (w pilotażu): [demo: MPO Kraków Sp. z o.o.]. To prototyp z HackYeah 2026; dane operacyjne są syntetyczne.</p>
+  <p>Trash Fairy to prototyp z HackYeah 2026 dla MPO Kraków. Dane operacyjne (zapełnienie, odbiory, koszty, projekty) są syntetyczne.
+     Konta mieszkanki i kierowcy w demo są przykładowe: nie zbieramy danych osobowych.</p>
   <table>
     <thead><tr><th scope="col">Co</th><th scope="col">Po co</th><th scope="col">Jak długo</th></tr></thead>
     <tbody>
-      <tr><td>Zgłoszenie kosza (który kosz, rodzaj, godzina)</td><td>prognoza i trasa odbioru</td><td>jak historia opróżnień</td></tr>
-      <tr><td>Adres IP zgłoszenia</td><td>limit zgłoszeń przeciw spamowi</td><td><b>24 godziny</b>, potem usuwany automatycznie</td></tr>
-      <tr><td>Położenie telefonu</td><td>sprawdzenie, czy jesteś do 150 m od kosza</td><td><b>nie zapisujemy</b> — tylko porównanie w chwili zgłoszenia</td></tr>
-      <tr><td>Identyfikator telefonu (losowy, w przeglądarce)</td><td>limit zgłoszeń z kosza jury</td><td>licznik na 1 godzinę</td></tr>
-      <tr><td>Program „Przyjaciele Wróżki”: pseudonim, dzielnica</td><td>punkty i ranking dzielnic</td><td>do wypisania się</td></tr>
-      <tr><td>Numer telefonu w programie</td><td>jedno konto na numer, kod SMS</td><td>tylko jako skrót HMAC; numer zna wyłącznie bramka SMS (Twilio Verify)</td></tr>
-      <tr><td>Zdjęcia koszy (ekipa, dyspozytor)</td><td>analiza zapełnienia (Claude Vision, bez opisywania osób)</td><td>do czyszczenia komendą <code>cleanup-photos</code></td></tr>
+      <tr><td>Zgłoszenie: kosz, rodzaj problemu, godzina, komentarz</td><td>status zgłoszenia, trasa kierowcy, statystyki miasta</td><td>jak historia odbiorów</td></tr>
+      <tr><td>Zdjęcie dołączone do zgłoszenia (opcjonalne)</td><td>podgląd dla kierowcy przy koszu</td><td>do czyszczenia komendą <code>cleanup-photos</code></td></tr>
+      <tr><td>Położenie telefonu</td><td>sprawdzenie, czy jesteś do 150 m od kosza</td><td><b>nie zapisujemy</b>: tylko porównanie w chwili zgłoszenia</td></tr>
+      <tr><td>Adres IP zgłoszenia</td><td>ochrona przed spamem</td><td><b>24 godziny</b>, potem usuwany automatycznie</td></tr>
+      <tr><td>Losowy identyfikator telefonu (w przeglądarce)</td><td>limit: jedno zgłoszenie kosza na minutę</td><td>licznik na 1 minutę</td></tr>
     </tbody>
   </table>
-  <p>Nie używamy ciasteczek reklamowych ani analityki. Ciasteczko sesji służy tylko logowaniu personelu i programowi mieszkańców.
-     Masz prawo dostępu do danych, ich sprostowania, usunięcia i ograniczenia przetwarzania oraz skargi do Prezesa UODO.</p>
-</main>
-{% include "_footer.html" %}
-</body>
-</html>
+  <p>Nie używamy ciasteczek reklamowych ani analityki. Masz prawo dostępu do danych, ich sprostowania, usunięcia i ograniczenia przetwarzania
+     oraz skargi do Prezesa UODO.</p>
+</article></div>
+{% endblock %}

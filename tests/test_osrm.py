@@ -23,6 +23,5 @@ def test_street_path_cached_after_first_fetch(app, tmp_path):
     assert (tmp_path / "c.json").exists()
 
 
-def test_routes_api_has_geometry(client):
-    fleets = client.get("/api/routes").json["fleets"]
-    assert all({"out", "back", "approx"} <= f["geometry"].keys() for f in fleets)
+def test_route_api_has_street_line(client):
+    assert isinstance(client.get("/api/trasa").json["linia"], list)

@@ -161,7 +161,7 @@ def seed_demo(now):
         if pa.photo_path:
             Path(pa.photo_path).unlink(missing_ok=True)
     db.session.query(PhotoAnalysis).delete()
-    bins = Point.query.filter_by(kind="bin", area="Grzegórzki").order_by(Point.id).all()
+    bins = Point.live_query().filter_by(kind="bin", area="Grzegórzki").order_by(Point.id).all()
     wall = datetime.now(UTC).replace(tzinfo=None)
     for i, b in enumerate(bins[::3][:len(DEMO_NOTES)]):  # po jednym koszu przy każdej przeciążonej altanie
         db.session.add(PhotoAnalysis(

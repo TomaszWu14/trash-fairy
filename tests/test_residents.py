@@ -44,14 +44,6 @@ def test_verification_code_required(demo):
     assert residents.verify(r, r.code) and r.verified
 
 
-def test_registration_api_flow_logs_in(client, demo):
-    d = client.post("/api/residents", json={"nick": "Zosia", "phone": "600100202", "district": "Grzegórzki"}).json
-    assert d["ok"] and len(d["demo_code"]) == 6
-    assert client.post("/api/residents/verify", json={"code": d["demo_code"]}).json["ok"]
-    assert client.get("/api/me").json["profile"]["nick"] == "Zosia"
-    assert client.post("/api/residents", json={"nick": "Zosia2", "phone": "12", "district": "Grzegórzki"}).status_code == 400
-
-
 # --- potwierdzenia i wagi ---
 
 def test_registered_press_confirms_anonymous_report_and_raises_weight(demo):
@@ -125,50 +117,22 @@ def test_rankings_and_badges(demo):
     assert residents.profile(r)["badges"][0]["name"] == "Pierwsze trafienie"
 
 
-# --- geolokalizacja ---
-
-def test_press_far_from_bin_rejected_near_accepted(client, demo):
-    p = a_bin()
-    far = client.post("/api/press", json={"point_id": p.id, "source": "qr", "lat": p.lat + 0.01, "lon": p.lon},
-                      environ_base={"REMOTE_ADDR": "10.1.1.1"})
-    assert far.status_code == 403
-    near = client.post("/api/press", json={"point_id": p.id, "source": "qr", "lat": p.lat + 0.0005, "lon": p.lon},
-                       environ_base={"REMOTE_ADDR": "10.1.1.2"})
-    assert near.status_code == 200
-
-
-def test_require_geo_switch(client, demo, monkeypatch):
-    monkeypatch.setenv("REQUIRE_GEO", "1")
-    assert client.post("/api/press", json={"point_id": a_bin().id, "source": "qr"}).status_code == 403
-
-
 # --- urządzenia ---
 
-def test_selftest_does_not_create_press_or_report(client, demo, staff):
+def test_selftest_does_not_create_press_or_report(demo):
     p = a_bin()
     before = (Press.query.count(), Report.query.count())
-    assert client.post(f"/api/devices/{p.id}/selftest").json["ok"]
+    assert residents.selftest(p.id, clock.now()) is not None
+    assert residents.selftest(99999, clock.now()) is None
     assert (Press.query.count(), Report.query.count()) == before
     assert db.session.get(Device, p.id).last_selftest == clock.now()
 
 
-def test_device_without_heartbeat_48h_flagged(client, demo, staff):
+def test_device_without_heartbeat_48h_flagged(demo):
+    from app.state import point_states
     p = a_bin()
     db.session.get(Device, p.id).last_heartbeat = DEMO_NOW - timedelta(hours=49)
     db.session.commit()
-    props = next(f["properties"] for f in client.get("/api/points").json["features"] if f["properties"]["id"] == p.id)
-    assert props["check_button"] and "brak sygnału" in props["check_reason"]
-    assert any(d["point_id"] == p.id for d in client.get("/api/devices").json["offline"])
-
-
-def test_display_shows_report_and_registration_prompt(client, demo):
-    p = a_bin()
-    d = client.get(f"/api/display/{p.id}").json
-    assert d["registered"] is False and d["lines"]
-    client.post("/api/press", json={"point_id": p.id}, environ_base={"REMOTE_ADDR": "10.2.2.2"})
-    assert client.get(f"/api/display/{p.id}").json["lines"][0].startswith("Zgłoszono")
-
-
-def test_program_pages_render(client, demo):
-    assert "Przyjaciele" in client.get("/program").get_data(as_text=True)
-    assert "RODO" in client.get("/program/regulamin").get_data(as_text=True)
+    s = point_states(clock.now())[p.id]
+    assert s["check_button"] and "brak sygnału" in s["check_reason"]
+    assert any(d["point_id"] == p.id for d in residents.devices_overview(clock.now())["offline"])

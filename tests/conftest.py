@@ -15,7 +15,7 @@ def app():
     # wszystkie integracje wyłączone: testy nie wychodzą do sieci (test_weather/traffic/sms włączają je z FakeOpener)
     app = create_app({"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "TESTING": True, "OSRM_URL": "",
                       "WEATHER_URL": "", "TOMTOM_API_KEY": "", "TWILIO_ACCOUNT_SID": "", "TWILIO_AUTH_TOKEN": "",
-                      "TWILIO_VERIFY_SID": "", "SMS_DEMO_FALLBACK": "1", "DEMO_PASSWORD": "test-haslo"})
+                      "TWILIO_VERIFY_SID": "", "SMS_DEMO_FALLBACK": "1"})
     with app.app_context():
         yield app
 
@@ -23,17 +23,6 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
-
-
-def login(client, name="dyspozytor", password="test-haslo"):
-    return client.post("/logowanie", data={"login": name, "password": password})
-
-
-@pytest.fixture
-def staff(client):
-    """Klient zalogowany jako dyspozytor (zapisy, AI, Reset)."""
-    login(client)
-    return client
 
 
 def _scatter(rng, centre, n, spread=0.006, prefix="node"):

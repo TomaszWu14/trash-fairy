@@ -1,0 +1,23 @@
+{% extends "ui/mieszkaniec_base.html" %}
+{% from "ui/_ui.html" import icon %}
+{% block title %}Zgłoszenie {{ nr }}{% endblock %}
+{% block m_content %}
+<a class="back" href="{{ url_for('ui.report_pick') }}">{{ icon('arrow-left', 'i-sm') }}Zgłoś inny kosz</a>
+<section class="m-card rise" id="m-status" data-nr="{{ nr }}">
+  <div class="m-head">
+    <div><p class="eyebrow">Twoje zgłoszenie</p><h1 class="m-h1 num">{{ nr }}</h1></div>
+    <span class="badge neutral" id="st-badge"><span class="skel" style="width:80px;height:12px"></span></span>
+  </div>
+  <div class="m-bin" id="st-bin"><span class="skel" style="width:48px;height:56px"></span><span class="skel" style="flex:1;height:44px"></span></div>
+  <ol class="timeline" id="st-steps" aria-label="Postęp zgłoszenia">
+    {% for t in ['Przyjęte', 'W realizacji', 'Zrealizowane'] %}<li><span class="tl-dot"></span><div><b>{{ t }}</b><span class="skel" style="width:120px;height:12px;margin-top:4px"></span></div></li>{% endfor %}
+  </ol>
+  <p class="hint" id="st-note">Status odświeża się sam co kilka sekund.</p>
+</section>
+<section class="m-card empty" id="st-missing" hidden>
+  <img src="{{ url_for('static', filename='ui/ill/pusto.svg') }}" alt="" width="140" height="112">
+  <h3>Nie znaleźliśmy tego zgłoszenia</h3>
+  <p>Sprawdź numer albo zgłoś problem jeszcze raz, przy koszu.</p>
+  <a class="btn btn-primary" href="{{ url_for('ui.report_pick') }}">Zgłoś problem</a>
+</section>
+{% endblock %}

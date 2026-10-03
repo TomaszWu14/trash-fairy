@@ -1,0 +1,33 @@
+{% extends "ui/mieszkaniec_base.html" %}
+{% from "ui/_ui.html" import icon %}
+{% block title %}Zgłoś kosz{% endblock %}
+{% block m_content %}
+<section class="m-card m-intro rise">
+  <h1>Zgłoś problem z koszem</h1>
+  <p>Zeskanuj kod QR na panelu kosza. Zgłoszenie przyjmujemy tylko przy koszu, więc trafia tam, gdzie naprawdę jest problem.</p>
+  <button class="btn btn-primary btn-xl m-scan" type="button" data-scan>{{ icon('scan-line', 'i-lg') }}Zeskanuj kod QR</button>
+</section>
+
+<section class="m-card rise" aria-labelledby="near-h">
+  <div class="m-head">
+    <h2 id="near-h">Kosze w pobliżu</h2>
+    <button class="btn btn-ghost btn-sm" type="button" data-locate>{{ icon('locate-fixed', 'i-sm') }}Moje położenie</button>
+  </div>
+  <div class="m-map" id="m-map" role="img" aria-label="Mapa koszy w pobliżu"></div>
+  <p class="hint m-pos" id="m-pos">Położenie przyjęte w demo: Rynek Główny. Możesz użyć prawdziwego GPS.</p>
+  <ul class="m-list" id="m-list" aria-live="polite">
+    {% for _ in range(4) %}<li class="m-row"><span class="skel" style="width:32px;height:38px"></span><span class="skel" style="flex:1;height:36px"></span></li>{% endfor %}
+  </ul>
+</section>
+
+<dialog class="modal" id="scan-dialog" aria-labelledby="scan-h">
+  <div class="modal-h"><h2 id="scan-h" style="font-size:var(--fs-lg)">Skanowanie kodu QR</h2>
+    <button class="btn btn-ghost btn-sm" type="button" data-close aria-label="Zamknij">{{ icon('x') }}</button></div>
+  <div class="modal-b m-scan-b">
+    <div class="m-viewfinder" aria-hidden="true"><span></span>{{ icon('qr-code', 'i-xl') }}</div>
+    <p>Skieruj aparat telefonu na kod QR na panelu kosza. Kod otworzy zgłoszenie dla tego kosza.</p>
+    <p class="hint">Na tym urządzeniu nie mamy aparatu. W demo możesz udać skan kodu z panelu kosza nr {{ demo_bin_id }}.</p>
+    <a class="btn btn-primary" href="{{ url_for('ui.report', point_id=demo_bin_id, qr=demo_qr) }}">{{ icon('qr-code') }}Symuluj skan kodu kosza nr {{ demo_bin_id }}</a>
+  </div>
+</dialog>
+{% endblock %}

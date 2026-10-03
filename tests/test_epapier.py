@@ -139,24 +139,25 @@ def test_no_personal_data_on_screen(demo):
 
 # --- symulator i QR ---
 
-def test_simulator_endpoints(client, demo):
+def test_png_etag_and_state_keys(client, demo):
     p = calm_bin()
-    assert client.get(f"/epapier/{p.id}").status_code == 200
     r = client.get(f"/epapier/{p.id}.png")
     assert r.status_code == 200 and r.mimetype == "image/png" and r.headers["Cache-Control"] == "no-cache"
     assert Image.open(__import__("io").BytesIO(r.data)).size == (800, 480)
+    assert client.get(f"/epapier/{p.id}.png", headers={"If-None-Match": r.headers["ETag"]}).status_code == 304
     part = client.get(f"/epapier/{p.id}.png?part=1")
     assert Image.open(__import__("io").BytesIO(part.data)).size == (752, 88)
-    k1 = client.get(f"/api/epapier/{p.id}").json
-    client.post("/api/press", json={"point_id": p.id, "source": "button"})
-    k2 = client.get(f"/api/epapier/{p.id}").json
-    assert k1["state"] == "calm" and k2["state"] == "confirm" and k1["state_key"] != k2["state_key"]
+    s1, d1 = epaper.display_state(p, clock.now())
+    record_press(p.id, clock.now(), source="button")
+    s2, d2 = epaper.display_state(p, clock.now())
+    assert s1 == "calm" and s2 == "confirm" and epaper.keys(s1, d1)[0] != epaper.keys(s2, d2)[0]
+    assert client.get(f"/epapier/{p.id}.png", headers={"If-None-Match": r.headers["ETag"]}).status_code == 200
 
 
 def test_qr_targets_redirect_to_app_pages(client, demo):
     p = calm_bin()
-    assert client.get(f"/kosz/{p.id}/zglos").headers["Location"].endswith(f"/zglos/{p.id}")
-    assert "status=1" in client.get(f"/kosz/{p.id}/status").headers["Location"]
-    assert client.get("/przyjaciele").headers["Location"].endswith("/program")
+    assert f"/zglos/{p.id}?qr=" in client.get(f"/kosz/{p.id}/zglos").headers["Location"]
+    assert client.get(f"/kosz/{p.id}/status").headers["Location"].endswith(f"/panel/{p.id}")
+    assert client.get("/przyjaciele").status_code == 301
     for target, path in epaper_render.QR_TARGETS.items():
         assert path.format(base="", dev=p.id) in {f"/kosz/{p.id}/zglos", f"/kosz/{p.id}/status", "/przyjaciele"}

@@ -97,7 +97,7 @@ def simulate(weeks=8, seed=7, now=DEMO_NOW):
     for model in (Emptying, Press, Report):
         db.session.query(model).delete()
 
-    points = Point.query.order_by(Point.id).all()
+    points = Point.live_query().order_by(Point.id).all()
     events = Event.query.all()
     trolled = trolled_ids(points)
     levels, emptyings, presses, reports = [], [], [], []

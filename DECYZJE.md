@@ -333,3 +333,24 @@ i 7,2 od 14:00 (liczone do bieżącej godziny zegara), więc slajdy podają wart
 Przy scenariuszu nagrania wyszło, że ramka kierowcy na `/telefony` (`/kierowca?podglad=1`) zostawała w podglądzie także po zalogowaniu
 `driver_bin`, choć API już wtedy przyjmowało zapisy: widok liczy teraz podgląd tą samą regułą co API (`podglad=1` i rola różna od kierowcy),
 więc scena „Opróżniony” na nagraniu działa w ramce. Materiały: deck 10 slajdów EN (artefakt Slides), `docs/video/` (scenariusz PL | EN, `pl.srt`, `en.srt`).
+
+## Audyt UX i przebudowa: Etap 1 (niedz. 4.10, noc)
+
+**Audyt (`audit/AUDYT-UX.md`, 63 zrzuty w trzech rozdzielczościach): aplikacja jest technicznie zdrowa, ale to sześć aplikacji pod jednym logo**
+(4 arkusze CSS, 6 nagłówków, 2 czcionki, 45 emoji, brak dashboardu menedżera). Autor zdecydował: jedna rola bez logowania z tożsamościami demo
+(odwraca decyzje 1–8 przeglądu; ochronę pokazu przejmuje reset i auto-reset), dashboard na danych z deterministycznego seeda z plakietką
+„Dane demonstracyjne” (kosze i frakcje z OSM, koszty, masy i projekty syntetyczne), zgłoszenie tylko z QR i do 150 m od kosza, w demo z jawnie
+symulowanym położeniem, nawigacja kierowcy w aplikacji zamiast Google Maps. Odrzuciliśmy dashboard tylko na obecnej symulacji (72 punkty, 4 tygodnie):
+bez kosztów wg dzielnic i 12 miesięcy nie odpowiada na pytania menedżera.
+
+## Przebudowa UI: Etapy 2–5 (niedz. 4.10, noc)
+
+**Jeden design system dla wszystkich perspektyw** (`app/static/ui/tokens.css` + `app.css`): fiolet wróżki jako jedyny kolor marki, kolory
+zapełnienia i polskich frakcji tylko przy danych, Plus Jakarta Sans i ikony Lucide lokalnie, ilustracje SVG własne. Elementem rozpoznawczym jest
+kosz-wskaźnik (sylwetka kosza wypełniana kolorem poziomu) w kiosku, na kartach i pinach. Odrzuciliśmy kremowe tło z audytu: to dziś domyślny „AI-wygląd”.
+**Zgłoszenie tylko z kodem QR kosza i do 150 m** (token HMAC w adresie z kodu na panelu); w demo położenie jest jawnie symulowane, bo jury nie stoi przy koszu.
+**Nawigacja kierowcy w aplikacji**: symulowany przejazd po przebiegu OSRM z podpowiedziami skrętów liczonymi z kąta odcinków, bez Google Maps.
+**Dashboard na historii z generatora** (`app/history.py`, 12 miesięcy, 222 kosze: 72 demo + 150 z OSM w 6 dzielnicach) plus akcje z pokazu
+(opróżnienia z aplikacji kierowcy, zgłoszenia od startu demo); symulowane odbiory silnika nie wchodzą do liczb, żeby efekt wdrożenia był ciągły.
+Liczby ze slajdów (57% → 27%, 338 h → 0 h, MAE 2,4 vs 7,1) pilnuje test regresji. Stare API (`api.py`) i logowanie (`auth.py`) usunięte,
+reguły silnika testowane przez nowe endpointy. Znane ograniczenie: zgłoszenie „Uszkodzony” idzie tą samą ścieżką co „Przepełniony”.

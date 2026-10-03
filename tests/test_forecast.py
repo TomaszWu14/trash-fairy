@@ -124,14 +124,15 @@ def test_state_does_not_read_hidden_truth(cache):
     assert point_states(DEMO_NOW) == before
 
 
-def test_point_detail_endpoint(client, cache):
+def test_point_series_48h_back_and_24h_ahead(cache):
     import_points(cache)
     simulate(weeks=2)
     from app import clock
+    from app.forecast import THRESHOLD, point_series
+    from app.simulation import hour_floor
     clock.advance(0)  # utwórz zegar
-    pid = Point.query.first().id
-    d = client.get(f"/api/points/{pid}").json
-    assert len(d["series"]) == 48 + 1 + 24
-    assert sum(not s["future"] for s in d["series"]) == 49
-    assert d["threshold"] == 85 and "reason" in d
-    assert client.get("/api/points/99999").status_code == 404
+    now = clock.now()
+    series = point_series(Point.query.first(), now)
+    assert len(series) == 48 + 1 + 24
+    assert sum(at <= hour_floor(now) for at, *_ in series) == 49
+    assert THRESHOLD == 85

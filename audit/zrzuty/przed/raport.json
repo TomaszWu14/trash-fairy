@@ -1,0 +1,1131 @@
+{
+ "pages": {
+  "desktop/start-pokaz": {
+   "url": "/",
+   "final": "/",
+   "status": 200,
+   "title": "Trash Fairy — pokaz dla jury",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1716
+  },
+  "desktop/telefony": {
+   "url": "/telefony",
+   "final": "/telefony",
+   "status": 200,
+   "title": "Na telefonie — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1373
+  },
+  "desktop/dyspozytor-podglad": {
+   "url": "/dyspozytor",
+   "final": "/dyspozytor",
+   "status": 200,
+   "title": "Trash Fairy — panel dyspozytora",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/jury": {
+   "url": "/jury",
+   "final": "/zglos/2?jury=1",
+   "status": 200,
+   "title": "Zgłoś kosz — Kosz Rynek 02 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/zglos-wybor": {
+   "url": "/zglos",
+   "final": "/zglos",
+   "status": 200,
+   "title": "Zgłoś kosz · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/zglos-18": {
+   "url": "/zglos/18",
+   "final": "/zglos/18",
+   "status": 200,
+   "title": "Zgłoś kosz — Kosz Rynek 18 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/kierowca-podglad": {
+   "url": "/kierowca?podglad=1",
+   "final": "/kierowca?podglad=1",
+   "status": 200,
+   "title": "Trash Fairy · kierowca MPO",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/epapier-18": {
+   "url": "/epapier/18",
+   "final": "/epapier/18",
+   "status": 200,
+   "title": "Ekran na koszu — Kosz Rynek 18 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/kosz-18-status": {
+   "url": "/kosz/18/status",
+   "final": "/zglos/18?status=1",
+   "status": 200,
+   "title": "Zgłoś kosz — Kosz Rynek 18 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/metodologia": {
+   "url": "/metodologia",
+   "final": "/metodologia",
+   "status": 200,
+   "title": "Trash Fairy — metodologia",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 3436
+  },
+  "desktop/program": {
+   "url": "/program",
+   "final": "/program",
+   "status": 200,
+   "title": "Przyjaciele Wróżki — program dla mieszkańców",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1392
+  },
+  "desktop/program-regulamin": {
+   "url": "/program/regulamin",
+   "final": "/program/regulamin",
+   "status": 200,
+   "title": "Przyjaciele Wróżki — regulamin",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/api-docs": {
+   "url": "/api/docs",
+   "final": "/api/docs",
+   "status": 200,
+   "title": "Trash Fairy — otwarte API",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1404
+  },
+  "desktop/logowanie": {
+   "url": "/logowanie",
+   "final": "/logowanie",
+   "status": 200,
+   "title": "Logowanie — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/dostepnosc": {
+   "url": "/dostepnosc",
+   "final": "/dostepnosc",
+   "status": 200,
+   "title": "Deklaracja dostępności — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1234
+  },
+  "desktop/prywatnosc": {
+   "url": "/prywatnosc",
+   "final": "/prywatnosc",
+   "status": 200,
+   "title": "Jak używamy danych — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/404": {
+   "url": "/nie-ma-takiej-strony",
+   "final": "/nie-ma-takiej-strony",
+   "status": 404,
+   "title": "Nie ma takiej strony — Trash Fairy",
+   "js_errors": [
+    "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+   ],
+   "http_errors": [
+    "404 /nie-ma-takiej-strony"
+   ],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/zdjecia-bez-logowania": {
+   "url": "/zdjecia",
+   "final": "/logowanie?next=/zdjecia",
+   "status": 200,
+   "title": "Logowanie — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/dyspozytor-zalogowany": {
+   "url": "/dyspozytor",
+   "final": "/dyspozytor",
+   "status": 200,
+   "title": "Trash Fairy — panel dyspozytora",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/zdjecia": {
+   "url": "/zdjecia",
+   "final": "/zdjecia",
+   "status": 200,
+   "title": "Zdjęcia z miasta · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "desktop/kierowca-zalogowany": {
+   "url": "/kierowca",
+   "final": "/kierowca",
+   "status": 200,
+   "title": "Trash Fairy · kierowca MPO",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1080
+  },
+  "telefon/start-pokaz": {
+   "url": "/",
+   "final": "/",
+   "status": 200,
+   "title": "Trash Fairy — pokaz dla jury",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 3055
+  },
+  "telefon/telefony": {
+   "url": "/telefony",
+   "final": "/telefony",
+   "status": 200,
+   "title": "Na telefonie — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1241
+  },
+  "telefon/dyspozytor-podglad": {
+   "url": "/dyspozytor",
+   "final": "/dyspozytor",
+   "status": 200,
+   "title": "Trash Fairy — panel dyspozytora",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/jury": {
+   "url": "/jury",
+   "final": "/zglos/3?jury=1",
+   "status": 200,
+   "title": "Zgłoś kosz — Kosz Rynek 03 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/zglos-wybor": {
+   "url": "/zglos",
+   "final": "/zglos",
+   "status": 200,
+   "title": "Zgłoś kosz · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/zglos-18": {
+   "url": "/zglos/18",
+   "final": "/zglos/18",
+   "status": 200,
+   "title": "Zgłoś kosz — Kosz Rynek 18 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/kierowca-podglad": {
+   "url": "/kierowca?podglad=1",
+   "final": "/kierowca?podglad=1",
+   "status": 200,
+   "title": "Trash Fairy · kierowca MPO",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/epapier-18": {
+   "url": "/epapier/18",
+   "final": "/epapier/18",
+   "status": 200,
+   "title": "Ekran na koszu — Kosz Rynek 18 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/kosz-18-status": {
+   "url": "/kosz/18/status",
+   "final": "/zglos/18?status=1",
+   "status": 200,
+   "title": "Zgłoś kosz — Kosz Rynek 18 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/metodologia": {
+   "url": "/metodologia",
+   "final": "/metodologia",
+   "status": 200,
+   "title": "Trash Fairy — metodologia",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 6603
+  },
+  "telefon/program": {
+   "url": "/program",
+   "final": "/program",
+   "status": 200,
+   "title": "Przyjaciele Wróżki — program dla mieszkańców",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1555
+  },
+  "telefon/program-regulamin": {
+   "url": "/program/regulamin",
+   "final": "/program/regulamin",
+   "status": 200,
+   "title": "Przyjaciele Wróżki — regulamin",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1520
+  },
+  "telefon/api-docs": {
+   "url": "/api/docs",
+   "final": "/api/docs",
+   "status": 200,
+   "title": "Trash Fairy — otwarte API",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1795
+  },
+  "telefon/logowanie": {
+   "url": "/logowanie",
+   "final": "/logowanie",
+   "status": 200,
+   "title": "Logowanie — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/dostepnosc": {
+   "url": "/dostepnosc",
+   "final": "/dostepnosc",
+   "status": 200,
+   "title": "Deklaracja dostępności — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1918
+  },
+  "telefon/prywatnosc": {
+   "url": "/prywatnosc",
+   "final": "/prywatnosc",
+   "status": 200,
+   "title": "Jak używamy danych — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1456
+  },
+  "telefon/404": {
+   "url": "/nie-ma-takiej-strony",
+   "final": "/nie-ma-takiej-strony",
+   "status": 404,
+   "title": "Nie ma takiej strony — Trash Fairy",
+   "js_errors": [
+    "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+   ],
+   "http_errors": [
+    "404 /nie-ma-takiej-strony"
+   ],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/zdjecia-bez-logowania": {
+   "url": "/zdjecia",
+   "final": "/logowanie?next=/zdjecia",
+   "status": 200,
+   "title": "Logowanie — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/dyspozytor-zalogowany": {
+   "url": "/dyspozytor",
+   "final": "/dyspozytor",
+   "status": 200,
+   "title": "Trash Fairy — panel dyspozytora",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "telefon/zdjecia": {
+   "url": "/zdjecia",
+   "final": "/zdjecia",
+   "status": 200,
+   "title": "Zdjęcia z miasta · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": true,
+   "height": 844
+  },
+  "telefon/kierowca-zalogowany": {
+   "url": "/kierowca",
+   "final": "/kierowca",
+   "status": 200,
+   "title": "Trash Fairy · kierowca MPO",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 844
+  },
+  "kiosk/start-pokaz": {
+   "url": "/",
+   "final": "/",
+   "status": 200,
+   "title": "Trash Fairy — pokaz dla jury",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1794
+  },
+  "kiosk/telefony": {
+   "url": "/telefony",
+   "final": "/telefony",
+   "status": 200,
+   "title": "Na telefonie — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1373
+  },
+  "kiosk/dyspozytor-podglad": {
+   "url": "/dyspozytor",
+   "final": "/dyspozytor",
+   "status": 200,
+   "title": "Trash Fairy — panel dyspozytora",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/jury": {
+   "url": "/jury",
+   "final": "/zglos/3?jury=1",
+   "status": 200,
+   "title": "Zgłoś kosz — Kosz Rynek 03 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/zglos-wybor": {
+   "url": "/zglos",
+   "final": "/zglos",
+   "status": 200,
+   "title": "Zgłoś kosz · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/zglos-18": {
+   "url": "/zglos/18",
+   "final": "/zglos/18",
+   "status": 200,
+   "title": "Zgłoś kosz — Kosz Rynek 18 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/kierowca-podglad": {
+   "url": "/kierowca?podglad=1",
+   "final": "/kierowca?podglad=1",
+   "status": 200,
+   "title": "Trash Fairy · kierowca MPO",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/epapier-18": {
+   "url": "/epapier/18",
+   "final": "/epapier/18",
+   "status": 200,
+   "title": "Ekran na koszu — Kosz Rynek 18 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1015
+  },
+  "kiosk/kosz-18-status": {
+   "url": "/kosz/18/status",
+   "final": "/zglos/18?status=1",
+   "status": 200,
+   "title": "Zgłoś kosz — Kosz Rynek 18 · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/metodologia": {
+   "url": "/metodologia",
+   "final": "/metodologia",
+   "status": 200,
+   "title": "Trash Fairy — metodologia",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 3436
+  },
+  "kiosk/program": {
+   "url": "/program",
+   "final": "/program",
+   "status": 200,
+   "title": "Przyjaciele Wróżki — program dla mieszkańców",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1392
+  },
+  "kiosk/program-regulamin": {
+   "url": "/program/regulamin",
+   "final": "/program/regulamin",
+   "status": 200,
+   "title": "Przyjaciele Wróżki — regulamin",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 992
+  },
+  "kiosk/api-docs": {
+   "url": "/api/docs",
+   "final": "/api/docs",
+   "status": 200,
+   "title": "Trash Fairy — otwarte API",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1404
+  },
+  "kiosk/logowanie": {
+   "url": "/logowanie",
+   "final": "/logowanie",
+   "status": 200,
+   "title": "Logowanie — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/dostepnosc": {
+   "url": "/dostepnosc",
+   "final": "/dostepnosc",
+   "status": 200,
+   "title": "Deklaracja dostępności — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 1234
+  },
+  "kiosk/prywatnosc": {
+   "url": "/prywatnosc",
+   "final": "/prywatnosc",
+   "status": 200,
+   "title": "Jak używamy danych — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 836
+  },
+  "kiosk/404": {
+   "url": "/nie-ma-takiej-strony",
+   "final": "/nie-ma-takiej-strony",
+   "status": 404,
+   "title": "Nie ma takiej strony — Trash Fairy",
+   "js_errors": [
+    "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+   ],
+   "http_errors": [
+    "404 /nie-ma-takiej-strony"
+   ],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/zdjecia-bez-logowania": {
+   "url": "/zdjecia",
+   "final": "/logowanie?next=/zdjecia",
+   "status": 200,
+   "title": "Logowanie — Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/dyspozytor-zalogowany": {
+   "url": "/dyspozytor",
+   "final": "/dyspozytor",
+   "status": 200,
+   "title": "Trash Fairy — panel dyspozytora",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/zdjecia": {
+   "url": "/zdjecia",
+   "final": "/zdjecia",
+   "status": 200,
+   "title": "Zdjęcia z miasta · Trash Fairy",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  },
+  "kiosk/kierowca-zalogowany": {
+   "url": "/kierowca",
+   "final": "/kierowca",
+   "status": 200,
+   "title": "Trash Fairy · kierowca MPO",
+   "js_errors": [],
+   "http_errors": [],
+   "hscroll": false,
+   "height": 800
+  }
+ },
+ "links": {
+  "/": [
+   "start-pokaz",
+   "start-pokaz",
+   "start-pokaz",
+   "telefony",
+   "dyspozytor-podglad",
+   "epapier-18",
+   "metodologia",
+   "program",
+   "program-regulamin",
+   "api-docs",
+   "logowanie",
+   "dostepnosc",
+   "prywatnosc",
+   "404",
+   "zdjecia-bez-logowania",
+   "dyspozytor-zalogowany"
+  ],
+  "/telefony": [
+   "start-pokaz",
+   "start-pokaz",
+   "start-pokaz",
+   "telefony",
+   "dyspozytor-podglad",
+   "metodologia",
+   "program",
+   "program-regulamin",
+   "dostepnosc",
+   "prywatnosc",
+   "dyspozytor-zalogowany"
+  ],
+  "/dyspozytor": [
+   "start-pokaz",
+   "telefony",
+   "dyspozytor-podglad",
+   "dyspozytor-podglad",
+   "dyspozytor-podglad",
+   "metodologia",
+   "program",
+   "program-regulamin",
+   "api-docs",
+   "dostepnosc",
+   "prywatnosc",
+   "dyspozytor-zalogowany",
+   "dyspozytor-zalogowany",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/18?jury=1": [
+   "start-pokaz",
+   "start-pokaz",
+   "telefony",
+   "telefony",
+   "dyspozytor-podglad",
+   "metodologia",
+   "program",
+   "program-regulamin",
+   "dostepnosc",
+   "prywatnosc"
+  ],
+  "/program": [
+   "start-pokaz",
+   "telefony",
+   "dyspozytor-podglad",
+   "dyspozytor-podglad",
+   "metodologia",
+   "program",
+   "program-regulamin",
+   "program-regulamin",
+   "dostepnosc",
+   "prywatnosc",
+   "dyspozytor-zalogowany",
+   "dyspozytor-zalogowany"
+  ],
+  "/metodologia": [
+   "start-pokaz",
+   "start-pokaz",
+   "start-pokaz",
+   "telefony",
+   "telefony",
+   "dyspozytor-podglad",
+   "dyspozytor-podglad",
+   "metodologia",
+   "program",
+   "program-regulamin",
+   "api-docs",
+   "api-docs",
+   "api-docs",
+   "dostepnosc",
+   "dostepnosc",
+   "prywatnosc",
+   "prywatnosc",
+   "dyspozytor-zalogowany",
+   "dyspozytor-zalogowany"
+  ],
+  "/api/docs": [
+   "start-pokaz",
+   "telefony",
+   "dyspozytor-podglad",
+   "metodologia",
+   "program",
+   "program-regulamin",
+   "dostepnosc",
+   "prywatnosc",
+   "dyspozytor-zalogowany"
+  ],
+  "/logowanie?next=/": [
+   "start-pokaz"
+  ],
+  "/dostepnosc": [
+   "start-pokaz",
+   "telefony",
+   "api-docs",
+   "dostepnosc",
+   "prywatnosc"
+  ],
+  "/prywatnosc": [
+   "start-pokaz",
+   "telefony",
+   "jury",
+   "zglos-18",
+   "kosz-18-status",
+   "program",
+   "api-docs",
+   "dostepnosc",
+   "prywatnosc"
+  ],
+  "/logowanie?next=/telefony": [
+   "telefony"
+  ],
+  "/epapier/18": [
+   "telefony"
+  ],
+  "/kierowca?podglad=1": [
+   "telefony"
+  ],
+  "/logowanie?next=/dyspozytor": [
+   "dyspozytor-podglad"
+  ],
+  "/program/regulamin": [
+   "dyspozytor-podglad",
+   "program",
+   "program",
+   "dyspozytor-zalogowany"
+  ],
+  "/kierowca": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/61": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/72": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/18": [
+   "dyspozytor-podglad",
+   "epapier-18",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/1": [
+   "dyspozytor-podglad",
+   "zglos-wybor",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/9": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/31": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/2": [
+   "dyspozytor-podglad",
+   "zglos-wybor",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/7": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/3": [
+   "dyspozytor-podglad",
+   "zglos-wybor",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/5": [
+   "dyspozytor-podglad",
+   "zglos-wybor",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/14": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/28": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/12": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/6": [
+   "dyspozytor-podglad",
+   "zglos-wybor",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/4": [
+   "dyspozytor-podglad",
+   "zglos-wybor",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/8": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/25": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/17": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/37": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/27": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/33": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/24": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/13": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/49": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/43": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/30": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/36": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/15": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/10": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/11": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/35": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/19": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/20": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/50": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/22": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/39": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/38": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/34": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/48": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/54": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/16": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/51": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/44": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/45": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/40": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/47": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/46": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/42": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/29": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/53": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/21": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/52": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/62": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/32": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/26": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/23": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/41": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/67": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/65": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/66": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/69": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/63": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/71": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/64": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/68": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/70": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/59": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/60": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/55": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/57": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/58": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/zglos/56": [
+   "dyspozytor-podglad",
+   "dyspozytor-zalogowany"
+  ],
+  "/logowanie?next=/kierowca": [
+   "kierowca-podglad"
+  ],
+  "/logowanie?next=/metodologia": [
+   "metodologia"
+  ],
+  "/logowanie?next=/program": [
+   "program"
+  ],
+  "/logowanie?next=/program/regulamin": [
+   "program-regulamin"
+  ],
+  "/static/openapi.json": [
+   "api-docs"
+  ],
+  "/api/v1/bins.geojson": [
+   "api-docs"
+  ],
+  "/api/v1/bins/18": [
+   "api-docs"
+  ],
+  "/api/v1/routes": [
+   "api-docs"
+  ],
+  "/api/v1/conditions": [
+   "api-docs"
+  ],
+  "/logowanie?next=/dostepnosc": [
+   "dostepnosc"
+  ],
+  "/logowanie?next=/prywatnosc": [
+   "prywatnosc"
+  ],
+  "/zglos": [
+   "404"
+  ],
+  "/zdjecia": [
+   "dyspozytor-zalogowany"
+  ]
+ },
+ "dead": {}
+}

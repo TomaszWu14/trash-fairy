@@ -1,0 +1,99 @@
+{% extends "ui/base.html" %}
+{% from "ui/_ui.html" import icon %}
+{% set perspective = "dashboard" %}
+{% block title %}Dashboard miasta{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='ui/dashboard.css') }}">
+{% endblock %}
+{% block body_class %}dash-body{% endblock %}
+{% block content %}
+<div class="shell dash">
+  <header class="dash-h rise">
+    <div>
+      <p class="eyebrow">MPO Kraków · odbiór odpadów</p>
+      <div class="dash-title"><h1>Dashboard miasta</h1>
+        <nav class="dash-tabs" aria-label="Widoki dashboardu"><a href="{{ url_for('ui.dashboard') }}" aria-current="page">{{ icon('layout-dashboard', 'i-sm') }}Przegląd</a><a href="{{ url_for('ui.devices_page') }}">{{ icon('radio-tower', 'i-sm') }}Urządzenia</a></nav></div>
+      <p class="muted" id="d-period">Ostatnie 30 dni</p>
+    </div>
+    <div class="dash-actions">
+      <button class="btn btn-sm" type="button" id="d-print">{{ icon('download', 'i-sm') }}Pobierz raport PDF</button>
+    </div>
+  </header>
+
+  <form class="filters card" id="d-filters" aria-label="Filtry dashboardu">
+    <div class="seg" role="radiogroup" aria-label="Okres">
+      {% for v, l in [('miesiac', 'Miesiąc'), ('kwartal', 'Kwartał'), ('rok', 'Rok'), ('zakres', 'Zakres')] %}
+      <label><input type="radio" name="okres" value="{{ v }}"{% if v == 'miesiac' %} checked{% endif %}><span>{{ l }}</span></label>
+      {% endfor %}
+    </div>
+    <div class="f-range" id="f-range" hidden>
+      <label class="sr-only" for="f-od">Od</label><input class="input" type="date" id="f-od" name="od">
+      <span aria-hidden="true">–</span>
+      <label class="sr-only" for="f-do">Do</label><input class="input" type="date" id="f-do" name="do">
+    </div>
+    <label class="f-sel">{{ icon('map-pin', 'i-sm') }}<span class="sr-only">Dzielnica</span>
+      <select class="select" name="dzielnica" id="f-dzielnica"><option value="">Wszystkie dzielnice</option></select></label>
+    <label class="f-sel">{{ icon('recycle', 'i-sm') }}<span class="sr-only">Frakcja</span>
+      <select class="select" name="frakcja" id="f-frakcja"><option value="">Wszystkie frakcje</option>
+        {% for k, v in frakcje.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></label>
+    <label class="f-sel">{{ icon('flag', 'i-sm') }}<span class="sr-only">Projekt</span>
+      <select class="select" name="projekt" id="f-projekt"><option value="">Wszystkie projekty</option></select></label>
+    <button class="btn btn-ghost btn-sm" type="button" id="f-clear" hidden>{{ icon('x', 'i-sm') }}Wyczyść filtry</button>
+  </form>
+
+  <section class="kpis" id="d-kpis" aria-label="Najważniejsze liczby">
+    {% for _ in range(7) %}<article class="card kpi"><span class="skel" style="width:60%"></span><span class="skel" style="height:30px;width:70%"></span><span class="skel" style="width:40%"></span></article>{% endfor %}
+  </section>
+
+  <div class="dgrid">
+    <section class="card chart c-wide" data-chart="koszty">
+      <header class="chart-h"><div><h2>Koszty odbioru: rzeczywiste i plan</h2><p>12 miesięcy, zaznaczony moment wdrożenia Trash Fairy</p></div>
+        <button class="btn btn-ghost btn-sm" type="button" data-details="koszty">{{ icon('list-ordered', 'i-sm') }}Szczegóły</button></header>
+      <div class="chart-body" id="ch-koszty"></div>
+    </section>
+    <section class="card chart" data-chart="frakcje">
+      <header class="chart-h"><div><h2>Frakcje w masie odpadów</h2><p>Kliknij frakcję, żeby filtrować cały widok</p></div>
+        <button class="btn btn-ghost btn-sm" type="button" data-details="frakcje">{{ icon('list-ordered', 'i-sm') }}Szczegóły</button></header>
+      <div class="chart-body" id="ch-frakcje"></div>
+    </section>
+    <section class="card chart c-wide" data-chart="dzielnice">
+      <header class="chart-h"><div><h2>Dzielnice: koszty według frakcji</h2><p>Kliknij słupek, żeby wybrać dzielnicę</p></div>
+        <div class="seg seg-sm" role="radiogroup" aria-label="Miara">
+          <label><input type="radio" name="miara" value="koszt" checked><span>Koszt</span></label>
+          <label><input type="radio" name="miara" value="wywozy"><span>Wywozy</span></label></div></header>
+      <div class="chart-body" id="ch-dzielnice"></div>
+    </section>
+    <section class="card chart" data-chart="zgloszenia">
+      <header class="chart-h"><div><h2>Zgłoszenia i czas reakcji</h2><p>Liczba zgłoszeń mieszkańców i średni czas do odbioru</p></div></header>
+      <div class="chart-body" id="ch-zgloszenia"></div>
+    </section>
+    <section class="card chart c-wide c-map" data-chart="mapa">
+      <header class="chart-h"><div><h2>Mapa koszy i gorące obszary</h2><p>Kolor = zapełnienie teraz; poświata = zgłoszenia przepełnień z 90 dni</p></div>
+        <div class="map-legend" aria-hidden="true"><span><i class="lg ok"></i>&lt; 50%</span><span><i class="lg warn"></i>50–80%</span><span><i class="lg full"></i>≥ 80%</span><span><i class="lg hot"></i>gorący obszar</span></div></header>
+      <div class="chart-body" id="ch-mapa" role="img" aria-label="Mapa Krakowa z koszami w kolorze zapełnienia"></div>
+    </section>
+    <section class="card chart" data-chart="heatmapa">
+      <header class="chart-h"><div><h2>Kiedy kosze się przepełniają</h2><p>Zgłoszenia według dnia tygodnia i godziny</p></div></header>
+      <div class="chart-body" id="ch-heatmapa"></div>
+    </section>
+  </div>
+
+  <section class="projects" aria-labelledby="pr-h">
+    <div class="section-head"><div><h2 id="pr-h">Projekty i inicjatywy</h2><p>Efekty liczone z danych odbiorów przed i po starcie projektu</p></div></div>
+    <div class="pgrid" id="d-projects">{% for _ in range(4) %}<div class="card pcard"><span class="skel" style="height:120px"></span></div>{% endfor %}</div>
+  </section>
+</div>
+
+<dialog class="modal modal-wide" id="d-modal" aria-labelledby="d-modal-h">
+  <div class="modal-h"><h2 id="d-modal-h" style="font-size:var(--fs-lg)">Szczegóły</h2>
+    <button class="btn btn-ghost btn-sm" type="button" data-close aria-label="Zamknij">{{ icon('x') }}</button></div>
+  <div class="modal-b" id="d-modal-b"></div>
+</dialog>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='ui/charts.js') }}" defer></script>
+<script src="{{ url_for('static', filename='ui/dashboard.js') }}" defer></script>
+{% endblock %}

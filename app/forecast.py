@@ -48,7 +48,7 @@ def _summarize(cells):
 def build_profiles(cutoff):
     """{point_id: {"cells": {(dzień, godzina): (średnia, p20, p80)}, "avg": średnia}} z historii < cutoff."""
     events = Event.query.all()
-    near = {p.id: events_near(p.lat, p.lon, events) for p in Point.query}
+    near = {p.id: events_near(p.lat, p.lon, events) for p in Point.live_query()}
     emptied = defaultdict(set)
     for pid, at in db.session.query(Emptying.point_id, Emptying.at).filter(Emptying.at < cutoff):
         emptied[pid].add(at)
@@ -119,7 +119,7 @@ def point_forecasts(now, last_emptying):
     events = Event.query.all()
     weather_at = weather.factor_at()
     out = {}
-    for p in Point.query.order_by(Point.id):
+    for p in Point.live_query().order_by(Point.id):
         le = last_emptying.get(p.id)
         start = hour_floor(le) if le else hour - timedelta(hours=72)
         traj = trajectory(profiles.get(p.id), events_near(p.lat, p.lon, events), {start}, start, hour + HORIZON, now, weather_at)
@@ -162,7 +162,7 @@ def forecast_quality(cutoff):
         resets[pid].add(at)
 
     errors, naive_errors = [], []
-    for p in Point.query:
+    for p in Point.live_query():
         profile = profiles.get(p.id)
         naive = {"cells": {}, "avg": profile["avg"] if profile else DEFAULT_RATE}
         args = (resets[p.id], window - timedelta(days=4), cutoff - HOUR, cutoff)

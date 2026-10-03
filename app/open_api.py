@@ -6,8 +6,7 @@ ponytail: bez kluczy i limitów — przed pilotażem klucze i limit na klienta (
 """
 from flask import Blueprint, jsonify, url_for
 
-from . import clock, db
-from .api import BIN_CAPACITY_L, conditions
+from . import clock, db, traffic, weather
 from .forecast import point_series
 from .models import Point
 from .routes import DEPOT, next_runs
@@ -15,6 +14,12 @@ from .state import current_routes, point_states
 
 bp = Blueprint("open_api", __name__, url_prefix="/api/v1")
 PUBLIC = ("level", "state", "label", "fresh", "crossing")
+BIN_CAPACITY_L = {"bin": 120, "shelter": 1100}
+
+
+def conditions(now):
+    """Pogoda (mnożnik prognozy) i ruch (mnożnik czasu przejazdu)."""
+    return {"weather": weather.conditions(now), "traffic": traffic.conditions()}
 
 
 @bp.after_request
@@ -22,6 +27,12 @@ def cors(resp):
     resp.headers["Access-Control-Allow-Origin"] = "*"
     resp.headers["Cache-Control"] = "public, max-age=60"
     return resp
+
+
+@bp.errorhandler(404)
+def not_found(_e):
+    # kontrakt openapi.json (Error): {ok: false, message}; reszta /api/* ma format {blad, kod}
+    return jsonify(ok=False, message="Nie znaleziono."), 404
 
 
 def _meta(now):
@@ -41,14 +52,14 @@ def bins():
     states = point_states(now)
     features = [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [p.lon, p.lat]},
                  "properties": _bin(p, states[p.id], now)}
-                for p in Point.query.order_by(Point.id) if p.id in states]
+                for p in Point.live_query().order_by(Point.id) if p.id in states]
     return jsonify(type="FeatureCollection", meta=_meta(now), features=features)
 
 
 @bp.get("/bins/<int:point_id>")
 def bin_detail(point_id):
     now = clock.now()
-    p = db.get_or_404(Point, point_id)
+    p = Point.live_or_404(point_id)
     forecast = [{"at": at.isoformat(), "level": round(est), "low": round(low), "high": round(high)}
                 for at, est, low, high in point_series(p, now, hours_back=0) if at > now and est is not None]
     return jsonify(meta=_meta(now), bin={**_bin(p, point_states(now)[p.id], now), "lat": p.lat, "lon": p.lon},

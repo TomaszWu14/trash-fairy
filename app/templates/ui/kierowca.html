@@ -1,0 +1,35 @@
+{% extends "ui/base.html" %}
+{% from "ui/_ui.html" import icon %}
+{% set perspective = "kierowca" %}
+{% block title %}Trasa kierowcy{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='ui/kierowca.css') }}">
+{% endblock %}
+{% block content %}
+<div class="k-wrap shell">
+  <header class="k-top rise">
+    <div class="k-who"><span class="k-avatar" aria-hidden="true">{{ icon('truck') }}</span>
+      <div><b>Kierowca MPO · trasa K-07</b><span id="k-run">Kurs na dziś</span></div></div>
+    <div class="k-progress" aria-live="polite">
+      <div class="k-progress-t"><b class="num" id="k-done">–</b><span id="k-left">Ładowanie trasy…</span></div>
+      <div class="bar"><i id="k-bar" style="--p:0"></i></div>
+    </div>
+  </header>
+  <div class="k-grid">
+    <section class="k-map card" aria-label="Mapa trasy"><div id="k-map" role="img" aria-label="Mapa trasy z koszami"></div>
+      <div class="k-legend" aria-hidden="true"><span><i class="lg ok"></i>do 50%</span><span><i class="lg warn"></i>50–80%</span><span><i class="lg full"></i>ponad 80%</span><span><i class="lg route"></i>trasa</span></div></section>
+    <section class="k-list card" aria-labelledby="k-list-h">
+      <div class="k-list-h"><h2 id="k-list-h">Kosze po priorytecie</h2><span class="hint">najpierw zgłoszone, potem najpełniejsze</span></div>
+      <ol class="k-stops" id="k-stops">
+        {% for _ in range(6) %}<li class="k-stop"><span class="skel" style="width:34px;height:40px"></span><span class="skel" style="flex:1;height:40px"></span></li>{% endfor %}
+      </ol>
+      <details class="k-done" id="k-done-box" hidden><summary>Opróżnione <span id="k-done-n"></span></summary><ol class="k-stops" id="k-done-list"></ol></details>
+    </section>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='ui/kierowca.js') }}" defer></script>
+{% endblock %}

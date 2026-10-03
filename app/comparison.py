@@ -96,7 +96,7 @@ def compare(cutoff, weeks=WEEKS, seed=11):
     cutoff = hour_floor(cutoff)
     start = cutoff - timedelta(weeks=weeks)
     profiles = build_profiles(start)  # uczymy się tylko na danych sprzed okresu porównania
-    points = Point.query.order_by(Point.id).all()
+    points = Point.live_query().order_by(Point.id).all()
     events = Event.query.all()
     near = {p.id: events_near(p.lat, p.lon, events) for p in points}
     hours = [start + k * HOUR for k in range(int((cutoff - start) / HOUR))]

@@ -40,7 +40,7 @@ def build_facts(now):
     mo = misuse_overview(now)
     fleets = current_routes(now)
     recs = recommendations(now, mo["recommendations"])
-    points = {p.id: p for p in Point.query}
+    points = {p.id: p for p in Point.live_query()}
     upcoming = sorted(((pid, s) for pid, s in states.items() if s["crossing"] and s["crossing"] > now.isoformat()),
                       key=lambda item: item[1]["crossing"])
     soon = [{"punkt": points[pid].name, "przekroczenie_85": s["crossing_label"], "stan": s["label"]}
