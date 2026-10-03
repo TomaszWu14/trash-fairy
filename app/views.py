@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import random
 
 from flask import Blueprint, current_app, jsonify, redirect, render_template, request, send_file, send_from_directory, url_for
@@ -62,6 +63,14 @@ def sw():
     resp.headers["Service-Worker-Allowed"] = "/zglos"
     resp.headers["Cache-Control"] = "no-cache"
     return resp
+
+
+@bp.get("/api/docs")
+def api_docs():
+    """Dokumentacja otwartego API /api/v1 (własna strona, kontrakt w static/openapi.json)."""
+    import json
+    spec = json.loads(Path(current_app.static_folder, "openapi.json").read_text(encoding="utf-8"))
+    return render_template("api_docs.html", spec=spec)
 
 
 @bp.get("/kierowca")

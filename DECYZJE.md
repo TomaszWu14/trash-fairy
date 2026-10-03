@@ -251,3 +251,18 @@ Ikony PNG 192/512 i maskable dostał przy okazji także manifest `/zglos`.
 Menu z `overflow-x: auto` dostawało pasek przewijania w trakcie ładowania fontów i nagłówek rósł. Ukryliśmy pasek (przewijalność
 pokazuje cień krawędzi) i skróciliśmy plakietkę do „DEMO · SYMULACJA”; CLS 0,13. Przyczynę potwierdziliśmy pomiarem tej samej strony na `main`,
 zamiast zgadywać po kolejnych poprawkach CSS.
+
+## Etap 8: integracje API (pogoda, ruch, SMS, otwarte API) (sob 3.10, wieczór)
+
+**Pogoda z Open-Meteo zmienia tylko prognozę na godziny przyszłe, regułą w kodzie: opad ≥ 1 mm/h ×0,8, ciepły (≥ 20 °C), suchy weekend 10–22 ×1,25.**
+Profil, MAE i porównanie 4 tygodni liczymy bez pogody, żeby wyniki na slajdach nie zależały od dnia pokazu. Sprawdzone na żywo:
+sobota 3.10, 13:00, 20,7 °C i bezchmurnie dały ×1,25, a kurs 14:00 urósł z 53 do 54 punktów. Odrzuciliśmy pogodę w profilu historycznym
+(symulacja nie ma pogody, więc model nauczyłby się szumu). Bez sieci zostaje `data/weather_cache.json`, a bez niego mnożnik 1,0.
+
+**Ruch z TomTom zmienia tylko czas (przejazdu i ETA), nigdy wyboru punktów ani km.** Trasa odpowiada na pytanie „kogo trzeba odwiedzić”,
+a korek nie zmienia potrzeby; korek w macierzy OR-Tools to osobny krok (ROADMAPA.md). Bez klucza lub przy starym pomiarze (> 2 h) nie ma korekty,
+a nie „brak korków”. **SMS przez Twilio Verify, bez SDK** (`urllib` w `app/http.py`): w sesji tylko SID weryfikacji, numer tylko jako HMAC,
+limity 3 kody/numer/h i 30/h. Bez bramki kod demo na ekranie, jak wcześniej. **Otwarte API `/api/v1` tylko do odczytu** z kontraktem OpenAPI 3.1
+i własną stroną `/api/docs` (bez Swagger UI z CDN); bez wiarygodności przycisków i danych mieszkańców, `meta.synthetic` wprost.
+Kod etapu 8 z sesji w chmurze nie trafił do repo, więc odtworzyliśmy go na podstawie opisu, od razu sprawdzając pola na prawdziwej odpowiedzi Open-Meteo
+i w dokumentacji TomTom i Twilio.

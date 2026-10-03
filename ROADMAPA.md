@@ -42,3 +42,6 @@
   klastry w panelu (C1), menu per rola (B4), cache `point_states`/tras per wersja danych (A2, I1), `ETag` dla PNG e-papieru (I3).
 - PWA kierowcy: czas opróżnienia z telefonu (pole `at` przy wysyłce z kolejki offline; dziś serwer zapisuje chwilę dotarcia),
   logowanie kierowcy i numer pojazdu, kafelki mapy pobierane z góry na cały obszar kursu, odczyt QR kosza zamiast „Jestem”.
+- Ruch drogowy w macierzy czasów OR-Tools (dziś korek zmienia tylko czas przejazdu i ETA, nie kolejność ani wybór punktów).
+- Limity SMS, cache pogody i ruchu we wspólnym magazynie (Redis/Postgres) przy kilku workerach Gunicorna; dziś pamięć procesu + plik.
+- Otwarte API: klucze i limity na klienta, wersjonowanie zmian kontraktu, webhook „kosz przepełniony” dla miasta.

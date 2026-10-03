@@ -95,8 +95,8 @@
 
   function verifyForm(d) {
     $('account').innerHTML = `<h2>Wpisz kod z SMS</h2><p class="muted">${esc(d.message)}</p>
-      <p class="code" aria-label="Kod demo">${esc(d.demo_code)}</p>
-      <form id="ver"><label for="code">Kod</label><input id="code" name="code" inputmode="numeric" maxlength="6" required>
+      ${d.demo_code ? `<p class="code" aria-label="Kod demo">${esc(d.demo_code)}</p>` : ''}
+      <form id="ver"><label for="code">Kod</label><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
         <button class="main" type="submit">Potwierdź</button><p class="msg" id="vermsg" role="status"></p></form>`;
     $('ver').addEventListener('submit', async e => {
       e.preventDefault();

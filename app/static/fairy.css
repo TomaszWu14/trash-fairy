@@ -196,3 +196,9 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 .tf-fresh.off { background: var(--gold); color: var(--plant); font-weight: 700; padding: 2px 8px; border-radius: 6px; }
 .tf-fresh.off::before { border-radius: 0; background: var(--bad); clip-path: polygon(50% 0, 100% 100%, 0 100%); width: 11px; height: 10px; }
 .tf-link-btn { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; background: var(--plant); color: var(--cream); }
+/* pogoda i ruch (etap 8) */
+.tf-cond { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 8px 0 0; font-size: 13px; }
+.tf-cond dt { font-weight: 600; color: var(--plant); } .tf-cond dd { margin: 0; color: var(--ink); }
+.tf-jam { display: inline-block; transform: translate(-50%, -50%); white-space: nowrap; font: 700 12px Inter, sans-serif;
+          padding: 2px 8px; border-radius: 999px; background: var(--bad); color: #fff; box-shadow: 0 0 0 2px #fff; }
+.tf-legend .tf-jam { transform: none; }

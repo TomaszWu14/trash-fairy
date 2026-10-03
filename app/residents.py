@@ -55,22 +55,31 @@ def register(nick, phone, district, rng=random):
     if district not in DISTRICTS.values():
         raise RegistrationError("Wybierz dzielnicę.")
     h = phone_hash(phone)
-    if Resident.query.filter_by(phone_hash=h).first():
+    r = Resident.query.filter_by(phone_hash=h).first()
+    if r and r.verified:
         raise RegistrationError("Ten numer jest już w programie (jedno konto na numer).")
-    if Resident.query.filter_by(nick=nick).first():
+    taken = Resident.query.filter_by(nick=nick).first()
+    if taken and taken is not r:
         raise RegistrationError("Ten pseudonim jest zajęty.")
-    r = Resident(nick=nick, phone_hash=h, district=district, code=f"{rng.randrange(10**6):06d}")
-    db.session.add(r)
+    if r is None:  # niepotwierdzony numer może poprosić o nowy kod (np. SMS nie doszedł) — to samo konto
+        r = Resident(phone_hash=h)
+        db.session.add(r)
+    r.nick, r.district, r.code = nick, district, f"{rng.randrange(10**6):06d}"
     db.session.commit()
     return r
 
 
 def verify(resident, code):
+    """Kod demo (bez bramki SMS). Przy Twilio Verify kod sprawdza bramka, a potem wołamy mark_verified."""
     if resident.code and code == resident.code:
-        resident.verified, resident.code = True, None
-        db.session.commit()
+        mark_verified(resident)
         return True
     return False
+
+
+def mark_verified(resident):
+    resident.verified, resident.code = True, None
+    db.session.commit()
 
 
 def resident_reliability(resident_id):

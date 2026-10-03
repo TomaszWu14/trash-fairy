@@ -1,0 +1,114 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Trash Fairy — otwarte API",
+    "version": "1.0.0",
+    "summary": "Stan i prognoza koszy, trasy MPO oraz warunki (pogoda, ruch) w obszarze demo Krakowa. Tylko odczyt.",
+    "description": "Dane operacyjne są syntetyczne (meta.synthetic = true). Pozycje koszy: © OpenStreetMap contributors (ODbL 1.0). Bez kluczy, CORS *, odpowiedzi cache'owane 60 s.",
+    "license": {"name": "ODbL 1.0 (pozycje z OSM)", "identifier": "ODbL-1.0"}
+  },
+  "servers": [{"url": "https://trashfairy.twapp.pl"}],
+  "paths": {
+    "/api/v1/bins.geojson": {
+      "get": {
+        "summary": "Wszystkie kosze i altany ze stanem i godziną przekroczenia 85%",
+        "responses": {"200": {"description": "GeoJSON FeatureCollection", "content": {"application/geo+json": {"schema": {"$ref": "#/components/schemas/BinCollection"}}}}}
+      }
+    },
+    "/api/v1/bins/{id}": {
+      "get": {
+        "summary": "Jeden kosz z prognozą godzinową na 24 h (przedział p20–p80)",
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}],
+        "responses": {
+          "200": {"description": "Kosz i prognoza", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BinDetail"}}}},
+          "404": {"description": "Nie ma takiego kosza", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
+    "/api/v1/routes": {
+      "get": {
+        "summary": "Trasy na najbliższy kurs dla dwóch flot (kosze, altany), kolejność odbioru",
+        "responses": {"200": {"description": "Trasy", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Routes"}}}}}
+      }
+    },
+    "/api/v1/conditions": {
+      "get": {
+        "summary": "Pogoda (mnożnik prognozy) i ruch drogowy (mnożnik czasu przejazdu)",
+        "responses": {"200": {"description": "Warunki", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Conditions"}}}}}
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Meta": {
+        "type": "object", "required": ["synthetic", "clock"],
+        "properties": {
+          "synthetic": {"type": "boolean", "description": "true: poziomy i trasy pochodzą z symulacji"},
+          "clock": {"type": "string", "format": "date-time", "description": "zegar scenariusza demo"},
+          "docs": {"type": "string"}, "license": {"type": "string"}
+        }
+      },
+      "Bin": {
+        "type": "object", "required": ["id", "kind", "name", "level", "state"],
+        "properties": {
+          "id": {"type": "integer"}, "kind": {"enum": ["bin", "shelter"]}, "name": {"type": "string"}, "area": {"type": "string"},
+          "capacity_l": {"type": "integer"},
+          "level": {"type": "integer", "minimum": 0, "maximum": 130, "description": "szacowane zapełnienie w %"},
+          "state": {"enum": ["ok", "warn", "bad"], "description": "ok < 60%, warn 60–85%, bad > 85% albo świeże zgłoszenie"},
+          "label": {"type": "string"}, "fresh": {"type": "boolean", "description": "zgłoszenie w ostatnich 15 min"},
+          "crossing": {"type": ["string", "null"], "format": "date-time", "description": "przewidywane przekroczenie 85% w ciągu 24 h"},
+          "next_run": {"type": "string", "format": "date-time"}
+        }
+      },
+      "BinCollection": {
+        "type": "object",
+        "properties": {
+          "type": {"const": "FeatureCollection"}, "meta": {"$ref": "#/components/schemas/Meta"},
+          "features": {"type": "array", "items": {"type": "object", "properties": {
+            "type": {"const": "Feature"},
+            "geometry": {"type": "object", "properties": {"type": {"const": "Point"}, "coordinates": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}}},
+            "properties": {"$ref": "#/components/schemas/Bin"}}}}
+        }
+      },
+      "BinDetail": {
+        "type": "object",
+        "properties": {
+          "meta": {"$ref": "#/components/schemas/Meta"},
+          "bin": {"allOf": [{"$ref": "#/components/schemas/Bin"}, {"type": "object", "properties": {"lat": {"type": "number"}, "lon": {"type": "number"}}}]},
+          "forecast": {"type": "array", "items": {"type": "object", "properties": {
+            "at": {"type": "string", "format": "date-time"}, "level": {"type": "integer"}, "low": {"type": "integer"}, "high": {"type": "integer"}}}}
+        }
+      },
+      "Routes": {
+        "type": "object",
+        "properties": {
+          "meta": {"$ref": "#/components/schemas/Meta"},
+          "depot": {"type": "object", "properties": {"name": {"type": "string"}, "lat": {"type": "number"}, "lon": {"type": "number"}}},
+          "fleets": {"type": "array", "items": {"type": "object", "properties": {
+            "kind": {"enum": ["bin", "shelter"]}, "label": {"type": "string"}, "run_at": {"type": "string", "format": "date-time"},
+            "km": {"type": "number"},
+            "stops": {"type": "array", "items": {"type": "object", "properties": {
+              "order": {"type": "integer"}, "id": {"type": "integer"}, "name": {"type": "string"}, "lat": {"type": "number"}, "lon": {"type": "number"}}}}}}}
+        }
+      },
+      "Conditions": {
+        "type": "object",
+        "properties": {
+          "meta": {"$ref": "#/components/schemas/Meta"},
+          "weather": {"type": "object", "properties": {
+            "available": {"type": "boolean"}, "temp_c": {"type": "number"}, "rain_mm": {"type": "number"},
+            "code": {"type": "integer", "description": "kod pogody WMO"}, "label": {"type": "string"},
+            "factor": {"type": "number", "description": "mnożnik tempa zapełniania: 0,8 deszcz, 1,25 ciepły suchy weekend, inaczej 1,0"},
+            "source": {"const": "Open-Meteo"}}},
+          "traffic": {"type": "object", "properties": {
+            "available": {"type": "boolean"}, "ratio": {"type": "number", "minimum": 1, "maximum": 3, "description": "prędkość swobodna / obecna, średnia z 8 punktów"},
+            "delay_min": {"type": "integer", "description": "opóźnienie dojazdu z bazy (ok. 6 km)"}, "label": {"type": "string"},
+            "source": {"const": "TomTom Traffic Flow"},
+            "samples": {"type": "array", "items": {"type": "object", "properties": {
+              "name": {"type": "string"}, "lat": {"type": "number"}, "lon": {"type": "number"}, "ratio": {"type": "number"}, "closed": {"type": "boolean"}}}}}}
+        }
+      },
+      "Error": {"type": "object", "properties": {"ok": {"const": false}, "message": {"type": "string"}}}
+    }
+  }
+}

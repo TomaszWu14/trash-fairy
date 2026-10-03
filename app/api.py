@@ -7,7 +7,7 @@ import os
 from flask import Blueprint, abort, jsonify, request, send_file, session
 from sqlalchemy import func
 
-from . import clock, db, fairy, llm, osrm, photos, residents
+from . import clock, db, fairy, http, llm, osrm, photos, residents, sms, traffic, weather
 from .comparison import compare
 from .events import AFTER, RADIUS_M
 from .forecast import THRESHOLD, forecast_quality, point_series
@@ -42,6 +42,17 @@ def version():
     return f"{clock.now():%Y%m%d%H%M}-" + "-".join(map(str, last + [analysed]))
 
 
+def conditions(now):
+    """Pogoda (mnożnik prognozy) i ruch (mnożnik czasu przejazdu) — panel i /api/v1/conditions."""
+    return {"weather": weather.conditions(now), "traffic": traffic.conditions()}
+
+
+def _eta(run_at):
+    """(ETA kursu z opóźnieniem dojazdu w korku, opóźnienie w min). Bez danych o ruchu opóźnienie = 0."""
+    delay = traffic.delay_min(traffic.city_ratio())
+    return run_at + timedelta(minutes=delay), delay
+
+
 def snapshot():
     now = clock.now()
     states = point_states(now)
@@ -61,6 +72,7 @@ def snapshot():
     return {
         "type": "FeatureCollection",
         "version": version(),
+        "conditions": conditions(now),
         "clock": {"now": now.isoformat(), "label": f"{now:%d.%m.%Y}, {WEEKDAYS[now.weekday()]} {now:%H:%M}",
                   "can_advance": now < clock.MAX_NOW},
         "summary": {
@@ -120,7 +132,12 @@ def routes():
         out, approx_out = osrm.street_path(f["path"][:-1])
         back, approx_back = osrm.street_path(f["path"][-2:]) if f["stops"] else ([], False)
         f["geometry"] = {"out": out, "back": back, "approx": approx_out or approx_back}
-    return jsonify(depot=DEPOT, fleets=fleets, now=now.isoformat())
+    k = traffic.city_ratio()
+    for f in fleets:  # ruch zmienia tylko czas przejazdu, nigdy punktów ani km
+        f["drive_min"] = traffic.drive_min(f["km"], k)
+        f["drive_min_free"] = traffic.drive_min(f["km"])
+    return jsonify(depot=DEPOT, fleets=fleets, now=now.isoformat(),
+                   traffic={"ratio": k, "delay_min": traffic.delay_min(k)} if k else None)
 
 
 @bp.get("/recommendations")
@@ -337,6 +354,7 @@ def press():
 
     resident = current_resident()
     run_at, _ = next_runs(point.kind, now)
+    eta, delay = _eta(run_at)
     if source == "button":  # fizyczny przycisk nadaje: urządzenie żyje
         dev = db.session.get(Device, point.id)
         if dev:
@@ -348,7 +366,8 @@ def press():
         db.session.commit()
         return jsonify(ok=True, message="Dziękujemy, ekipa sprawdzi kosz.", report_id=None, presses=others + 1, confirmed=False,
                        registered=resident is not None, status="merged" if others else "accepted", accepted_at=f"{now:%H:%M}",
-                       merged_with_at=None, eta=f"{run_at:%H:%M}", route=f"kurs {run_at:%H:%M}", others_count=others)
+                       merged_with_at=None, eta=f"{eta:%H:%M}", traffic_delay_min=delay, route=f"kurs {run_at:%H:%M}",
+                       others_count=others)
     report = record_press(point.id, now, ip=ip, wall_at=wall,
                           resident_id=resident.id if resident else None, source=source, kind=kind)
     merged = report.presses > 1
@@ -356,7 +375,8 @@ def press():
                    confirmed=report.confirmed, registered=resident is not None,
                    status="merged" if merged else "accepted", accepted_at=f"{report.first_at:%H:%M}",
                    merged_with_at=f"{report.first_at:%H:%M}" if merged else None,
-                   eta=f"{run_at:%H:%M}", route=f"kurs {run_at:%H:%M}", others_count=report.presses - 1)
+                   eta=f"{eta:%H:%M}", traffic_delay_min=delay, route=f"kurs {run_at:%H:%M}",
+                   others_count=report.presses - 1)
 
 
 @bp.get("/zglos/<int:point_id>")
@@ -376,7 +396,7 @@ def zglos_public(point_id):
         id=point.id, name=point.name, address=point.osm_tags.get("addr:street") or point.area,
         type="kosz uliczny" if point.kind == "bin" else "altana osiedlowa", capacity_l=BIN_CAPACITY_L[point.kind],
         lat=point.lat, lon=point.lon, fill_pct=s["level"], state=s["state"],
-        next_pickup=f"{run_at:%H:%M}", next_route=f"kurs {run_at:%H:%M}",
+        next_pickup=f"{_eta(run_at)[0]:%H:%M}", next_route=f"kurs {run_at:%H:%M}", traffic_delay_min=_eta(run_at)[1],
         button_offline=point.id in device_flags(now),
         open_report_at=f"{open_report.first_at:%H:%M}" if open_report else None,
         neighbors=[{"id": q.id, "name": q.name, "lat": q.lat, "lon": q.lon, "state": states[q.id]["state"],
@@ -434,16 +454,35 @@ def residents_register():
     except residents.RegistrationError as e:
         return jsonify(ok=False, message=str(e)), 400
     session["pending_resident_id"] = r.id
-    # DEMO: zamiast SMS pokazujemy kod na ekranie (prawdziwy SMS w ROADMAPA.md)
-    return jsonify(ok=True, message="Wysłaliśmy kod SMS (w demo pokazujemy go tutaj).", demo_code=r.code)
+    session.pop("verification_sid", None)
+    if sms.configured():
+        try:
+            session["verification_sid"] = sms.send_code(residents.normalize_phone(data.get("phone")), r.phone_hash)
+            return jsonify(ok=True, message="Wysłaliśmy kod SMS. Wpisz go poniżej.", demo_code=None)
+        except sms.SmsError as e:
+            if e.status == 429 or http.config("SMS_DEMO_FALLBACK") != "1":
+                return jsonify(ok=False, message=str(e)), e.status
+    # bez bramki albo przy jej awarii (SMS_DEMO_FALLBACK=1): kod na ekranie, wyraźnie oznaczony jako demo
+    return jsonify(ok=True, message="Tryb demo: zamiast SMS-a pokazujemy kod tutaj.", demo_code=r.code)
 
 
 @bp.post("/residents/verify")
 def residents_verify():
     data = request.get_json(silent=True) or request.form
     r = db.session.get(Resident, session.get("pending_resident_id") or 0)
-    if r is None or not residents.verify(r, (data.get("code") or "").strip()):
+    code, sid = (data.get("code") or "").strip(), session.get("verification_sid")
+    if r is not None and sid:
+        try:
+            ok = sms.check_code(sid, code)
+        except sms.SmsError as e:
+            return jsonify(ok=False, message=str(e)), e.status
+        if ok:
+            residents.mark_verified(r)
+    else:
+        ok = r is not None and residents.verify(r, code)
+    if not ok:
         return jsonify(ok=False, message="Nieprawidłowy kod."), 400
+    session.pop("verification_sid", None)
     session.pop("pending_resident_id", None)
     session["resident_id"] = r.id
     return jsonify(ok=True, message=f"Witaj w programie, {r.nick}!")

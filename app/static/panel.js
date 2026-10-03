@@ -10,6 +10,8 @@ const markers = {};
 const eventLayer = L.layerGroup().addTo(map);
 const linkLayer = L.layerGroup().addTo(map);
 const routeLayers = { bin: L.layerGroup().addTo(map), shelter: L.layerGroup().addTo(map) };
+const trafficLayer = L.layerGroup().addTo(map);
+const JAM = 1.5;  // od tego korka trasa na mapie jest kropkowana
 const ROUTE_COLOR = { bin: '#2f6b3a', shelter: '#b8860b' };
 let onRoute = {};  // point_id → przystanek na najbliższym kursie
 let points = [];
@@ -107,6 +109,7 @@ function apply(data) {
   $('btn-advance').disabled = !data.clock.can_advance;
   renderEvents(data.events);
   renderLinks(data.links);
+  renderConditions(data.conditions);
   const q = data.forecast_quality;
   $('quality').innerHTML = q
     ? `<span aria-hidden="true">📈</span> Trafność prognozy (ostatnie ${q.days} dni): średni błąd <b>${q.mae} p.p.</b>, `
@@ -185,6 +188,24 @@ function renderJuryQr() {
     ? ' (localhost działa tylko na tym komputerze: ustaw PUBLIC_URL albo otwórz panel przez adres IP w sieci)' : '');
 }
 
+// --- pogoda i ruch (etap 8): tylko mnożniki z reguł w kodzie, opis tekstem ---
+const dec = v => String(v).replace('.', ',');
+function renderConditions(c) {
+  if (!c) return;
+  const w = c.weather, t = c.traffic;
+  $('conditions').innerHTML =
+    `<dt>Pogoda</dt><dd>${w.available ? `${esc(w.label)}, ${dec(w.temp_c)} °C, opad ${dec(w.rain_mm)} mm · prognoza ×${dec(w.factor)} (${esc(w.effect)})`
+                                     : 'brak danych · prognoza bez korekty'}</dd>`
+    + `<dt>Ruch</dt><dd>${t.available ? `${esc(t.label)}, korek ×${dec(t.ratio)} · dojazd z bazy +${t.delay_min} min`
+                                     : 'brak danych · czasy bez korekty'}</dd>`;
+  trafficLayer.clearLayers();
+  for (const s of (t.available ? t.samples : []).filter(s => s.ratio >= 1.2 || s.closed)) {
+    const txt = s.closed ? 'zamknięte' : `korek ×${dec(s.ratio)}`;
+    L.marker([s.lat, s.lon], { keyboard: false, interactive: false, title: `${s.name}: ${txt}`,
+      icon: L.divIcon({ className: '', iconSize: [0, 0], html: `<span class="tf-jam">${txt}</span>` }) }).addTo(trafficLayer);
+  }
+}
+
 // --- trasy (etap 4) ---
 
 async function loadRoutes() {
@@ -196,6 +217,7 @@ async function loadRoutes() {
       <header><span class="tf-routesw ${f.kind}" aria-hidden="true"></span><b>${esc(f.label)}</b>
         <label><input type="checkbox" data-route="${f.kind}" ${map.hasLayer(routeLayers[f.kind]) ? 'checked' : ''}> na mapie</label></header>
       <p class="meta">Kurs ${f.run_label} · ${f.vehicle} · <b>${f.stops.length}</b> punktów · <b>${f.km} km</b>
+        · jazda ok. <b>${f.drive_min} min</b>${data.traffic ? ` (bez korków ${f.drive_min_free} min)` : ''}
         · kolejny kurs ${f.following_label}</p>
       ${f.stops.length ? `<ol>${f.stops.map(s => `<li>${esc(s.name)}<small>${esc(s.reason)}</small></li>`).join('')}</ol>`
                        : '<p class="tf-muted">Na ten kurs nie trzeba nikogo wysyłać.</p>'}
@@ -206,7 +228,9 @@ async function loadRoutes() {
     if (!f.stops.length) continue;
     // przebieg po ulicach z OSRM (jak w widoku C); bez sieci serwer zwraca linię prostą
     L.polyline(f.geometry.back, { color: ROUTE_COLOR[f.kind], weight: 2, opacity: 0.6, dashArray: '3 6', interactive: false }).addTo(layer);
-    L.polyline(f.geometry.out, { color: ROUTE_COLOR[f.kind], weight: 4, opacity: 0.8, dashArray: f.kind === 'shelter' ? '10 6' : null })
+    const jam = data.traffic?.ratio >= JAM;  // korek: kropki zamiast linii (kształt, nie tylko kolor)
+    L.polyline(f.geometry.out, { color: ROUTE_COLOR[f.kind], weight: 4, opacity: 0.8,
+                                 dashArray: jam ? '2 8' : f.kind === 'shelter' ? '10 6' : null, lineCap: 'round' })
       .addTo(layer);
     L.marker([data.depot.lat, data.depot.lon], { icon: depotIcon, title: data.depot.name, alt: data.depot.name, keyboard: false })
       .bindPopup(`<b>${esc(data.depot.name)}</b><br>start i koniec tras`).addTo(layer);

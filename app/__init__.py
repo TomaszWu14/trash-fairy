@@ -29,11 +29,13 @@ def create_app(config=None):
 
     from . import models  # noqa: F401  rejestracja tabel
     from .api import bp as api_bp
+    from .open_api import bp as open_api_bp
     from .cli import cleanup_photos_command, karnet_command, seed_command
     from .views import bp
 
     app.register_blueprint(bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(open_api_bp)
 
     @app.errorhandler(404)
     def not_found(_e):
