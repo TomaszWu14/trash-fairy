@@ -1,0 +1,62 @@
+{
+ "console": {
+  "360": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation",
+   "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+  ],
+  "390": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation",
+   "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+  ],
+  "768": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation",
+   "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+  ],
+  "1024": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation",
+   "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+  ],
+  "1440": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation",
+   "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+  ],
+  "1920": [
+   "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation",
+   "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+  ]
+ },
+ "hscroll": [],
+ "slow": [
+  {
+   "w": 360,
+   "url": "/api/comparison",
+   "ms": 2557
+  },
+  {
+   "w": 360,
+   "url": "/epapier/18.png?part=1&v=1791049416250",
+   "ms": 833
+  },
+  {
+   "w": 360,
+   "url": "/epapier/18.png?part=1",
+   "ms": 1054
+  },
+  {
+   "w": 360,
+   "url": "/epapier/18.png",
+   "ms": 1054
+  },
+  {
+   "w": 360,
+   "url": "/epapier/18.png?v=1791049416250",
+   "ms": 834
+  }
+ ],
+ "press_to_map_ms": 260,
+ "double_click": [
+  "sent",
+  0
+ ],
+ "errors": []
+}

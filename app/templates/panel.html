@@ -17,12 +17,13 @@
 <header class="tf-header">
   <div class="tf-brand" style="display:flex;align-items:center;gap:8px;color:#fff;--logo-bg:#2f3b2a">{{ logo(26, '#c4b5fd') }}<span>Trash <span>Fairy</span></span></div>
   {% include "_nav.html" %}
+  <div class="flex-1"></div>
   <div class="tf-clock" title="Zegar scenariusza demo (zamrożony, przewijany ręcznie)">
     <span aria-hidden="true">🕐</span> <span id="clock" aria-live="polite">…</span>
   </div>
   <button type="button" id="btn-advance" class="tf-hbtn">Przewiń +1 h</button>
   <button type="button" id="btn-reset" class="tf-hbtn tf-hbtn-ghost" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo">Reset</button>
-  <div class="tf-demo" role="status">DANE DEMONSTRACYJNE · SYMULACJA</div>
+  <div class="tf-demo" role="status" title="Dane demonstracyjne, symulacja">DEMO · SYMULACJA</div>
   <span class="tf-fresh" id="fresh" role="status">Łączę…</span>
 </header>
 

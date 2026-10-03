@@ -27,7 +27,7 @@ body { min-height: 100dvh; background: var(--page); color: var(--text); font: 16
 /* nagłówek i status sieci (tekst + kształt kropki, nie sam kolor) */
 .k-head { position: sticky; top: 0; z-index: 1000; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 12px 16px;
           padding-top: max(12px, env(safe-area-inset-top)); background: var(--navy); color: var(--on-navy); }
-.k-brand { flex: 1 1 200px; min-width: 0; display: flex; align-items: center; gap: 8px; font: 700 17px var(--display); color: var(--on-navy); }
+.k-brand { flex: 1 1 100%; min-width: 0;  /* chip sieci zawsze w drugim wierszu: zmiana jego tekstu nie przesuwa strony (CLS) */ display: flex; align-items: center; gap: 8px; font: 700 17px var(--display); color: var(--on-navy); }
 .k-brand > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .k-net { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px;
          border-radius: 999px; background: var(--surface2); color: var(--text); }

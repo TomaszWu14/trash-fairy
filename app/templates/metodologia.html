@@ -14,6 +14,7 @@
     .doc h2 { font: 600 19px Fraunces, Georgia, serif; color: var(--plant); margin: 28px 0 8px; }
     .doc p, .doc li { line-height: 1.55; }
     .doc table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; border: 1px solid var(--line); }
+    @media (max-width: 480px) { .doc table { display: block; overflow-x: auto; } }  /* wąski telefon: tabela przewija się sama, nie strona */
     .doc th, .doc td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
     .doc th { background: #f3efe4; font-weight: 600; }
     .doc td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }

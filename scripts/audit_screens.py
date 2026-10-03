@@ -34,6 +34,11 @@ SCREENS = {
     "zglos-wybor": ("/zglos", [("lista", None)]),
     "epapier": ("/epapier/18", [("ekran", None)]),
     "ekipa": ("/ekipa", [("start", None)]),
+    "kierowca": ("/kierowca", [("start", "localStorage.removeItem('tf-kierowca'); snap = null; go('start')"),
+                               ("trasa", "document.getElementById('begin').click()"),
+                               ("przystanek", "document.querySelector('[data-open]').click()"),
+                               ("podsumowanie", "go('summary')")]),
+    "404": ("/zglos/99999", [("start", None)]),
     "program": ("/program", [("start", None)]),
     "regulamin": ("/program/regulamin", [("start", None)]),
     "metodologia": ("/metodologia", [("start", None)]),
@@ -83,6 +88,11 @@ with sync_playwright() as p:
     page.goto(BASE + "/zglos/18?jury=1", wait_until="networkidle")
     page.wait_for_timeout(1500)
     shot(page, "zglos-start", 390, dark=True)
+    page.goto(BASE + "/kierowca", wait_until="networkidle")
+    page.wait_for_timeout(1500)
+    page.evaluate("document.getElementById('begin').click(); document.querySelector('[data-open]').click()")
+    page.wait_for_timeout(700)
+    shot(page, "kierowca-przystanek", 390, dark=True)
     ctx.close()
 
     # czas: zgłoszenie z /zglos → punkt „fresh” w /api/points (polling panelu co 2 s dochodzi do tego)

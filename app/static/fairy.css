@@ -9,7 +9,7 @@ html, body { height: 100%; }
 body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--ink); background: var(--cream);
           display: grid; grid-template-rows: auto 1fr; grid-template-columns: minmax(0, 1fr); }
 
-.tf-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 20px; min-width: 0;
+.tf-header { display: flex; align-items: center; gap: 8px 14px; padding: 10px 20px; min-width: 0;
              background: var(--plant); color: var(--cream); border-bottom: 3px solid var(--gold); }
 .tf-brand { font: 600 22px Fraunces, Georgia, serif; white-space: nowrap; }
 .tf-brand span:first-child { background: linear-gradient(90deg, #c4b5fd, #f9a8d4);
@@ -175,9 +175,11 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 #devices p { margin: 4px 0; }
 
 /* menu ekranów i zakładki panelu */
-.tf-nav { display: flex; gap: 4px; overflow-x: auto; flex: 1 1 0; min-width: 0; scrollbar-width: thin;
+/* bez paska przewijania: pojawiał się przy ładowaniu fontów, podnosił nagłówek i dawał CLS 0,5 */
+.tf-nav { display: flex; gap: 4px; overflow-x: auto; flex: 0 1 auto; min-width: 0; scrollbar-width: none;
           /* cień na krawędziach mówi, że menu się przewija */
           mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 24px), transparent); }
+.tf-nav::-webkit-scrollbar { display: none; }
 .tf-nav a { color: #d6dfcf; text-decoration: none; font: 600 14px Inter, sans-serif; padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
 .tf-nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
 .tf-nav a[aria-current="page"] { background: var(--cream); color: var(--plant); }

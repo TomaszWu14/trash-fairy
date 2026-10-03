@@ -246,3 +246,8 @@ Nowe punkty z aktualnego planu pokazujemy jako „Nowy pilny punkt · +n”, a k
 Decyzję, czy wysłać kogoś ponownie, zostawiamy człowiekowi. Odrzuciliśmy automatyczne przeplanowanie, bo jedno zgłoszenie z drogi nie powinno samo przestawiać floty.
 Zapisy idą przez tę samą kolejkę IndexedDB co zgłoszenia mieszkańców, ale w osobnej bazie i z własnym SW (zakres `/kierowca`), z 5 s na „Cofnij”.
 Ikony PNG 192/512 i maskable dostał przy okazji także manifest `/zglos`.
+
+**Pomiar przed i po (`docs/audit/RESULTS.md`) złapał regresję, której nie widać gołym okiem:** CLS panelu 0,18 → 0,5.
+Menu z `overflow-x: auto` dostawało pasek przewijania w trakcie ładowania fontów i nagłówek rósł. Ukryliśmy pasek (przewijalność
+pokazuje cień krawędzi) i skróciliśmy plakietkę do „DEMO · SYMULACJA”; CLS 0,13. Przyczynę potwierdziliśmy pomiarem tej samej strony na `main`,
+zamiast zgadywać po kolejnych poprawkach CSS.

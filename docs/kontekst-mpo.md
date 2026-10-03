@@ -15,7 +15,7 @@ Materiał zebrany podczas HackYeah (3.10.2026) do uzasadnienia problemu i stałe
 
 ## Harmonogram oczyszczania 08/2026 (arkusz „Kosze”)
 
-Plik `harmonogram_oczyszczania_08_2026.xlsx` od użytkownika. Źródło publikacji do uzupełnienia w README.
+Plik `harmonogram_oczyszczania_08_2026.xlsx`, opublikowany przez MPO na https://mpo.krakow.pl/czystosc/ (bezpośrednio: https://mpo.krakow.pl/wp/wp-content/uploads/2026/08/harmonogram_oczyszczania_08_2026.xlsx).
 Arkusze: Kosze, PKM (przystanki), Jezdnie, Chodniki, TZ (tereny zielone).
 
 | | Dzielnica I (Stare Miasto z Kazimierzem) | Dzielnica II (Grzegórzki) | Kraków |
