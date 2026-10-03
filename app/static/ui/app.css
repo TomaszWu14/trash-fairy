@@ -112,6 +112,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .frac[data-f="papier"] { --fc: var(--fr-papier); } .frac[data-f="metale_tworzywa"] { --fc: var(--fr-metale_tworzywa); }
 .frac[data-f="szklo"] { --fc: var(--fr-szklo); } .frac[data-f="bio"] { --fc: var(--fr-bio); } .frac[data-f="zmieszane"] { --fc: var(--fr-zmieszane); }
 
+/* analiza AI zdjęcia: plakietka + rozwijane szczegóły */
+.ai { margin-top: var(--s2); }
+.ai summary { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); list-style: none; cursor: pointer; border-radius: var(--r-sm); }
+.ai summary::-webkit-details-marker { display: none; }
+.ai-more { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 700; color: var(--brand-ink); }
+.ai-more .i { transition: transform var(--t) var(--ease); }
+.ai[open] .ai-more .i { transform: rotate(180deg); }
+.ai-d { display: grid; gap: var(--s2); margin: var(--s3) 0 0; padding: var(--s3); border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); }
+.ai-d div { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--s3); font-size: var(--fs-sm); }
+.ai-d dt { color: var(--ink-3); } .ai-d dd { margin: 0; color: var(--ink); font-weight: 600; }
+.ai-note { margin-top: var(--s2); font-size: var(--fs-xs); color: var(--ink-3); }
+
 /* ---------- pasek postępu ---------- */
 .bar { height: 8px; border-radius: var(--r-pill); background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
 .bar > i { display: block; height: 100%; width: 100%; border-radius: inherit; background: var(--brand); transform-origin: left;

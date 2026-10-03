@@ -32,7 +32,7 @@
   <div class="persp-grid">
     {% for href, ill, title, text, chip_icon, chip in [
       (url_for('ui.kiosk', point_id=bin.id), 'kiosk', 'Panel na koszu', 'Ekran przy koszu: zapełnienie widoczne z daleka, termin odbioru i kod QR do zgłoszenia.', None, bin.name),
-      (url_for('ui.report_pick'), 'mieszkaniec', 'Mieszkaniec', 'Zgłoszenie w trzech krokach: kosz, problem, wyślij. Potem status na osi czasu.', 'qr-code', 'Zeskanuj QR przy koszu'),
+      (url_for('ui.report_pick'), 'mieszkaniec', 'Mieszkaniec', 'Zgłoszenie w trzech krokach: kosz, problem, wyślij. Potem status na osi czasu.', 'qr-code', 'Skan QR przy koszu'),
       (url_for('ui.driver'), 'kierowca', 'Kierowca MPO', 'Trasa na dziś po priorytecie, prowadzenie w aplikacji i „Opróżniono” jednym dotknięciem.', 'route', 'Trasa na dziś'),
       (url_for('ui.dashboard'), 'dashboard', 'Dashboard miasta', 'Koszty, wywozy i zgłoszenia z 12 miesięcy, wg dzielnic, frakcji i projektów.', 'layout-dashboard', '12 miesięcy · 6 dzielnic')] %}
     <a class="card card-hover persp-tile" href="{{ href }}">

@@ -11,6 +11,7 @@
   <a class="kiosk-corner" href="{{ url_for('ui.start') }}" aria-label="Wróć do przeglądu perspektyw">{{ icon('layout-dashboard', 'i-sm') }}Perspektywy</a>
   <header class="kiosk-head">
     <span class="kiosk-brand">{{ logo() }}<span>Trash <b>Fairy</b> · MPO Kraków</span></span>
+    <span class="kiosk-off" id="k-off" role="status" hidden>{{ icon('wifi-off') }}<span id="k-off-t">Brak połączenia</span></span>
     <span class="kiosk-id num">Kosz nr {{ bin.id }}</span>
   </header>
 
@@ -26,6 +27,7 @@
       <p class="kiosk-num num"><span id="k-pct">{{ bin.poziom }}</span><small>%</small></p>
       <p class="kiosk-est">zapełnienia · szacunek z prognozy</p>
       <p class="kiosk-state" id="k-state"></p>
+      <p class="kiosk-fc">{{ icon('trending-up') }}<span id="k-fc">{{ bin.prognoza }}</span></p>
     </div>
   </section>
 
@@ -34,6 +36,11 @@
       <h1 class="kiosk-name">{{ bin.nazwa }}</h1>
       <p class="kiosk-addr">{{ bin.adres }}</p>
       <p class="kiosk-tags"><span class="kfrac" data-f="{{ bin.frakcja }}">{{ frakcje[bin.frakcja] }}</span><span class="ktag">{{ bin.rodzaj }}</span></p>
+    </div>
+    {% set tak, nie = sortowanie %}
+    <div class="kiosk-sort" aria-label="Co tu wrzucać">
+      <p><span class="ks ks-yes">{{ icon('check') }}Wrzucaj</span>{{ tak }}</p>
+      <p><span class="ks ks-no">{{ icon('ban') }}Nie wrzucaj</span>{{ nie }}</p>
     </div>
     <div class="kiosk-next">{{ icon('clock', 'i-lg') }}<div><span>Najbliższy odbiór</span><b id="k-next">–</b></div></div>
     <div class="kiosk-msg" id="k-msg" role="status"><span class="skel" style="height:24px;width:70%"></span></div>

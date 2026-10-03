@@ -35,13 +35,13 @@
   document.getElementById('f-clear').addEventListener('click', () => { form.reset(); apply(); });
 
   // ---------- KPI ----------
-  const fmt = k => {
-    const v = k.wartosc;
+  const fmt = (k, v = k.wartosc) => {  // jednostkę wybiera wartość docelowa: licznik nie przeskakuje z „zł” na „tys. zł”
+    const t = k.wartosc;
     if (v == null) return '–';
-    if (k.jednostka === 'zł') return v >= 1e6 ? `${num(v / 1e6, 1)}<small>mln zł</small>` : v >= 1e4 ? `${num(v / 1000, 1)}<small>tys. zł</small>` : `${num(v)}<small>zł</small>`;
+    if (k.jednostka === 'zł') return t >= 1e6 ? `${num(v / 1e6, 1)}<small>mln zł</small>` : t >= 1e4 ? `${num(v / 1000, 1)}<small>tys. zł</small>` : `${num(v)}<small>zł</small>`;
     if (k.jednostka === '%') return `${num(v)}<small>%</small>`;
     if (k.jednostka === 'h') return `${num(v, 1)}<small>h</small>`;
-    if (k.jednostka === 'kg') return v >= 1000 ? `${num(v / 1000, 1)}<small>t</small>` : `${num(v)}<small>kg</small>`;
+    if (k.jednostka === 'kg') return t >= 1000 ? `${num(v / 1000, 1)}<small>t</small>` : `${num(v)}<small>kg</small>`;
     return `${num(v)}${k.jednostka ? `<small>${esc(k.jednostka)}</small>` : ''}`;
   };
   const delta = k => {
@@ -54,10 +54,13 @@
     document.getElementById('d-period').textContent = `${d.meta.etykieta || ''}${d.meta.od ? ` · ${new Date(d.meta.od).toLocaleDateString('pl-PL')} – ${new Date(d.meta.do).toLocaleDateString('pl-PL')}` : ''}`;
     document.getElementById('d-kpis').innerHTML = d.kpi.map(k => `<article class="card kpi rise kpi-${k.id}" title="${esc(k.opis || '')}">
       <header class="kpi-h">${icon(KPI_ICON[k.id] || 'circle-dot')}${esc(k.etykieta)}</header>
-      <p class="kpi-v num">${fmt(k)}</p>${k.podpis ? `<p class="kpi-sub">${esc(k.podpis)}</p>` : ''}
+      <p class="kpi-v num" data-kpi="${esc(k.id)}">${fmt(k)}</p>${k.podpis ? `<p class="kpi-sub">${esc(k.podpis)}</p>` : ''}
       <div class="kpi-f">${delta(k)}${TF.spark(k.trend)}</div>${k.id === 'oszczednosci' && k.kursy != null ? `<p class="kpi-sub">${num(k.kursy)} kursów mniej niż w planie</p>` : ''}</article>`).join('');
     document.getElementById('d-kpis').insertAdjacentHTML('beforeend', '<p class="kpi-note">Zmiana wobec poprzedniego okresu tej samej długości. Wykresy: pełne miesiące.</p>');
+    if (!counted) d.kpi.forEach(k => k.wartosc != null && TF.countUp(document.querySelector(`[data-kpi="${k.id}"]`), k.wartosc, v => fmt(k, v)));
+    counted = true;  // tylko przy wejściu: odświeżenia pollingiem nie liczą od zera
   }
+  let counted = false;
 
   // ---------- wykresy ----------
   const fullMonths = d => {  // bieżący miesiąc demo jest niepełny: pokazujemy tylko pełne miesiące
@@ -183,7 +186,7 @@
       return `<a class="card card-hover pcard rise" href="/dashboard/projekty/${encodeURIComponent(p.slug)}">
         <div class="pcard-h"><span class="p-ico">${icon(p.ikona || 'flag')}</span><div><b>${esc(p.nazwa)}</b><span>${esc(p.dzielnica)}</span></div></div>
         <div><span class="badge ${cls}">${label}</span></div>
-        <div class="p-effect"><b class="num">${esc(p.efekt_etykieta || '–')}<small>kluczowy efekt</small></b>${TF.spark(p.trend, 88, 30)}</div>
+        <div class="p-effect"><b class="num">${esc(TF.effect(p))}<small>${p.efekt_wartosc == null ? 'efekt po wdrożeniu' : 'kluczowy efekt'}</small></b>${TF.spark(p.trend, 88, 30)}</div>
         <div class="p-meta"><div><span>Postęp</span><b class="num">${num(p.postep_pct)}%</b></div><div class="bar"><i style="--p:${(p.postep_pct / 100).toFixed(3)}"></i></div>
           <div><span>Budżet: wykorzystano</span><b class="num">${zl(p.wykorzystano)} z ${zl(p.budzet)}</b></div><div class="bar budget"><i style="--p:${Math.min(1, used).toFixed(3)}"></i></div></div></a>`;
     }).join('');

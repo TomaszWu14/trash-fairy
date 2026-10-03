@@ -354,3 +354,12 @@ kosz-wskaźnik (sylwetka kosza wypełniana kolorem poziomu) w kiosku, na kartach
 (opróżnienia z aplikacji kierowcy, zgłoszenia od startu demo); symulowane odbiory silnika nie wchodzą do liczb, żeby efekt wdrożenia był ciągły.
 Liczby ze slajdów (57% → 27%, 338 h → 0 h, MAE 2,4 vs 7,1) pilnuje test regresji. Stare API (`api.py`) i logowanie (`auth.py`) usunięte,
 reguły silnika testowane przez nowe endpointy. Znane ograniczenie: zgłoszenie „Uszkodzony” idzie tą samą ścieżką co „Przepełniony”.
+
+## Poprawki P0 pod jury (niedz. 4.10, rano)
+
+**AI realnie w przepływie zgłoszenia:** zdjęcie od mieszkańca idzie po usunięciu EXIF (GPS, aparat) do Claude Vision przez `app/llm.py`
+(schemat JSON z walidacją), a status „Zweryfikowane AI” / „Do weryfikacji” liczy reguła `photos.verification` (kosz widoczny, stan zgodny
+z typem zgłoszenia, pewność ≥ 0,7). AI nigdy nie odrzuca zgłoszenia; bez klucza i przy błędzie API zgłoszenie trafia do dyspozytora.
+Odrzuciliśmy odrzucanie zgłoszeń z niską pewnością: fałszywy alarm kosztuje kurs, odrzucony mieszkaniec przestaje zgłaszać.
+Poza tym: prognoza „85% ok. 20:20” i powód priorytetu na karcie kierowcy (reguły), „Uszkodzony” i „Inne” nie podnoszą szacunku zapełnienia,
+limit 30 zgłoszeń na IP na godzinę, „Co tu wrzucać” na panelu, ostatni znany stan kiosku offline, auto-reset w wątku w tle.

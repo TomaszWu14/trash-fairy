@@ -20,6 +20,7 @@
     if (k.zgloszenia_liczba) { st.className = 'kiosk-state reported'; st.innerHTML = `${icon('message-square-text')}Zgłoszony przez mieszkańca`; }
     else { const [ico, label] = STATE[lvl]; st.className = `kiosk-state ${lvl}`; st.innerHTML = `${icon(ico)}${label}`; }
     document.getElementById('k-next').textContent = when(k.nastepny_odbior);
+    document.getElementById('k-fc').textContent = k.prognoza;
     const msg = document.getElementById('k-msg');
     const minAgo = k.oprozniono ? Math.round((window.TF.now() - new Date(k.oprozniono)) / 60000) : null;
     if (k.zgloszenia_liczba && k.kierowca_w_drodze) {
@@ -32,9 +33,18 @@
       msg.className = 'kiosk-msg'; msg.innerHTML = `${icon('circle-dot')}<div>Brak zgłoszeń<small>Widzisz problem? Zeskanuj kod poniżej.</small></div>`;
     }
   };
-  const load = async () => {
-    try { render((await api(`/api/kosze/${id}`)).kosz); }
-    catch (e) { document.getElementById('k-msg').innerHTML = `${icon('wifi-off')}<div>Brak połączenia<small>Ekran pokaże dane, gdy sieć wróci.</small></div>`; }
+  // offline: ekran zostaje przy ostatnim znanym stanie i mówi, z której godziny on jest
+  let lastOk = null, offline = false;
+  const setOnline = ok => {
+    if (ok && offline) load();  // sieć wróciła: od razu świeże dane
+    offline = !ok;
+    document.getElementById('k-off').hidden = ok;
+    if (!ok) document.getElementById('k-off-t').textContent = lastOk
+      ? `Brak połączenia · stan z ${lastOk.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}` : 'Brak połączenia';
   };
-  load(); window.TF.watch(load);
+  async function load() {
+    try { render((await api(`/api/kosze/${id}`)).kosz); lastOk = window.TF.now(); setOnline(true); }
+    catch (e) { setOnline(false); }
+  }
+  load(); window.TF.watch(load, 3000, setOnline);
 })();

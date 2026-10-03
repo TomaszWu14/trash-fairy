@@ -13,7 +13,7 @@ from flask import Blueprint, current_app, jsonify, request
 
 from . import clock, db, osrm, photos, rate, traffic
 from .geo import distance_m
-from .models import Emptying, Point, Press, Report, StopIssue
+from .models import Emptying, PhotoAnalysis, Point, Press, Report, StopIssue
 from .reports import resolve_reports, record_press
 from .routes import DEPOT, next_runs
 from .state import current_routes, data_version, point_states
@@ -23,6 +23,7 @@ bp = Blueprint("api_pl", __name__, url_prefix="/api")
 GEO_RADIUS_M = 150          # zgłoszenie tylko z telefonu najwyżej 150 m od kosza (jak dotąd, decyzja 28)
 MAX_ACCURACY_M = 150        # słaby GPS w kamienicy nie blokuje zgłoszenia przy koszu, ale „5 km dokładności” nie wyłącza kontroli
 REPORT_GAP_S = 60           # ten sam telefon i ten sam kosz: nie częściej niż raz na minutę
+REPORTS_PER_IP_HOUR = 30    # wszystkie kosze z jednego adresu IP (obok limitu per telefon i kosz)
 LEVELS = (0, 25, 50, 75, 100)
 TYPY = {  # typ zgłoszenia → (rodzaj w silniku, etykieta)
     "przepelniony": ("full", "Przepełniony"),
@@ -101,13 +102,29 @@ def _jade_at(point_id, since):
     return i.at if i else None
 
 
+def _ai(press):
+    """Analiza AI zdjęcia dołączonego do zgłoszenia jako status weryfikacji (reguła: photos.verification); None bez zdjęcia."""
+    if press is None or press.photo_id is None:
+        return None
+    return photos.verification(db.session.get(PhotoAnalysis, press.photo_id), press.kind)
+
+
 def _report_texts(reports):
-    """Treść zgłoszeń dla kierowcy i panelu: rodzaj i komentarz mieszkańca (bez danych osobowych)."""
+    """Treść zgłoszeń dla kierowcy i panelu: rodzaj, komentarz mieszkańca i analiza zdjęcia (bez danych osobowych)."""
     ids = [r.id for r in reports]
     if not ids:
         return []
-    return [{"typ": KIND_LABEL.get(p.kind, "Zgłoszenie"), "komentarz": p.note, "o": p.at.isoformat()}
+    return [{"typ": KIND_LABEL.get(p.kind, "Zgłoszenie"), "komentarz": p.note, "o": p.at.isoformat(), "ai": _ai(p)}
             for p in Press.query.filter(Press.report_id.in_(ids)).order_by(Press.at.desc()).limit(10)]
+
+
+def prognoza(s, now):
+    """Prognoza przekroczenia 85% z silnika (state.crossing) jako krótki tekst dla panelu i kierowcy."""
+    if not s.get("crossing"):
+        return "Bez przepełnienia w ciągu 24 h"
+    if datetime.fromisoformat(s["crossing"]) <= now:
+        return f"Powyżej 85% od ok. {s['crossing_label']}"
+    return f"Przewidywane 85% ok. {s['crossing_label']}"
 
 
 def kosz_json(p, states, now, detail=False):
@@ -115,7 +132,8 @@ def kosz_json(p, states, now, detail=False):
     level = round(s.get("value") or 0)
     out = {"id": p.id, "nazwa": p.name, "adres": _address(p), "dzielnica": getattr(p, "district", None) or "Stare Miasto",
            "frakcja": getattr(p, "fraction", None) or "zmieszane", "rodzaj": "kosz uliczny" if p.kind == "bin" else "altana",
-           "lat": p.lat, "lon": p.lon, "poziom": level, "stan": poziom_stan(level), "zgloszony": bool(s.get("fresh"))}
+           "lat": p.lat, "lon": p.lon, "poziom": level, "stan": poziom_stan(level), "zgloszony": bool(s.get("fresh")),
+           "prognoza": prognoza(s, now), "prognoza_o": s.get("crossing")}
     if detail:
         run_at, _ = next_runs(p.kind, now)
         reports = _open_reports(p.id, now)
@@ -194,18 +212,26 @@ def zglos():
     dist = distance_m(lat, lon, p.lat, p.lon)
     if dist - _accuracy(data) > GEO_RADIUS_M:
         return blad(f"Jesteś {round(dist)} m od kosza. Podejdź bliżej (do {GEO_RADIUS_M} m), żeby zgłosić.", "za_daleko", 403)
+    raw = mt = None
+    upload = request.files.get("zdjecie")
+    if upload and upload.filename:  # zdjęcie sprawdzamy przed limitami: zły plik nie zużywa limitu
+        raw = upload.read(photos.MAX_BYTES + 1)
+        mt, error = photos.validate(raw)
+        if not error:
+            try:
+                raw = photos.strip_metadata(raw, mt)  # bez GPS i danych aparatu, zanim cokolwiek trafi na dysk
+            except Exception:  # sygnatura się zgadza, ale obrazu nie da się odczytać
+                error = "Nie udało się odczytać zdjęcia. Spróbuj innego pliku."
+        if error:
+            return blad(error, "zle_zdjecie")
     client = str(data.get("klient") or request.remote_addr)[:64]
     if not rate.hit(f"zgl:{client}:{p.id}", 1, REPORT_GAP_S):
         return blad("To zgłoszenie już dotarło. Kolejne z tego telefonu możesz wysłać za minutę.", "za_czesto", 429)
+    if not rate.hit(f"zgl-ip:{request.remote_addr}", REPORTS_PER_IP_HOUR, 3600):
+        return blad(f"Z tej sieci wysłano już {REPORTS_PER_IP_HOUR} zgłoszeń w ciągu godziny. Spróbuj później.",
+                    "za_duzo_zgloszen", 429)
     note = (data.get("komentarz") or "").strip()[:280] or None
-    photo_id = None
-    upload = request.files.get("zdjecie")
-    if upload and upload.filename:
-        raw = upload.read(photos.MAX_BYTES + 1)
-        mt, error = photos.validate(raw)
-        if error:
-            return blad(error, "zle_zdjecie")
-        photo_id = photos.save(p.id, clock.now(), raw, mt).id  # bez analizy AI: zdjęcie widzi kierowca i dyspozytor
+    photo_id = photos.save(p.id, clock.now(), raw, mt, source="resident").id if raw else None
     now = clock.now()
     kind = TYPY[data["typ"]][0]
     report = record_press(p.id, now, ip=request.remote_addr, wall_at=datetime.now(UTC).replace(tzinfo=None),
@@ -214,6 +240,8 @@ def zglos():
     press.note, press.photo_id = note, photo_id
     db.session.commit()
     clock.touch()
+    if photo_id:  # AI tylko opisuje zdjęcie; status weryfikacji liczy reguła (photos.verification)
+        photos.analyze_in_background(photo_id)
     return jsonify(numer=numer(report.id), dolaczone=report.presses > 1, meta=meta()), 201
 
 
@@ -234,8 +262,10 @@ def zgloszenie(nr):
     status = "zrealizowane" if done_at else "w_realizacji" if jade else "przyjete"
     run_at, _ = next_runs(p.kind, now)
     first = Press.query.filter_by(report_id=r.id).order_by(Press.at).first()
+    with_photo = (Press.query.filter(Press.report_id == r.id, Press.photo_id.isnot(None))
+                  .order_by(Press.at.desc(), Press.id.desc()).first())
     return jsonify(numer=numer(r.id), status=status, typ=KIND_LABEL.get(first.kind if first else None, "Zgłoszenie"),
-                   komentarz=first.note if first else None, osob=r.presses, kurs=run_at.isoformat(),
+                   komentarz=first.note if first else None, osob=r.presses, ai=_ai(with_photo), kurs=run_at.isoformat(),
                    kroki=[{"id": "przyjete", "etykieta": "Przyjęte", "o": r.first_at.isoformat()},
                           {"id": "w_realizacji", "etykieta": "W realizacji", "o": jade.isoformat() if jade else None},
                           {"id": "zrealizowane", "etykieta": "Zrealizowane", "o": done_at.isoformat() if done_at else None}],
@@ -247,6 +277,22 @@ def _done_ids(kind):
     """Kosze opróżnione przez kierowcę od resetu demo (postęp trasy)."""
     return {pid for (pid,) in db.session.query(Emptying.point_id).join(Point, Point.id == Emptying.point_id)
             .filter(Emptying.source == "crew", Point.kind == kind).distinct()}
+
+
+def _plural(n, one, few, many):
+    return one if n == 1 else few if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else many
+
+
+def powod(k):
+    """Krótkie „dlaczego tu” przy przystanku kierowcy; ta sama kolejność co _priority. Reguła, nie AI."""
+    n = k["zgloszenia_liczba"]
+    if n:
+        return f"{n} {_plural(n, 'zgłoszenie', 'zgłoszenia', 'zgłoszeń')} · {k['poziom']}%"
+    if k["poziom"] >= 80:
+        return f"Pełny {k['poziom']}%"
+    if k["prognoza"].startswith("Przewidywane"):
+        return k["prognoza"].replace("Przewidywane", "Prognoza")
+    return f"Według planu kursu · {k['poziom']}%"
 
 
 def _priority(k):
@@ -268,6 +314,7 @@ def trasa():
         reports = _open_reports(p.id, now)
         k.update(kolejnosc=n, zgloszenia_liczba=sum(r.presses for r in reports),
                  w_drodze=bool(reports and _jade_at(p.id, reports[0].first_at)), zrobione=p.id in done)
+        k["powod"] = powod(k)
         stops.append(k)
     for pid in done - {s["id"] for s in stops}:  # opróżnione wypadają z planu: zostają na liście jako zrobione
         p = db.session.get(Point, pid)

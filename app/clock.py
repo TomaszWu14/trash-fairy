@@ -1,5 +1,6 @@
 """Zegar demo: zamrożona sobota 13:30, przewijany o godzinę. Przewinięcie rozstrzyga zgłoszenia
 na opróżnieniach z harmonogramu, które „wydarzyły się” w przewiniętym czasie."""
+import threading
 from datetime import UTC, datetime, timedelta
 
 from . import db, devices, history, photos, residents
@@ -50,8 +51,32 @@ def maybe_auto_reset():
     db.session.commit()
     if not claimed:
         return False
-    reset()
+    _reset_in_background()
     return True
+
+
+_resetting = threading.Lock()
+
+
+def _reset_in_background():
+    """Auto-reset w tle: widz nie czeka ~13 s (PostgreSQL) na stronę. Jeden naraz na proces; między workerami
+    pilnuje warunkowy UPDATE wyżej. W testach (TESTING) od razu, żeby wynik był deterministyczny."""
+    from flask import current_app
+    app = current_app._get_current_object()
+    if app.config.get("TESTING"):
+        reset()
+        return
+    if not _resetting.acquire(blocking=False):
+        return
+
+    def run():
+        try:
+            with app.app_context():
+                reset()
+        finally:
+            _resetting.release()
+
+    threading.Thread(target=run, daemon=True).start()
 
 
 def reset(weeks=8):

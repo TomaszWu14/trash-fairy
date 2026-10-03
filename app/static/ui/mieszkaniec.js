@@ -136,6 +136,7 @@
       const k = d.kosz;
       document.getElementById('st-bin').innerHTML = `${gauge(k.poziom)}<div class="m-bin-txt"><b>${esc(k.nazwa)}</b><span>${esc(k.adres)}</span>
         <div class="m-bin-tags">${fillBadge(k.poziom)}${frac(k.frakcja)}</div></div><b class="m-bin-pct num">${k.poziom}%</b>`;
+      document.getElementById('st-ai').innerHTML = d.ai ? `<div class="m-ai"><b>Zdjęcie w zgłoszeniu</b>${window.TF.aiBlock(d.ai)}</div>` : '';
       const order = ['przyjete', 'w_realizacji', 'zrealizowane'], at = order.indexOf(d.status);
       const desc = { przyjete: `${esc(d.typ)}${d.osob > 1 ? ` · zgłosiło ${d.osob} osób` : ''}`, w_realizacji: 'Kierowca MPO jedzie do kosza.',
                      zrealizowane: 'Kosz opróżniony. Dziękujemy!' };

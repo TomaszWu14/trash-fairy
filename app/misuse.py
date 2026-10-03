@@ -20,7 +20,8 @@ OVERFLOW_LEVEL = 100
 def latest_analyses(now):
     """{point_id: (ostatnia analiza dowolna, ostatnia udana)} z okna 48 h przed `now`."""
     out = {}
-    for pa in (PhotoAnalysis.query.filter(PhotoAnalysis.at <= now, PhotoAnalysis.at > now - ANALYSIS_WINDOW)
+    for pa in (PhotoAnalysis.query.filter(PhotoAnalysis.at <= now, PhotoAnalysis.at > now - ANALYSIS_WINDOW,
+                                          PhotoAnalysis.source != "resident")  # zdjęcia mieszkańców: photos.verification
                .order_by(PhotoAnalysis.at, PhotoAnalysis.id)):
         last, last_ok = out.get(pa.point_id, (None, None))
         out[pa.point_id] = (pa, pa if pa.status == "done" else last_ok)

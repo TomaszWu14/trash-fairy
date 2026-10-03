@@ -1,7 +1,9 @@
-"""Zdjęcia od ekipy MPO: walidacja, zapis, analiza Claude Vision w tle, retencja 7 dni (koncepcja, sekcje 5 i 10).
+"""Zdjęcia od ekipy MPO i mieszkańców: walidacja, usuwanie metadanych, zapis, analiza Claude Vision w tle, retencja 7 dni.
 
-Wynik analizy to tylko opis (poziom, nadużycia, uszkodzenia). Co z nim zrobić, decydują reguły (app/misuse.py).
+Wynik analizy to tylko opis (poziom, nadużycia, uszkodzenia, stan kosza). Co z nim zrobić, decydują reguły:
+app/misuse.py dla zdjęć ekipy, verification() niżej dla zdjęć ze zgłoszeń mieszkańców.
 """
+import io
 import threading
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -62,6 +64,75 @@ SYSTEM = (
 )
 
 
+# ---------- zdjęcie ze zgłoszenia mieszkańca ----------
+CONDITIONS = {"w_porzadku": "W porządku", "pelny": "Pełny", "odpady_obok": "Odpady obok kosza", "uszkodzony": "Uszkodzony"}
+RESIDENT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "bin_visible": {"type": "boolean"},
+        "condition": {"type": "string", "enum": list(CONDITIONS)},
+        "fill_level": {"type": "integer", "enum": [0, 25, 50, 75, 100]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "reason": {"type": "string", "maxLength": 200},
+        "people_or_plates": {"type": "boolean"},
+    },
+    "required": ["bin_visible", "condition", "fill_level", "confidence", "reason", "people_or_plates"],
+    "additionalProperties": False,
+}
+RESIDENT_SYSTEM = (
+    "Oceniasz zdjęcie dołączone przez mieszkańca Krakowa do zgłoszenia problemu z koszem na śmieci. "
+    "Opisujesz wyłącznie kosz: czy jest widoczny (bin_visible), jego stan (condition: w_porzadku, pelny, odpady_obok, uszkodzony), "
+    "szacowane zapełnienie (0, 25, 50, 75 lub 100%) i pewność oceny (confidence 0–1). "
+    "Pole reason: jedno krótkie zdanie po polsku, tylko o koszu i odpadach. "
+    "people_or_plates = true, jeśli na zdjęciu da się rozpoznać osobę (twarz, sylwetkę) albo tablicę rejestracyjną; "
+    "nie opisuj ich w reason. Jeśli kosza nie widać, ustaw bin_visible = false i confidence poniżej 0.3."
+)
+VERIFY_MIN_CONFIDENCE = 0.7
+# typ zgłoszenia (Press.kind) → stany ze zdjęcia, które go potwierdzają; „inne” nie ma czego potwierdzać
+CONSISTENT = {"full": {"pelny", "odpady_obok"}, "overflow": {"odpady_obok"}, "damaged": {"uszkodzony"}}
+
+
+def verification(pa, kind):
+    """Reguła (nie AI): wynik analizy + typ zgłoszenia → status weryfikacji. Nigdy nie odrzuca mieszkańca.
+
+    „Zweryfikowane AI”: kosz widoczny, stan zgodny z typem zgłoszenia, pewność ≥ 0.7. Wszystko inne (niska pewność,
+    brak kosza, brak klucza, błąd API, „inne”) → „Do weryfikacji” przez dyspozytora. None = zgłoszenie bez zdjęcia."""
+    if pa is None:
+        return None
+    out = {"status": "do_weryfikacji", "etykieta": "Do weryfikacji", "pewnosc": None, "stan": None,
+           "uzasadnienie": "Analiza AI niedostępna. Zdjęcie sprawdzi dyspozytor.", "zdjecie_publiczne": False}
+    if pa.status == "pending":
+        return out | {"status": "w_toku", "etykieta": "Analiza AI w toku", "uzasadnienie": "Sprawdzamy zdjęcie, to potrwa kilka sekund."}
+    if pa.status != "done":
+        return out
+    conf = pa.confidence or 0
+    out.update(pewnosc=round(conf, 2), stan=CONDITIONS.get(pa.condition), uzasadnienie=pa.note or "",
+               zdjecie_publiczne=not pa.people)
+    if not pa.bin_visible:
+        out["uzasadnienie"] = "Na zdjęciu nie widać kosza. " + out["uzasadnienie"]
+    elif conf >= VERIFY_MIN_CONFIDENCE and pa.condition in CONSISTENT.get(kind, ()):
+        out.update(status="zweryfikowane", etykieta="Zweryfikowane AI")
+    return out
+
+
+def strip_metadata(data, mt):
+    """Ponowne zakodowanie obrazu bez EXIF/XMP (GPS, model aparatu, czas). Orientację z EXIF nanosimy na piksele.
+    Duże zdjęcia zmniejszamy do 2048 px: tyle wystarcza analizie i kierowcy. Rzuca wyjątek dla uszkodzonego pliku."""
+    from PIL import Image, ImageOps
+    with Image.open(io.BytesIO(data)) as src:
+        img = ImageOps.exif_transpose(src)
+        img.thumbnail((2048, 2048))
+        fmt = {"image/jpeg": "JPEG", "image/png": "PNG", "image/webp": "WEBP"}[mt]
+        if fmt == "JPEG" and img.mode not in ("RGB", "L"):
+            img = img.convert("RGB")
+        clean = Image.frombytes(img.mode, img.size, img.tobytes())  # nowy obraz: nie niesie info ani EXIF źródła
+        if img.mode == "P":
+            clean.putpalette(img.getpalette())
+        out = io.BytesIO()
+        clean.save(out, fmt, quality=88)
+    return out.getvalue()
+
+
 def media_type(data):
     """Typ obrazu po sygnaturze pliku (nie ufamy nazwie ani nagłówkowi od przeglądarki)."""
     if data[:3] == b"\xff\xd8\xff":
@@ -89,12 +160,12 @@ def photo_dir():
     return path
 
 
-def save(point_id, at, data, mt, crew_level=None):
+def save(point_id, at, data, mt, crew_level=None, source="crew"):
     ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}[mt]
     path = photo_dir() / f"{uuid.uuid4().hex}.{ext}"
     path.write_bytes(data)
     pa = PhotoAnalysis(point_id=point_id, at=at, wall_at=datetime.now(UTC).replace(tzinfo=None),
-                       photo_path=str(path), media_type=mt, crew_level=crew_level)
+                       photo_path=str(path), media_type=mt, crew_level=crew_level, source=source)
     db.session.add(pa)
     db.session.commit()
     return pa
@@ -103,14 +174,21 @@ def save(point_id, at, data, mt, crew_level=None):
 def analyze(analysis_id):
     """Wywołuje Claude Vision i zapisuje wynik albo komunikat błędu — nigdy nie rzuca wyjątku dalej."""
     pa = db.session.get(PhotoAnalysis, analysis_id)
+    resident = pa.source == "resident"
     try:
         data = Path(pa.photo_path).read_bytes()
-        result = llm.ask_json("Oceń to zdjęcie według schematu.", SCHEMA, system=SYSTEM,
+        result = llm.ask_json("Oceń to zdjęcie według schematu.", RESIDENT_SCHEMA if resident else SCHEMA,
+                              system=RESIDENT_SYSTEM if resident else SYSTEM,
                               images=[llm.image_block(data, pa.media_type)], max_tokens=2000)
     except (llm.LLMError, OSError) as e:
         pa.status, pa.error = "error", str(e)[:255]
     else:
         pa.status = "done"
+    if pa.status == "done" and resident:
+        pa.bin_visible, pa.condition, pa.fill_level = result["bin_visible"], result["condition"], result["fill_level"]
+        pa.people, pa.confidence, pa.note = result["people_or_plates"], float(result["confidence"]), result["reason"][:500]
+        pa.misuse, pa.damage, pa.overflow_outside = [], result["condition"] == "uszkodzony", result["condition"] == "odpady_obok"
+    elif pa.status == "done":
         pa.fill_level, pa.overflow_outside = result["fill_level"], result["overflow_outside"]
         pa.misuse = [m for m in result["misuse"] if m != "none"]
         pa.damage, pa.confidence, pa.note = result["damage"], float(result["confidence"]), result["note"][:500]

@@ -19,7 +19,7 @@
     document.getElementById('p-head').innerHTML = `<span class="p-ico">${icon(p.ikona || 'flag', 'i-lg')}</span>
       <div><p class="eyebrow">${esc(p.dzielnica)} · projekt</p><h1>${esc(p.nazwa)}</h1></div><span class="badge ${cls}">${label}</span>`;
     const used = p.budzet ? Math.round(100 * p.wykorzystano / p.budzet) : 0;
-    document.getElementById('p-facts').innerHTML = fact('sparkles', 'Kluczowy efekt', esc(p.efekt_etykieta || '–'), 'liczony z danych odbiorów')
+    document.getElementById('p-facts').innerHTML = fact('sparkles', 'Kluczowy efekt', esc(TF.effect(p)), p.efekt_wartosc == null ? 'efekt policzymy po wdrożeniu' : 'liczony z danych odbiorów')
       + fact('flag', 'Postęp', `${num(p.postep_pct)}<small>%</small>`, `<span class="bar" style="display:block;margin-top:6px"><i style="--p:${(p.postep_pct / 100).toFixed(3)}"></i></span>`)
       + fact('banknote', 'Budżet', zl(p.budzet), `wykorzystano ${zl(p.wykorzystano)} (${used}%)`)
       + fact('calendar', 'Start', p.start ? new Date(p.start).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' }) : '–', p.koniec ? `koniec: ${new Date(p.koniec).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}` : '');
