@@ -1,0 +1,94 @@
+1
+00:00:00,500 --> 00:00:05,000
+On Floriańska Street every bin is emptied
+three times a day, full or empty.
+
+2
+00:00:05,000 --> 00:00:09,500
+Kraków's 9,383 street bins
+run on a calendar,
+
+3
+00:00:09,500 --> 00:00:14,800
+and overflowing estate shelters
+push household bags onto the street.
+
+4
+00:00:15,000 --> 00:00:19,500
+Trash Fairy is a brain for MPO
+that needs no sensors.
+
+5
+00:00:19,500 --> 00:00:25,000
+It collects cheap signals: a button on the bin,
+reports from phones and data from drivers.
+
+6
+00:00:25,000 --> 00:00:29,000
+Step one:
+what is overflowing right now.
+
+7
+00:00:29,000 --> 00:00:35,500
+Step two: when each bin will cross 85%,
+with city events and the weather.
+
+8
+00:00:35,500 --> 00:00:42,000
+Step three: tomorrow morning's route,
+dozens of stops on real streets.
+
+9
+00:00:42,000 --> 00:00:49,500
+Decisions are explicit rules in code.
+AI only describes.
+
+10
+00:00:50,000 --> 00:00:54,500
+Now one bin, number 18,
+on three devices.
+
+11
+00:00:54,500 --> 00:01:00,000
+A resident scans the QR code and taps "Full".
+Two seconds later the bin shows "Reported".
+
+12
+00:01:00,000 --> 00:01:07,500
+I move the clock one hour: the bin joins the route
+and the e-paper says "Crew on the way".
+
+13
+00:01:07,500 --> 00:01:13,500
+The driver taps "Emptied"
+and the report is closed.
+
+14
+00:01:13,500 --> 00:01:24,500
+Residents earn points
+only for reports that prove right.
+
+15
+00:01:25,000 --> 00:01:31,500
+Over four simulated weeks, empty trips
+drop from 57 to 27 percent,
+
+16
+00:01:31,500 --> 00:01:36,500
+and shelter overflow
+from 338 hours to zero.
+
+17
+00:01:36,500 --> 00:01:44,500
+Across Kraków:
+PLN 1.5 to 2.8 million a year.
+
+18
+00:01:45,000 --> 00:01:51,000
+Open code, synthetic data stated plainly,
+hardware only where it pays off.
+
+19
+00:01:51,000 --> 00:01:59,500
+Kraków doesn't need more bins.
+It needs a fairy.

@@ -90,7 +90,7 @@ Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatn
 - Biblioteki: Flask, SQLAlchemy, OR-Tools (Apache 2.0), anthropic (MIT), Leaflet i Leaflet.markercluster (BSD-2), Chart.js (MIT), qrcode-generator (MIT), Pillow (HPND), IBM Plex i Fraunces (SIL OFL 1.1); wszystko lokalnie, bez CDN.
 
 ## Narzędzia AI
-- **Claude Code** (Anthropic, Claude Opus 5.5): pisanie kodu, testów i dokumentacji podczas HackYeah; każdy etap zaczynał się od planu
+- **Claude Code** (Anthropic, Claude Opus 5.5): pisanie kodu, testów i dokumentacji oraz materiałów (slajdy, scenariusz wideo, napisy w `docs/video/`) podczas HackYeah; każdy etap zaczynał się od planu
   zaakceptowanego przez autora, a uzasadnienia decyzji są w `DECYZJE.md`.
 - **Claude Design** (kanwa projektowa): trzy kierunki wizualne (A/B/C) dla widoku jury, PWA mieszkańca, PWA kierowcy i e-papieru;
   wybrany kierunek C „Marka Trash Fairy”. Paczki projektowe w `docs/widok-c/`, `docs/zgloszenie/`, `docs/epapier/`.
@@ -140,7 +140,7 @@ bins −24% visits and empty trips down from 57% to 27%; shelter overflow hours 
 `/epapier/18` e-paper display simulator, `/metodologia` assumptions straight from code. **Demo:** https://trashfairy.twapp.pl
 
 **Data:** © OpenStreetMap contributors (ODbL 1.0), Karnet Kraków events, MPO cleaning schedule 08/2026 ([mpo.krakow.pl/czystosc](https://mpo.krakow.pl/czystosc/)). All operational data is synthetic.
-**AI tools:** Claude Code (Claude Opus 5.5) for development, Claude Design canvas for visual directions, Claude API in the app
+**AI tools:** Claude Code (Claude Opus 5.5) for development and pitch materials (slides, video script, subtitles), Claude Design canvas for visual directions, Claude API in the app
 (photo analysis, event parsing, dispatcher report) behind input fencing and schema validation; Playwright and Lighthouse for the UX audit.
 
 **Transparency:** the concept was prepared before the event (`docs/KONCEPCJA.md`, no code).

@@ -3,6 +3,7 @@ import pytest
 from app import clock
 from app.models import Point
 from app.osm_import import import_points
+from tests.conftest import login
 
 
 @pytest.fixture
@@ -42,7 +43,6 @@ def test_jury_bin_counts_per_phone_not_per_ip(client, demo):
 
 
 def test_menu_by_role(client, demo):
-    from tests.conftest import login
     html = client.get("/telefony").get_data(as_text=True)
     assert "Panel (podgląd)" in html and "Zaloguj" in html and "/zdjecia" not in html
     login(client)
@@ -67,3 +67,9 @@ def test_old_ips_are_forgotten(app, demo):
     db.session.commit()
     assert forget_old_ips(now) == 1
     assert {p.ip for p in Press.query.filter(Press.wall_at.isnot(None))} == {None, "2.2.2.2"}
+
+
+def test_logged_driver_in_phones_frame_can_write(client, demo):
+    """Ramka /telefony po zalogowaniu driver_bin: pełna aplikacja z zapisami, jak obiecuje krok 3 na stronie (decyzja 11)."""
+    login(client, "driver_bin")
+    assert "preview: false" in client.get("/kierowca?podglad=1").get_data(as_text=True)
