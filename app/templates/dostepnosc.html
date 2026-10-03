@@ -1,46 +1,30 @@
-<!doctype html>
-<html lang="pl">
-{% from "_logo.html" import logo %}
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Deklaracja dostępności — Trash Fairy</title>
-  <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
-  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='pokaz.css') }}">
-</head>
-<body>
-<header class="c-head">
-  <div class="c-brand" style="--logo-bg:#0E1222">{{ logo(34, '#CDBBFF') }}Trash&nbsp;<span>Fairy</span></div>
-  <span class="c-sub">Deklaracja dostępności</span>
-  {% include "_nav.html" %}
-</header>
-<main class="c-doc">
+{% extends "ui/base.html" %}
+{% block title %}Deklaracja dostępności{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">{% endblock %}
+{% block content %}
+<div class="shell page"><article class="doc">
   <h1>Deklaracja dostępności</h1>
-  <p>Trash Fairy (prototyp z HackYeah 2026 dla MPO Kraków) zobowiązuje się zapewnić dostępność swojej strony i aplikacji mobilnych
-     zgodnie z ustawą z dnia 4 kwietnia 2019 r. o dostępności cyfrowej stron internetowych i aplikacji mobilnych podmiotów publicznych.</p>
+  <p>Trash Fairy (prototyp z HackYeah 2026 dla MPO Kraków) zobowiązuje się zapewnić dostępność aplikacji zgodnie z ustawą z dnia 4 kwietnia 2019 r.
+     o dostępności cyfrowej stron internetowych i aplikacji mobilnych podmiotów publicznych.</p>
   <p>Data publikacji: 2026-10-04. Data ostatniej aktualizacji: 2026-10-04.</p>
   <h2>Stan dostępności</h2>
-  <p><strong>Strona jest częściowo zgodna</strong> ze standardem WCAG 2.1 na poziomie AA z powodu niezgodności wymienionych niżej.</p>
+  <p><strong>Aplikacja jest częściowo zgodna</strong> ze standardem WCAG 2.1 na poziomie AA z powodu niezgodności wymienionych niżej.</p>
   <ul>
-    <li>Klastry punktów na mapie w widoku „Pokaz” nie są dostępne z klawiatury. Te same dane są w panelu dyspozytora jako lista.</li>
-    <li>Kafelki mapy (OpenStreetMap) to obrazy bez opisu tekstowego; zastępstwem są listy punktów i tras.</li>
-    <li>Panel dyspozytora nie ma trybu ciemnego ani układu na telefon (narzędzie stanowiskowe).</li>
-    <li>Część ikon w panelu to emoji; tekst obok zawsze niesie tę samą informację.</li>
+    <li>Mapy (OpenStreetMap) to obrazy bez opisu tekstowego. Te same kosze są na listach obok map, z nazwą, adresem i zapełnieniem.</li>
+    <li>Wykresy w dashboardzie są obrazami; dokładne wartości są w tooltipach i w tabelach pod przyciskiem „Szczegóły”.</li>
+    <li>Skan kodu QR wymaga aparatu; zgłoszenie bez aparatu jest możliwe z listy koszy w pobliżu, ale nadal tylko przy koszu.</li>
   </ul>
   <h2>Co działa</h2>
   <ul>
-    <li>Stan kosza zawsze jako kolor, kształt i znak (✓ koło, ↑ romb, ! kwadrat), nigdy sam kolor.</li>
-    <li>Kontrast tekstu co najmniej 4,5:1; cele dotykowe w aplikacji kierowcy od 56 px; tryb ciemny w obu aplikacjach na telefon.</li>
-    <li>Obsługa klawiaturą z widocznym fokusem, komunikaty o zmianach (<code>aria-live</code>), szacunek „prefers-reduced-motion”.</li>
+    <li>Zapełnienie zawsze jako kolor, ikona i słowo („W porządku”, „Zapełnia się”, „Pełny”), nigdy sam kolor.</li>
+    <li>Kontrast tekstu co najmniej 4,5:1; cele dotykowe kierowcy od 56 px; obsługa klawiaturą z widocznym fokusem.</li>
+    <li>Komunikaty o zmianach (<code>aria-live</code>) i ograniczenie animacji przy ustawieniu „prefers-reduced-motion”.</li>
   </ul>
   <h2>Przygotowanie deklaracji</h2>
-  <p>Deklarację sporządzono na podstawie samooceny: Lighthouse (dostępność 97–100 na wszystkich ekranach) i przeglądu zrzutów
-     z Playwright na 6 szerokościach. Wyniki: <a href="https://github.com/TomaszWu14/trash-fairy/blob/main/docs/audit/RESULTS.md">docs/audit/RESULTS.md</a>.</p>
-  <h2>Informacje zwrotne i dane kontaktowe</h2>
-  <p>[demo: dane kontaktowe MPO Kraków]. Każdy ma prawo zażądać zapewnienia dostępności strony lub jej elementu albo dostępu
-     alternatywnego (np. odczytania treści). Odpowiedź w ciągu 7 dni; w razie odmowy przysługuje skarga, a następnie wniosek do Rzecznika Praw Obywatelskich.</p>
-</main>
-{% include "_footer.html" %}
-</body>
-</html>
+  <p>Deklarację sporządzono na podstawie samooceny: Lighthouse i przeglądu zrzutów z Playwright w rozdzielczościach 1920×1080, 1366×768, 1280×800 i 390×844
+     (<code>audit/</code> w repozytorium).</p>
+  <h2>Informacje zwrotne</h2>
+  <p>W pilotażu kontakt zapewni MPO Kraków. Każdy ma prawo zażądać zapewnienia dostępności aplikacji lub jej elementu albo dostępu alternatywnego.
+     Odpowiedź w ciągu 7 dni; w razie odmowy przysługuje skarga, a następnie wniosek do Rzecznika Praw Obywatelskich.</p>
+</article></div>
+{% endblock %}

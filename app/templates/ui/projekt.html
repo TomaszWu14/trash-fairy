@@ -1,0 +1,26 @@
+{% extends "ui/base.html" %}
+{% from "ui/_ui.html" import icon %}
+{% set perspective = "dashboard" %}
+{% block title %}Projekt{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/dashboard.css') }}">{% endblock %}
+{% block content %}
+<div class="shell dash" id="proj" data-slug="{{ slug }}">
+  <a class="back" href="{{ url_for('ui.dashboard') }}">{{ icon('arrow-left', 'i-sm') }}Wróć do dashboardu</a>
+  <header class="proj-h rise" id="p-head"><span class="skel" style="width:56px;height:56px"></span><span class="skel" style="flex:1;height:48px"></span></header>
+  <section class="proj-facts" id="p-facts">{% for _ in range(4) %}<article class="card kpi"><span class="skel" style="height:56px"></span></article>{% endfor %}</section>
+  <div class="pgrid-2">
+    {% for id, t, s in [('koszt', 'Koszt odbioru', 'zł miesięcznie'), ('wywozy', 'Liczba wywozów', 'miesięcznie'),
+                         ('zapelnienie', 'Zapełnienie przy odbiorze', 'średnio, %'), ('czas_reakcji', 'Czas reakcji na zgłoszenie', 'średnio, godziny')] %}
+    <section class="card chart"><header class="chart-h"><div><h2>{{ t }}</h2><p>{{ s }} · przed i po starcie projektu</p></div></header>
+      <div class="chart-body" id="pc-{{ id }}"></div></section>
+    {% endfor %}
+  </div>
+  <section class="card empty" id="p-missing" hidden><img src="{{ url_for('static', filename='ui/ill/pusto.svg') }}" alt="">
+    <h3>Nie ma takiego projektu</h3><p>Wróć do listy projektów w dashboardzie.</p><a class="btn btn-primary" href="{{ url_for('ui.dashboard') }}">Dashboard</a></section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='ui/charts.js') }}" defer></script>
+<script src="{{ url_for('static', filename='ui/projekt.js') }}" defer></script>
+{% endblock %}

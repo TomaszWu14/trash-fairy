@@ -1,0 +1,59 @@
+{% from "ui/_ui.html" import icon, logo %}<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}Trash Fairy{% endblock %} · Trash Fairy</title>
+  <meta name="description" content="{% block description %}Trash Fairy: kosze w Krakowie opróżniane wtedy, gdy trzeba. Zgłoszenia mieszkańców, panele na koszach, trasy kierowców i dashboard dla miasta.{% endblock %}">
+  <meta name="theme-color" content="#FFFFFF">
+  <link rel="icon" href="{{ url_for('static', filename='ui/logo.svg') }}" type="image/svg+xml">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/plus-jakarta-sans-latin-wght.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='ui/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='ui/app.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<a class="sr-only" href="#tresc">Przejdź do treści</a>
+{% block topbar %}
+<header class="topbar">
+  <div class="shell topbar-in">
+    <a class="brand" href="{{ url_for('ui.start') }}" aria-label="Trash Fairy: przegląd">{{ logo() }}<span>Trash <b>Fairy</b></span></a>
+    {% set p = perspective | default("") %}
+    <nav class="switcher" aria-label="Perspektywy">
+      {% for key, href, ico, label in [
+        ('start', url_for('ui.start'), 'house', 'Przegląd'),
+        ('panel', url_for('ui.kiosk', point_id=demo_bin_id), 'monitor', 'Panel na koszu'),
+        ('mieszkaniec', url_for('ui.report_pick'), 'smartphone', 'Mieszkaniec'),
+        ('kierowca', url_for('ui.driver'), 'truck', 'Kierowca'),
+        ('dashboard', url_for('ui.dashboard'), 'layout-dashboard', 'Dashboard')] %}
+      <a href="{{ href }}"{% if p == key %} aria-current="page"{% endif %} title="{{ label }}">{{ icon(ico) }}<span>{{ label }}</span></a>
+      {% endfor %}
+    </nav>
+    <div class="topbar-end">
+      <a class="demo-tag" href="{{ url_for('ui.methodology') }}" title="Dane operacyjne są syntetyczne. Zobacz, jak liczymy.">{{ icon('sparkles') }}<span>Dane demonstracyjne</span></a>
+    </div>
+  </div>
+</header>
+{% endblock %}
+<main id="tresc">{% block content %}{% endblock %}</main>
+{% block footer %}
+<footer class="foot">
+  <div class="shell">
+    <span>Trash Fairy · HackYeah 2026 · dane operacyjne syntetyczne, kosze z OpenStreetMap</span>
+    <nav aria-label="Informacje">
+      <a href="{{ url_for('ui.methodology') }}">Jak liczymy</a>
+      <a href="{{ url_for('main.api_docs') }}">Otwarte API</a>
+      <a href="{{ url_for('main.accessibility') }}">Dostępność</a>
+      <a href="{{ url_for('main.privacy_page') }}">Prywatność</a>
+      <a href="https://github.com/TomaszWu14/trash-fairy">Kod (AGPL-3.0)</a>
+    </nav>
+  </div>
+</footer>
+{% endblock %}
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<div id="scenario-slot"></div>
+<script>window.TF = { icons: "{{ url_for('static', filename='ui/icons.svg') }}", demoBin: {{ demo_bin_id }}, demoQr: "{{ demo_qr }}" };</script>
+<script src="{{ url_for('static', filename='ui/app.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

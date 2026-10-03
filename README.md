@@ -36,27 +36,19 @@ kompaktor albo większy kosz. **Decyzje podejmują jawne reguły w kodzie, a AI 
 Kilometry altan rosną (+163 km w 4 tygodniach), bo śmieciarka jeździ wtedy, gdy trzeba, a nie co 3 dni. Pokazujemy to wprost;
 założenia i wzory są na stronie `/metodologia`, wyliczone ze stałych w kodzie.
 
-## Ekrany
+## Ekrany (jedna rola „Przegląd jury”, bez logowania)
 
-| Adres | Dla kogo | Co robi |
+| Adres | Perspektywa | Co robi |
 |---|---|---|
-| [`/`](https://trashfairy.twapp.pl/) | jury, dyspozytor | „Pokaz dla jury”: Problem → Predykcja → Trasa → Efekt na jednej mapie, QR do zgłoszenia na żywo |
-| [`/dyspozytor`](https://trashfairy.twapp.pl/dyspozytor) | dyspozytor MPO | pełny panel: stan i prognoza punktu, trasy, raport „Wróżka podpowiada”, rekomendacje, program mieszkańców |
-| [`/zglos`](https://trashfairy.twapp.pl/zglos) | mieszkaniec | PWA „Zgłoś kosz”: jedno dotknięcie, „Cofnij” 1,5 s, działa offline |
-| [`/kierowca`](https://trashfairy.twapp.pl/kierowca) | kierowca MPO | PWA: start zmiany → następny przystanek → Opróżniony / Nie da się podjechać / Problem + zdjęcie → podsumowanie; działa bez zasięgu |
-| [`/epapier/18`](https://trashfairy.twapp.pl/epapier/18) | urządzenie | symulator ekranu e-papierowego na koszu z fizycznym przyciskiem |
-| [`/program`](https://trashfairy.twapp.pl/program) | mieszkaniec | „Przyjaciele Wróżki”: punkty tylko za trafne zgłoszenia, ranking dzielnic |
+| [`/`](https://trashfairy.twapp.pl/) | Przegląd | cztery perspektywy, liczby z kodu, **scenariusz demo w 6 krokach** i reset danych demo |
+| [`/panel/18`](https://trashfairy.twapp.pl/panel/18) | Panel na koszu | kiosk 1280×800: zapełnienie z daleka, termin odbioru, status zgłoszeń, kod QR do zgłoszenia |
+| [`/zglos`](https://trashfairy.twapp.pl/zglos) → `/zglos/<id>` → `/zgloszenie/<nr>` | Mieszkaniec | skan QR, mapa i najbliższe kosze, zgłoszenie w 3 krokach (tylko z kodem QR kosza i do 150 m), oś czasu statusu |
+| [`/kierowca`](https://trashfairy.twapp.pl/kierowca) → `/kierowca/kosz/<id>` | Kierowca | trasa po priorytecie z postępem, „Jadę” z nawigacją w aplikacji, „Opróżniono”, „Problem” |
+| [`/dashboard`](https://trashfairy.twapp.pl/dashboard) → `/dashboard/projekty/<slug>` | Dashboard miasta | KPI ze zmianą i trendem, koszty vs plan, frakcje, dzielnice, zgłoszenia, heatmapa, mapa, projekty; filtry i drill-down |
 | [`/metodologia`](https://trashfairy.twapp.pl/metodologia) | wszyscy | założenia, wzory i liczby wprost z kodu |
-| [`/jury`](https://trashfairy.twapp.pl/jury) | jury | losowy kosz przy Rynku do zgłoszenia z telefonu |
 
-<p>
-<img src="docs/img/panel.png" alt="Panel dyspozytora: trasa po ulicach i porównanie przed i po" width="100%">
-</p>
-<p>
-<img src="docs/img/zglos.png" alt="PWA „Zgłoś kosz”" width="32%">
-<img src="docs/img/kierowca-trasa.png" alt="PWA kierowcy: mapa trasy i następny przystanek" width="32%">
-<img src="docs/img/kierowca-przystanek.png" alt="PWA kierowcy: przystanek z akcjami Opróżniony, Nie da się podjechać, Problem" width="32%">
-</p>
+Stare adresy (`/telefony`, `/dyspozytor`, `/epapier/<id>`, kody QR z naklejek) przekierowują do nowych ekranów.
+Audyt i przebudowa: `audit/AUDYT-UX.md`, zrzuty rund w `audit/iteracje/`, jak poprowadzić pokaz: `DEMO.md`.
 
 ## Integracje i otwarte API
 - **Pogoda (Open-Meteo, bez klucza):** mnożnik tempa zapełniania tylko na godziny przyszłe: deszcz ≥ 1 mm/h ×0,8, ciepły suchy weekend ×1,25.
@@ -76,7 +68,7 @@ flask --app app run         # http://localhost:5000 (albo -p 5050)
 python -m pytest -q -n auto # 208 testów (pytest-xdist)
 ```
 Docker: `docker build -t trash-fairy . && docker run -p 8080:8080 trash-fairy` (z `-e DATABASE_URL=...` dla PostgreSQL).
-Zmienne środowiskowe: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `PUBLIC_URL` (adres w kodach QR), `SECRET_KEY`, `DATABASE_URL`, `DEMO_PASSWORD` (bez niego logowanie jest wyłączone),
+Zmienne środowiskowe: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `PUBLIC_URL` (adres w kodach QR), `SECRET_KEY`, `DATABASE_URL`,
 `TOMTOM_API_KEY`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SID`, `SMS_DEMO_FALLBACK=1`, `WEATHER_URL=""` (wyłącza pogodę).
 Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatni zapisany wynik.
 

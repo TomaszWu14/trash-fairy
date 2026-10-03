@@ -1,23 +1,8 @@
-<!doctype html>
-<html lang="pl">
-{% from "_logo.html" import logo %}
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Trash Fairy — otwarte API</title>
-  <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
-  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='pokaz.css') }}">
-</head>
-<body>
-<header class="c-head">
-  <div class="c-brand" style="--logo-bg:#0E1222">{{ logo(34, '#CDBBFF') }}Trash&nbsp;<span>Fairy</span></div>
-  <span class="c-sub">Otwarte API · tylko odczyt</span>
-  <a href="/">Pokaz</a>
-  <a href="/dyspozytor">Panel</a>
-  <a href="/metodologia">Metodologia</a>
-</header>
-<main class="c-doc">
+{% extends "ui/base.html" %}
+{% block title %}Otwarte API{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">{% endblock %}
+{% block content %}
+<div class="shell page"><article class="doc">
   <h1>{{ spec.info.title }}</h1>
   <p>{{ spec.info.summary }}</p>
   <p class="c-doc-note"><strong>Dane syntetyczne.</strong> {{ spec.info.description }}</p>
@@ -38,7 +23,5 @@
     <p>Wiarygodności przycisków, powodów nadużyć, danych mieszkańców ani zgłoszeń kierowców. To dane operacyjne MPO,
       a nie dane publiczne. Decyzje (stan, trasa) liczą jawne reguły opisane w <a href="/metodologia">Metodologii</a>.</p>
   </section>
-</main>
-{% include "_footer.html" %}
-</body>
-</html>
+</article></div>
+{% endblock %}

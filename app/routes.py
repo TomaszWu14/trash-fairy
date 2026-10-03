@@ -73,7 +73,7 @@ def plan_routes(now, states):
     """Trasy obu flot na najbliższy kurs. `states` = wynik state.point_states(now)."""
     last_emptying = dict(db.session.query(Emptying.point_id, func.max(Emptying.at))
                          .filter(Emptying.at <= now).group_by(Emptying.point_id).all())
-    points = Point.query.order_by(Point.id).all()
+    points = Point.live_query().order_by(Point.id).all()
     out = []
     for kind, fleet in FLEETS.items():
         run_at, following = next_runs(kind, now)

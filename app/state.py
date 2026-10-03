@@ -58,7 +58,7 @@ def troll_pattern(resolved, at):
 
 
 def neighbors_map():
-    points = Point.query.all()
+    points = Point.live_query().all()
     return {p.id: [q.id for q in points if q.id != p.id and distance_m(p.lat, p.lon, q.lat, q.lon) <= NEIGHBOR_RADIUS_M]
             for p in points}
 
@@ -181,8 +181,8 @@ def _point_states(now):
     overflow_reported = {pid for (pid,) in db.session.query(Press.point_id).distinct()
                          .filter(Press.kind == "overflow", Press.at > now - MERGE_WINDOW, Press.at <= now)}
     crew_issue = {}
-    for i in (StopIssue.query.filter(StopIssue.at > now - CREW_ISSUE_WINDOW, StopIssue.at <= now, StopIssue.kind != "skip")
-              .order_by(StopIssue.at)):  # „Pomiń” liczy się tylko w postępie kursu, nie flaguje punktu
+    for i in (StopIssue.query.filter(StopIssue.at > now - CREW_ISSUE_WINDOW, StopIssue.at <= now, StopIssue.kind.in_(CREW_ISSUES))
+              .order_by(StopIssue.at)):  # „Pomiń” i „Jadę” liczą się tylko w postępie kursu, nie flagują punktu
         if last_emptying.get(i.point_id) is None or last_emptying[i.point_id] < i.at:
             crew_issue[i.point_id] = {"kind": i.kind, "label": CREW_ISSUES[i.kind], "at": i.at.isoformat(), "note": i.note}
     out = {}

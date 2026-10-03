@@ -1,0 +1,58 @@
+{% extends "ui/base.html" %}
+{% from "ui/_ui.html" import icon %}
+{% set perspective = "kierowca" %}
+{% block title %}{{ bin.nazwa }} · trasa{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='ui/kierowca.css') }}">
+{% endblock %}
+{% block content %}
+<div class="k-wrap shell k-bin-page" id="k-bin" data-id="{{ bin.id }}" data-lat="{{ bin.lat }}" data-lon="{{ bin.lon }}" data-level="{{ bin.poziom }}">
+  <a class="back" href="{{ url_for('ui.driver') }}">{{ icon('arrow-left', 'i-sm') }}Wróć do trasy</a>
+  <div class="k-grid">
+    <section class="card k-nav-card">
+      <div class="k-navbar" id="k-navbar" hidden aria-live="polite">
+        <span class="k-nav-i" id="k-nav-i">{{ icon('navigation') }}</span>
+        <div><b id="k-nav-t">Prowadzenie do kosza</b><span id="k-nav-s">Liczymy trasę…</span></div>
+      </div>
+      <div id="k-map" class="k-map-big" role="img" aria-label="Mapa dojazdu do kosza"></div>
+    </section>
+    <section class="card k-detail rise">
+      <div class="k-detail-h" id="k-head">
+        <span class="skel" style="width:64px;height:74px"></span><span class="skel" style="flex:1;height:64px"></span>
+      </div>
+      <div id="k-reports"></div>
+      <div class="k-level">
+        <p class="label" id="k-level-l">Ile było w koszu?</p>
+        <div class="k-levels" role="radiogroup" aria-labelledby="k-level-l">
+          {% for l in [0, 25, 50, 75, 100] %}<label class="k-lv"><input type="radio" name="poziom" value="{{ l }}"><span class="num">{{ l }}%</span></label>{% endfor %}
+        </div>
+      </div>
+      <div class="k-actions">
+        <button class="btn k-act k-go" type="button" data-akcja="jade">{{ icon('navigation', 'i-lg') }}<span>Jadę</span></button>
+        <button class="btn k-act k-ok" type="button" data-akcja="oprozniono">{{ icon('check-check', 'i-lg') }}<span>Opróżniono</span></button>
+        <button class="btn k-act k-pr" type="button" data-problem>{{ icon('triangle-alert', 'i-lg') }}<span>Problem</span></button>
+      </div>
+      <div class="k-doneok" id="k-doneok" hidden>
+        <img src="{{ url_for('static', filename='ui/ill/sukces.svg') }}" alt="" width="120" height="96">
+        <b>Opróżniono</b><span>Zgłoszenia mieszkańców przy tym koszu są zamknięte.</span>
+        <a class="btn btn-primary" id="k-next" href="{{ url_for('ui.driver') }}">Następny kosz{{ icon('arrow-right') }}</a>
+      </div>
+    </section>
+  </div>
+</div>
+<dialog class="modal" id="k-problem" aria-labelledby="k-problem-h">
+  <div class="modal-h"><h2 id="k-problem-h" style="font-size:var(--fs-lg)">Jaki problem?</h2>
+    <button class="btn btn-ghost btn-sm" type="button" data-close aria-label="Zamknij">{{ icon('x') }}</button></div>
+  <div class="modal-b k-problems">
+    {% for k, ico, t in [('no_access', 'circle-alert', 'Nie da się podjechać'), ('blocked', 'triangle-alert', 'Zablokowany dojazd'),
+                         ('damaged', 'wrench', 'Kosz uszkodzony'), ('overflow', 'package', 'Odpady obok kosza')] %}
+    <button class="btn k-prob" type="button" data-problem-kind="{{ k }}">{{ icon(ico) }}{{ t }}</button>
+    {% endfor %}
+  </div>
+</dialog>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='ui/kierowca.js') }}" defer></script>
+{% endblock %}

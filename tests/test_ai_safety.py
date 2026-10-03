@@ -84,7 +84,7 @@ def test_invalid_photo_reply_keeps_last_good_result(client, demo, tmp_path):
     errors = PhotoAnalysis.query.filter_by(point_id=p.id, status="error").all()
     assert len(done) == 1 and done[0].fill_level == 75 and done[0].misuse == ["household_bag"]
     assert len(errors) == 1 and "odrzucona" in errors[0].error
-    assert client.get(f"/api/points/{p.id}").status_code == 200  # nigdy 500
+    assert client.get(f"/api/kosze/{p.id}").status_code == 200  # nigdy 500
 
 
 def test_fairy_report_rejects_extra_fields_and_keeps_previous(demo):
@@ -124,8 +124,6 @@ def test_ai_text_with_script_is_escaped(app, demo):
             report = fairy.generate(clock.now())
     html = render_template_string("{{ t }}", t=report.sections[0]["text"])  # Jinja autoescape
     assert "<script>" not in html and "&lt;script&gt;" in html
-    # front: raport renderuje panel.js wyłącznie przez esc(); szablony nie używają |safe
+    # szablony nie używają |safe
     import pathlib
-    js = pathlib.Path("app/static/panel.js").read_text(encoding="utf-8")
-    assert "esc(s.text)" in js and "esc(s.title)" in js
-    assert not any("|safe" in f.read_text(encoding="utf-8") for f in pathlib.Path("app/templates").glob("*.html"))
+    assert not any("|safe" in f.read_text(encoding="utf-8") for f in pathlib.Path("app/templates").rglob("*.html"))

@@ -115,55 +115,56 @@ def test_cleanup_removes_photo_files_after_7_days_but_keeps_analysis(demo, visio
     assert db.session.get(PhotoAnalysis, old.id) is not None
 
 
-# --- widok ekipy: opróżnienie ---
+# --- kierowca: opróżnienie (POST /api/odbiory) i zdjęcia ---
 
-def test_crew_emptying_resolves_reports_and_resets_estimate(client, demo, staff):
+def test_crew_emptying_resolves_reports_and_resets_estimate(client, demo):
+    from app.state import point_states
     p = bin_point("Rynek")
     record_press(p.id, clock.now() - timedelta(minutes=5))
-    r = client.post("/api/emptying", data={"point_id": p.id, "level": 100})
-    assert r.status_code == 200
+    r = client.post("/api/odbiory", json={"kosz": p.id, "akcja": "oprozniono", "poziom": 100})
+    assert r.status_code == 201
     assert Report.query.filter_by(point_id=p.id, hit=None).count() == 0
     assert Report.query.filter_by(point_id=p.id).order_by(Report.id.desc()).first().hit is True
-    props = next(f["properties"] for f in client.get("/api/points").json["features"] if f["properties"]["id"] == p.id)
-    assert props["level"] < 30 and props["state"] == "ok"
+    s = point_states(clock.now())[p.id]
+    assert s["level"] < 30 and s["state"] == "ok"
 
 
-def test_crew_emptying_validates_level(client, demo, staff):
+def test_crew_emptying_validates_level(client, demo):
     p = bin_point()
-    assert client.post("/api/emptying", data={"point_id": p.id, "level": 60}).status_code == 400
-    assert client.post("/api/emptying", data={"point_id": 99999, "level": 50}).status_code == 404
+    assert client.post("/api/odbiory", json={"kosz": p.id, "akcja": "oprozniono", "poziom": 60}).status_code == 400
+    assert client.post("/api/odbiory", json={"kosz": 99999, "akcja": "oprozniono", "poziom": 50}).status_code == 404
     assert Emptying.query.filter_by(point_id=p.id, at=clock.now()).count() == 0
 
 
-def test_crew_photo_is_analysed_and_flags_discrepancy(client, demo, vision, staff):
+def test_crew_photo_is_analysed_and_flags_discrepancy(demo, vision):
     p = bin_point("Rynek")
-    r = client.post("/api/emptying", data={"point_id": p.id, "level": 25, "photo": (io.BytesIO(PNG), "kosz.png")},
-                    content_type="multipart/form-data")
-    pa = db.session.get(PhotoAnalysis, r.json["analysis_id"])
+    pa = photos.save(p.id, clock.now(), PNG, "image/png", crew_level=25)
+    photos.analyze_in_background(pa.id)
+    pa = db.session.get(PhotoAnalysis, pa.id)
     assert pa.status == "done" and pa.fill_level == 100 and pa.misuse == ["household_bag"]
     assert photos.discrepancy(pa)  # ekipa 25%, zdjęcie 100%
 
 
-def test_bad_photo_is_rejected_but_emptying_saved(client, demo, vision, staff):
+def test_bad_photo_in_report_is_rejected(client, demo):
+    from app.api_pl import qr_token
     p = bin_point()
-    r = client.post("/api/emptying", data={"point_id": p.id, "level": 50, "photo": (io.BytesIO(b"not an image"), "x.png")},
+    r = client.post("/api/zgloszenia", data={"kosz": p.id, "typ": "przepelniony", "qr": qr_token(p.id), "lat": p.lat,
+                                             "lon": p.lon, "zdjecie": (io.BytesIO(b"not an image"), "x.png")},
                     content_type="multipart/form-data")
-    assert r.status_code == 200 and "JPEG" in r.json["photo_error"]
-    assert Emptying.query.filter_by(point_id=p.id, at=clock.now()).count() == 1
+    assert r.status_code == 400 and r.json["kod"] == "zle_zdjecie" and "JPEG" in r.json["blad"]
+    assert Report.query.filter(Report.point_id == p.id, Report.first_at == clock.now()).count() == 0
 
 
 # --- test 9 z sekcji 11: błąd API → komunikat i ostatni wynik, nie 500 ---
 
-def test_api_error_shows_message_and_last_result(client, demo, vision, staff):
+def test_api_error_shows_message_and_last_result(demo, vision):
     p = bin_point("Rynek")
-    client.post("/api/photo", data={"point_id": p.id, "photo": (io.BytesIO(PNG), "a.png")}, content_type="multipart/form-data")
+    photos.analyze_in_background(photos.save(p.id, clock.now(), PNG, "image/png").id)
     vision["error"] = "Analiza AI chwilowo niedostępna (limit zapytań). Spróbuj za minutę."
-    r = client.post("/api/photo", data={"point_id": p.id, "photo": (io.BytesIO(PNG), "b.png")}, content_type="multipart/form-data")
-    assert r.status_code == 200
-    d = client.get(f"/api/points/{p.id}").json
+    photos.analyze_in_background(photos.save(p.id, clock.now(), PNG, "image/png").id)
+    d = misuse_overview(clock.now())["points"][p.id]
     assert "limit zapytań" in d["photo_error"]
     assert d["photo_note"] == OK_RESULT["note"]  # ostatni udany wynik
-    assert client.get("/api/points").status_code == 200
 
 
 # --- test 8 z sekcji 11: reguła altana → kosz (200 m, 48 h) ---

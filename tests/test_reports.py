@@ -120,7 +120,7 @@ def test_high_forecast_alone_turns_point_red(point, forecast):
     assert s["reason"] == "prognoza 90%, powyżej 85% od ok. 12:50"
 
 
-def test_long_overflow_without_presses_flags_button(point, forecast, staff):
+def test_long_overflow_without_presses_flags_button(point, forecast):
     forecast(110, recent=[110] * 6)
     s = point_states(T0)[point.id]
     assert s["check_button"] and "nikt nie nacisnął" in s["check_reason"]
@@ -147,3 +147,18 @@ def test_clock_cannot_go_past_simulation(point):
         clock.advance(1)
     assert clock.now() == clock.MAX_NOW
 
+
+
+def test_auto_reset_after_idle(point):
+    from app.models import DemoClock, Press
+    clock.reset(weeks=1)
+    clock.advance(1)
+    record_press(point.id, clock.now(), wall_at=datetime.now())
+    c = db.session.get(DemoClock, 1)
+    assert c.now > clock.DEMO_NOW and c.last_activity is not None
+    assert not clock.maybe_auto_reset()  # świeża aktywność: bez resetu
+    c.last_activity -= clock.IDLE + timedelta(minutes=1)
+    db.session.commit()
+    assert clock.maybe_auto_reset()
+    assert clock.now() == clock.DEMO_NOW and db.session.get(DemoClock, 1).last_activity is None
+    assert Press.query.filter(Press.wall_at.isnot(None)).count() == 0

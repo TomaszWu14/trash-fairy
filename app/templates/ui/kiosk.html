@@ -1,0 +1,51 @@
+{% extends "ui/base.html" %}
+{% from "ui/_ui.html" import icon, logo %}
+{% set perspective = "panel" %}
+{% block title %}Panel: {{ bin.nazwa }}{% endblock %}
+{% block body_class %}kiosk-body{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/kiosk.css') }}">{% endblock %}
+{% block topbar %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="kiosk" id="kiosk" data-id="{{ bin.id }}" data-qr="{{ qr_url }}">
+  <a class="kiosk-corner" href="{{ url_for('ui.start') }}" aria-label="Wróć do przeglądu perspektyw">{{ icon('layout-dashboard', 'i-sm') }}Perspektywy</a>
+  <header class="kiosk-head">
+    <span class="kiosk-brand">{{ logo() }}<span>Trash <b>Fairy</b> · MPO Kraków</span></span>
+    <span class="kiosk-id num">Kosz nr {{ bin.id }}</span>
+  </header>
+
+  <section class="kiosk-level" aria-live="polite">
+    <svg class="kgauge lvl-ok" id="k-gauge" viewBox="0 0 120 150" role="img" aria-label="Zapełnienie">
+      <defs><clipPath id="kclip"><path d="M18 30h84l-8 104a10 10 0 0 1-10 9H36a10 10 0 0 1-10-9z"/></clipPath></defs>
+      <rect class="kg-lid" x="10" y="8" width="100" height="14" rx="7"/>
+      <path class="kg-body" d="M18 30h84l-8 104a10 10 0 0 1-10 9H36a10 10 0 0 1-10-9z"/>
+      <g clip-path="url(#kclip)"><rect class="kg-fill" id="k-fill" x="0" y="30" width="120" height="120"/>
+        <path class="kg-wave" d="M0 30 Q15 24 30 30 T60 30 T90 30 T120 30 V40 H0z"/></g>
+    </svg>
+    <div class="kiosk-pct">
+      <p class="kiosk-num num"><span id="k-pct">{{ bin.poziom }}</span><small>%</small></p>
+      <p class="kiosk-est">zapełnienia · szacunek z prognozy</p>
+      <p class="kiosk-state" id="k-state"></p>
+    </div>
+  </section>
+
+  <section class="kiosk-side">
+    <div>
+      <h1 class="kiosk-name">{{ bin.nazwa }}</h1>
+      <p class="kiosk-addr">{{ bin.adres }}</p>
+      <p class="kiosk-tags"><span class="kfrac" data-f="{{ bin.frakcja }}">{{ frakcje[bin.frakcja] }}</span><span class="ktag">{{ bin.rodzaj }}</span></p>
+    </div>
+    <div class="kiosk-next">{{ icon('clock', 'i-lg') }}<div><span>Najbliższy odbiór</span><b id="k-next">–</b></div></div>
+    <div class="kiosk-msg" id="k-msg" role="status"><span class="skel" style="height:24px;width:70%"></span></div>
+    <div class="kiosk-qr">
+      <div class="kiosk-qr-code" id="k-qr" aria-label="Kod QR do zgłoszenia problemu z tym koszem" role="img"></div>
+      <div><b>Pełny albo zepsuty?</b><span>Zeskanuj kod i zgłoś problem. Zgłoszenie przyjmujemy tylko przy tym koszu.</span></div>
+    </div>
+  </section>
+  <p class="kiosk-foot">Dane demonstracyjne · ekran odświeża się sam</p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/qrcode/qrcode.min.js') }}"></script>
+<script src="{{ url_for('static', filename='ui/kiosk.js') }}" defer></script>
+{% endblock %}

@@ -1,39 +1,8 @@
-<!doctype html>
-<html lang="pl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Trash Fairy — metodologia</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='fairy.css') }}">
-  <style>
-    body.tf { display: block; }
-    .doc { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
-    .doc h1 { font: 600 28px "IBM Plex Sans", system-ui, sans-serif; color: var(--plant); margin: 0 0 4px; }
-    .doc h2 { font: 600 19px "IBM Plex Sans", system-ui, sans-serif; color: var(--plant); margin: 28px 0 8px; }
-    .doc p, .doc li { line-height: 1.55; }
-    .doc table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; border: 1px solid var(--line); }
-    @media (max-width: 480px) { .doc table { display: block; overflow-x: auto; } }  /* wąski telefon: tabela przewija się sama, nie strona */
-    .doc th, .doc td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-    .doc th { background: #f3efe4; font-weight: 600; }
-    .doc td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .note { background: #fff7d6; border: 1px solid var(--gold); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
-    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-    .kpi { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
-    .kpi b { display: block; font: 600 24px "IBM Plex Sans", system-ui, sans-serif; color: var(--plant); }
-    .kpi small { color: var(--muted); }
-    a { color: var(--plant-2); }
-  </style>
-  <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
-</head>
-<body class="tf">
-<header class="tf-header">
-  <div class="tf-brand">Trash <span>Fairy</span> <span aria-hidden="true">✨</span></div>
-  {% include "_nav.html" %}
-  <div style="flex:1"></div>
-  <div class="tf-demo">DANE DEMONSTRACYJNE</div>
-</header>
-<main class="doc">
+{% extends "ui/base.html" %}
+{% block title %}Jak liczymy{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">{% endblock %}
+{% block content %}
+<div class="shell page"><article class="doc">
   <h1>Jak liczymy i skąd są dane</h1>
   <p class="tf-muted">Wszystkie wartości w tabelach poniżej strona czyta wprost ze stałych w kodzie, więc nie mogą się rozjechać z tym, co liczy aplikacja.</p>
 
@@ -111,27 +80,26 @@
   </ul>
 
   <h2>Rola AI</h2>
-  <p>Claude (Anthropic) tylko <b>opisuje i rozpoznaje</b>: ocenia zdjęcie kosza (poziom, nadużycia, uszkodzenia) i pisze raport z gotowych liczb.
-     <b>Decyzje</b> (stan punktu, priorytet, trasa, rekomendacja, powiązanie altana → kosz) podejmują wyłącznie reguły opisane wyżej.
-     Liczby w raporcie, których nie ma w danych, panel oznacza ostrzeżeniem. Przy błędzie API aplikacja pokazuje komunikat i ostatni wynik.</p>
+  <p><b>Decyzje</b> (stan kosza, priorytet na liście kierowcy, trasa, status zgłoszenia, rekomendacja) podejmują wyłącznie reguły opisane wyżej.
+     Moduł AI (<code>app/llm.py</code>: opis zdjęcia kosza, raport z gotowych liczb) jest w kodzie za ogranicznikiem danych i walidacją odpowiedzi,
+     ale ekrany tej wersji pokazowej z niego nie korzystają.</p>
 
   <h2>Prywatność (RODO)</h2>
   <ul>
-    <li>Przycisk nie zbiera danych osobowych. Adres IP służy wyłącznie do limitu naciśnięć.</li>
-    <li>Zdjęcia od ekip są usuwane po 7 dniach (<code>flask cleanup-photos</code>), a w bazie zostaje tylko wynik analizy.</li>
-    <li>Model ma zakaz opisywania osób, twarzy i tablic rejestracyjnych. Rozmywanie twarzy jest w planach rozwoju.</li>
+    <li>Zgłoszenie nie zbiera danych osobowych. Położenie służy tylko do sprawdzenia odległości od kosza, adres IP do limitu i znika po 24 h.</li>
+    <li>Zdjęcia dołączone do zgłoszeń są usuwane po 7 dniach (<code>flask cleanup-photos</code>).</li>
   </ul>
 
   <h2>Ograniczenia</h2>
   <ul>
     <li>Dane są syntetyczne. Prawdziwy pilotaż powinien uczyć profil na odczytach ekip i zdjęciach.</li>
-    <li>Odległości liczymy w linii prostej ×1,3, bez sieci ulic (OSRM jest w planach).</li>
+    <li>Kolejność przystanków liczy OR-Tools na odległościach w linii prostej ×1,3; przebieg i nawigację po ulicach rysuje OSRM.
+        Przejazd w aplikacji kierowcy jest symulowany (kilka sekund zamiast rzeczywistej jazdy).</li>
     <li>Na flotę przypada jeden pojazd, a kursy odbywają się w stałych godzinach 6:00 i 14:00.</li>
   </ul>
 
   <h2>Przejrzystość</h2>
   <p>Koncepcja powstała przed wydarzeniem (<code>docs/KONCEPCJA.md</code>, bez kodu). <b>Cały kod powstał podczas HackYeah, 3–4.10.2026.</b>
      Uzasadnienia decyzji są w <code>DECYZJE.md</code>.</p>
-</main>
-</body>
-</html>
+</article></div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "ui/base.html" %}
+{% from "ui/_ui.html" import icon, gauge %}
+{% block title %}Przegląd{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/start.css') }}">{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="shell hero-in">
+    <div class="hero-copy rise">
+      <p class="eyebrow">Prototyp dla MPO Kraków · HackYeah 2026</p>
+      <h1>Kosze opróżniane wtedy, <span class="grad">gdy trzeba</span>.</h1>
+      <p class="lead">Trash Fairy przewiduje, kiedy kosz się zapełni, zbiera zgłoszenia mieszkańców i układa kierowcom MPO trasę tylko do koszy, które tego potrzebują.</p>
+      <div class="hero-cta">
+        <button class="btn btn-primary btn-xl" type="button" data-start-scenario>{{ icon('circle-play', 'i-lg') }}Zacznij scenariusz demo</button>
+        <button class="btn btn-ghost" type="button" data-reset-demo>{{ icon('rotate-ccw') }}Resetuj dane demo</button>
+      </div>
+      <dl class="proof">
+        <div><dt class="num">{{ head.empty_from }}% → {{ head.empty_to }}%</dt><dd>pustych przyjazdów do koszy</dd></div>
+        <div><dt class="num">{{ head.shelter_from }} h → {{ head.shelter_to }} h</dt><dd>przepełnień altan w 4 tygodnie</dd></div>
+        <div><dt class="num">{{ '%.1f'|format(head.pln_min)|replace('.', ',') }}–{{ '%.1f'|format(head.pln_max)|replace('.', ',') }} mln zł</dt><dd>rocznie w skali Krakowa</dd></div>
+      </dl>
+      <a class="link proof-link" href="{{ url_for('ui.methodology') }}">Jak to policzyliśmy {{ icon('arrow-right', 'i-sm') }}</a>
+    </div>
+    <figure class="hero-art rise" aria-hidden="true"><img src="{{ url_for('static', filename='ui/ill/hero.svg') }}" alt="" width="640" height="460"></figure>
+  </div>
+</section>
+
+<section class="shell persp" aria-labelledby="persp-h">
+  <div class="section-head">
+    <div><h2 id="persp-h">Cztery perspektywy jednej historii</h2>
+      <p>Każdy widok działa na tych samych danych: zgłoszenie z telefonu od razu widać na koszu, w trasie i w liczbach miasta.</p></div>
+  </div>
+  <div class="persp-grid">
+    {% for href, ill, title, text, chip_icon, chip in [
+      (url_for('ui.kiosk', point_id=bin.id), 'kiosk', 'Panel na koszu', 'Ekran przy koszu: zapełnienie widoczne z daleka, termin odbioru i kod QR do zgłoszenia.', None, bin.name),
+      (url_for('ui.report_pick'), 'mieszkaniec', 'Mieszkaniec', 'Zgłoszenie w trzech krokach: kosz, problem, wyślij. Potem status na osi czasu.', 'qr-code', 'Zeskanuj QR przy koszu'),
+      (url_for('ui.driver'), 'kierowca', 'Kierowca MPO', 'Trasa na dziś po priorytecie, prowadzenie w aplikacji i „Opróżniono” jednym dotknięciem.', 'route', 'Trasa na dziś'),
+      (url_for('ui.dashboard'), 'dashboard', 'Dashboard miasta', 'Koszty, wywozy i zgłoszenia z 12 miesięcy, wg dzielnic, frakcji i projektów.', 'layout-dashboard', '12 miesięcy · 6 dzielnic')] %}
+    <a class="card card-hover persp-tile" href="{{ href }}">
+      <img class="persp-ill" src="{{ url_for('static', filename='ui/ill/' ~ ill ~ '.svg') }}" alt="" width="240" height="150" loading="lazy">
+      <div class="persp-body">
+        <h3>{{ title }}</h3>
+        <p>{{ text }}</p>
+      </div>
+      <div class="persp-foot">
+        {% if chip_icon %}<span class="chip">{{ icon(chip_icon, 'i-sm') }}{{ chip }}</span>
+        {% else %}<span class="chip">{{ gauge(bin_level, 'gauge-xs', False) }}{{ chip }} · <b class="num">{{ bin_level }}%</b></span>{% endif %}
+        <span class="go" aria-hidden="true">{{ icon('arrow-right') }}</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="shell story" aria-labelledby="story-h">
+  <div class="story-card card">
+    <div class="story-head">
+      <img src="{{ url_for('static', filename='ui/logo.svg') }}" alt="" width="40" height="40">
+      <div><h2 id="story-h">Scenariusz demo: jeden kosz, sześć kroków</h2>
+        <p class="muted">Prowadzi przez całą historię. Pasek na dole ekranu mówi, co kliknąć, a „Dalej” przenosi do kolejnej perspektywy.</p></div>
+      <button class="btn btn-primary" type="button" data-start-scenario>{{ icon('play') }}Zacznij</button>
+    </div>
+    <ol class="story-steps">
+      {% for ico, t in [('smartphone', 'Mieszkaniec zgłasza przepełnienie'), ('monitor', 'Panel na koszu pokazuje zgłoszenie'),
+                        ('route', 'Kosz trafia na trasę kierowcy'), ('truck', 'Kierowca oznacza „Opróżniono”'),
+                        ('circle-check-big', 'Status u mieszkańca: zrealizowane'), ('layout-dashboard', 'Zdarzenie w dashboardzie miasta')] %}
+      <li><span class="step-ico">{{ icon(ico) }}</span><span>{{ t }}</span></li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+{% endblock %}

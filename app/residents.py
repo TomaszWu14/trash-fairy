@@ -112,7 +112,7 @@ def award(report, kind):
 
 def profile(resident):
     awards = PointAward.query.filter_by(resident_id=resident.id).order_by(PointAward.at.desc()).all()
-    points = {p.id: p for p in Point.query}
+    points = {p.id: p for p in Point.live_query()}
     reports = (db.session.query(Report).join(Press, Press.report_id == Report.id)
                .filter(Press.resident_id == resident.id).group_by(Report.id).order_by(Report.first_at.desc()).limit(10).all())
     return {
@@ -148,7 +148,7 @@ def device_flags(now):
 
 
 def devices_overview(now):
-    points = {p.id: p for p in Point.query}
+    points = {p.id: p for p in Point.live_query()}
     devs = Device.query.all()
     return {
         "total": len(devs),
@@ -182,7 +182,7 @@ def seed_demo(now, seed=5):
         db.session.query(model).delete()
     db.session.query(Press).filter(Press.resident_id.isnot(None)).update({"resident_id": None})
     db.session.query(Resident).delete()
-    points = Point.query.order_by(Point.id).all()
+    points = Point.live_query().order_by(Point.id).all()
     offline = {p.id for p in rng.sample(points, min(2, len(points)))}
     weak = {p.id for p in rng.sample(points, min(2, len(points)))} - offline
     for p in points:

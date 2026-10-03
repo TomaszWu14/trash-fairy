@@ -1,0 +1,32 @@
+{# Wspólne makra UI: ikona Lucide, kosz-wskaźnik, plakietka zapełnienia, logo. Progi zapełnienia = app.js (fillLevel). #}
+{% macro icon(name, cls='') -%}
+<svg class="i {{ cls }}" viewBox="0 0 24 24" aria-hidden="true"><use href="{{ url_for('static', filename='ui/icons.svg') }}#{{ name }}"/></svg>
+{%- endmacro %}
+
+{% macro lvl(level) -%}{{ 'full' if level >= 80 else ('warn' if level >= 50 else 'ok') }}{%- endmacro %}
+
+{% macro gauge(level, cls='', label=True) -%}
+{% set l = [[level or 0, 0]|max, 100]|min %}
+<svg class="gauge lvl-{{ lvl(l) }} {{ cls }}" viewBox="0 0 48 56" style="--lvl:{{ '%.3f'|format(l / 100) }}"
+     {% if label %}role="img" aria-label="Zapełnienie {{ l|round|int }}%"{% else %}aria-hidden="true"{% endif %}>
+  <rect class="g-lid" x="4" y="2" width="40" height="6" rx="3"/>
+  <path class="g-body" d="M7 12h34l-3.2 38.6A4 4 0 0 1 33.8 54H14.2a4 4 0 0 1-4-3.4z"/>
+  <path class="g-fill" d="M7.6 19h32.8l-2.6 31.6A4 4 0 0 1 33.8 54H14.2a4 4 0 0 1-4-3.4z"/>
+  <rect class="g-shine" x="13" y="16" width="3" height="30" rx="1.5"/>
+</svg>
+{%- endmacro %}
+
+{% macro fill_badge(level) -%}
+{% set k = lvl(level or 0) %}
+<span class="badge {{ k }}">{{ icon({'ok': 'check', 'warn': 'trending-up', 'full': 'circle-alert'}[k]) }}{{ {'ok': 'W porządku', 'warn': 'Zapełnia się', 'full': 'Pełny'}[k] }}</span>
+{%- endmacro %}
+
+{% macro logo(cls='logo') -%}
+<svg class="{{ cls }}" viewBox="0 0 32 32" aria-hidden="true">
+  <defs><linearGradient id="tf-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5B3DF5"/><stop offset="1" stop-color="#9B7BFF"/></linearGradient></defs>
+  <rect width="32" height="32" rx="9" fill="url(#tf-g)"/>
+  <path d="M16 4.5l1.3 3.2 3.2 1.3-3.2 1.3L16 13.5l-1.3-3.2-3.2-1.3 3.2-1.3z" fill="#F5B83D"/>
+  <rect x="8.5" y="14" width="15" height="2.6" rx="1.3" fill="#fff"/>
+  <path d="M10 18h12l-1.1 8.2a1.8 1.8 0 0 1-1.8 1.6h-6.2a1.8 1.8 0 0 1-1.8-1.6z" fill="#fff"/>
+</svg>
+{%- endmacro %}

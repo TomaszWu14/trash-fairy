@@ -1,0 +1,34 @@
+/* Strony tekstowe: metodologia, dostępność, prywatność, otwarte API. */
+.doc { max-width: 880px; margin-inline: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl);
+       box-shadow: var(--shadow-1); padding: var(--s10) var(--s10) var(--s12); }
+.doc h1 { font-size: var(--fs-2xl); font-weight: 800; margin-bottom: var(--s2); }
+.doc h2 { font-size: var(--fs-xl); font-weight: 750; margin: var(--s10) 0 var(--s3); }
+.doc h3 { font-size: var(--fs-lg); font-weight: 700; margin: var(--s6) 0 var(--s2); }
+.doc p, .doc li { color: var(--ink-2); line-height: 1.65; }
+.doc p + p, .doc p + ul, .doc ul + p, .doc table + p, .doc table + table { margin-top: var(--s3); }
+.doc ul, .doc ol { padding-left: var(--s5); display: grid; gap: var(--s1); }
+.doc b, .doc strong { color: var(--ink); }
+.doc code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .88em; background: var(--surface-2);
+            border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+.doc table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-sm); margin-top: var(--s3);
+             border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
+.doc th, .doc td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.doc tr:last-child td { border-bottom: 0; }
+.doc th { background: var(--surface-2); color: var(--ink); font-weight: 700; }
+.doc td.num, .doc th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.doc .note, .doc .c-doc-note { background: var(--brand-soft); color: var(--brand-ink); border-radius: var(--r-md); padding: var(--s4); font-size: var(--fs-sm); margin-top: var(--s4); }
+.doc .note b, .doc .c-doc-note b { color: inherit; }
+.doc .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--s3); }
+.doc .kpi { border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s4); background: var(--surface-2); }
+.doc .kpi b { display: block; font-size: var(--fs-xl); font-weight: 800; letter-spacing: -.02em; }
+.doc .kpi small { color: var(--ink-3); font-size: var(--fs-xs); }
+.doc .tf-muted, .doc .c-doc-small { color: var(--ink-3); }
+.doc .c-doc-ep { border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s5); margin-top: var(--s4); }
+.doc .c-doc-ep h2 { font-size: var(--fs-md); margin: 0 0 var(--s2); display: flex; align-items: center; gap: var(--s2); }
+.doc .c-doc-get { background: var(--fill-ok-soft); color: var(--fill-ok-ink); border-radius: 6px; padding: 2px 8px; font-size: var(--fs-xs); font-weight: 800; }
+.doc pre { background: var(--ink); color: #E6E8F2; border-radius: var(--r-md); padding: var(--s3) var(--s4); overflow-x: auto; font-size: 13px; margin-top: var(--s3); }
+.doc pre code { background: none; border: 0; padding: 0; color: inherit; }
+@media (max-width: 720px) {
+  .doc { padding: var(--s6) var(--s5) var(--s8); border-radius: var(--r-lg); }
+  .doc table { display: block; overflow-x: auto; }
+}

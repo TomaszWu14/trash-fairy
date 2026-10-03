@@ -2,10 +2,10 @@
 na opróżnieniach z harmonogramu, które „wydarzyły się” w przewiniętym czasie."""
 from datetime import UTC, datetime, timedelta
 
-from . import db, photos, residents
+from . import db, devices, history, photos, residents
 from .models import DemoClock, Emptying, FairyReport, StopIssue
 from .reports import resolve_reports
-from .simulation import DEMO_NOW, FUTURE_HOURS, simulate
+from .simulation import DEMO_NOW, FUTURE_HOURS, hour_floor, simulate
 
 MAX_NOW = DEMO_NOW + timedelta(hours=FUTURE_HOURS - 1)  # dalej symulacja nie sięga
 IDLE = timedelta(minutes=30)  # po tylu minutach bez akcji kolejny widz zaczyna pokaz od 13:30 (decyzja 39)
@@ -59,8 +59,12 @@ def reset(weeks=8):
     from .state import clear_cache
     clear_cache()
     stats = simulate(weeks=weeks, now=DEMO_NOW)
+    from .models import Pickup
+    if db.session.query(Pickup.id).first() is None:  # historia nie zależy od akcji z pokazu: reset jej nie odtwarza (szybki auto-reset)
+        stats["history"] = history.generate_history(sim_start=hour_floor(DEMO_NOW) - timedelta(weeks=weeks))
     photos.seed_demo(DEMO_NOW)
     residents.seed_demo(DEMO_NOW)
+    devices.seed_demo(DEMO_NOW)  # masterdane urządzeń: po Device (residents) i punktach miasta
     db.session.query(FairyReport).delete()  # raporty z poprzedniego przebiegu demo opisywały inne naciśnięcia
     db.session.query(StopIssue).delete()  # problemy zgłoszone z PWA kierowcy w poprzednim przebiegu demo
     clock = db.session.get(DemoClock, 1) or DemoClock(id=1)

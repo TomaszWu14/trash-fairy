@@ -1,0 +1,91 @@
+{% extends "ui/mieszkaniec_base.html" %}
+{% from "ui/_ui.html" import icon, gauge, fill_badge %}
+{% block title %}Zgłoś: {{ bin.nazwa }}{% endblock %}
+{% block m_content %}
+<a class="back" href="{{ url_for('ui.report_pick') }}">{{ icon('arrow-left', 'i-sm') }}Inny kosz</a>
+
+<form class="m-card m-form rise" id="m-form" novalidate data-bin="{{ bin.id }}" data-lat="{{ bin.lat }}" data-lon="{{ bin.lon }}" data-qr="{{ qr }}">
+  <ol class="m-steps" aria-label="Kroki zgłoszenia">
+    <li class="on" data-s="1"><span>1</span>Kosz</li><li data-s="2"><span>2</span>Problem</li><li data-s="3"><span>3</span>Wyślij</li>
+  </ol>
+
+  <!-- krok 1: który kosz + weryfikacja (QR i położenie) -->
+  <fieldset class="m-step" data-step="1">
+    <legend class="sr-only">Krok 1: kosz</legend>
+    <div class="m-bin">
+      {{ gauge(bin.poziom) }}
+      <div class="m-bin-txt"><b>{{ bin.nazwa }}</b><span>{{ bin.adres }} · {{ bin.rodzaj }}</span>
+        <div class="m-bin-tags">{{ fill_badge(bin.poziom) }}<span class="frac" data-f="{{ bin.frakcja }}">{{ frakcje[bin.frakcja] }}</span></div></div>
+      <b class="m-bin-pct num">{{ bin.poziom }}%</b>
+    </div>
+    <ul class="m-checks">
+      <li class="m-check {{ 'ok' if qr_ok else '' }}" id="chk-qr">
+        <span class="m-check-i">{{ icon('check' if qr_ok else 'qr-code') }}</span>
+        <div><b>Kod QR kosza</b><span>{{ 'Zeskanowany: to ten kosz.' if qr_ok else 'Zeskanuj kod z panelu na tym koszu.' }}</span></div>
+        {% if not qr_ok %}<a class="btn btn-sm" href="{{ url_for('ui.report_pick') }}">Skanuj</a>{% endif %}
+      </li>
+      <li class="m-check" id="chk-geo">
+        <span class="m-check-i">{{ icon('map-pin') }}</span>
+        <div><b>Jesteś przy koszu</b><span id="geo-txt">Sprawdzimy, czy jesteś do 150 m od kosza.</span></div>
+        <button class="btn btn-sm" type="button" data-geo>Sprawdź</button>
+      </li>
+    </ul>
+    <button class="m-sim" type="button" data-geo-sim>{{ icon('sparkles', 'i-sm') }}Demo: symuluj położenie przy koszu</button>
+    <button class="btn btn-primary btn-xl m-next" type="button" data-next="2" disabled>Dalej{{ icon('arrow-right') }}</button>
+  </fieldset>
+
+  <!-- krok 2: co jest nie tak -->
+  <fieldset class="m-step" data-step="2" hidden>
+    <legend class="m-legend">Co jest nie tak?</legend>
+    <div class="m-types">
+      {% for val, label, sub in [('przepelniony', 'Przepełniony', 'Nie mieści się więcej'), ('odpady_obok', 'Odpady obok', 'Worki lub śmieci przy koszu'),
+                                 ('uszkodzony', 'Uszkodzony', 'Zepsuty, przewrócony, bez klapy'), ('inne', 'Inne', 'Opiszesz w komentarzu')] %}
+      <label class="m-type">
+        <input type="radio" name="typ" value="{{ val }}" required>
+        <span class="m-type-ill" aria-hidden="true">{% include "ui/_typ_" ~ val ~ ".svg" %}</span>
+        <b>{{ label }}</b><small>{{ sub }}</small>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="field">
+      <label for="m-komentarz">Komentarz <span class="subtle">(opcjonalnie)</span></label>
+      <textarea class="textarea" id="m-komentarz" name="komentarz" maxlength="280" placeholder="Np. worki z domowymi śmieciami obok kosza"></textarea>
+    </div>
+    <label class="m-photo">
+      <input type="file" name="zdjecie" accept="image/jpeg,image/png,image/webp" capture="environment" class="sr-only" id="m-zdjecie">
+      {{ icon('camera') }}<span id="m-photo-txt">Dodaj zdjęcie <span class="subtle">(opcjonalnie)</span></span>
+    </label>
+    <div class="m-nav">
+      <button class="btn btn-ghost" type="button" data-next="1">{{ icon('arrow-left') }}Wstecz</button>
+      <button class="btn btn-primary btn-xl" type="button" data-next="3" disabled id="to-3">Dalej{{ icon('arrow-right') }}</button>
+    </div>
+  </fieldset>
+
+  <!-- krok 3: podsumowanie i wysłanie -->
+  <fieldset class="m-step" data-step="3" hidden>
+    <legend class="m-legend">Sprawdź i wyślij</legend>
+    <dl class="m-sum">
+      <div><dt>Kosz</dt><dd>{{ bin.nazwa }}, {{ bin.adres }}</dd></div>
+      <div><dt>Problem</dt><dd id="sum-typ">–</dd></div>
+      <div><dt>Komentarz</dt><dd id="sum-kom">brak</dd></div>
+      <div><dt>Zdjęcie</dt><dd id="sum-foto">brak</dd></div>
+    </dl>
+    <p class="hint">Zapisujemy czas, kosz i treść zgłoszenia. Położenia nie przechowujemy, służy tylko do sprawdzenia odległości.</p>
+    <div class="alert" id="m-err" hidden role="alert"></div>
+    <div class="m-nav">
+      <button class="btn btn-ghost" type="button" data-next="2">{{ icon('arrow-left') }}Wstecz</button>
+      <button class="btn btn-primary btn-xl" type="submit" id="m-send">{{ icon('check') }}Wyślij zgłoszenie</button>
+    </div>
+  </fieldset>
+</form>
+
+<section class="m-card m-success" id="m-success" hidden aria-live="polite">
+  <img src="{{ url_for('static', filename='ui/ill/sukces.svg') }}" alt="" width="200" height="160">
+  <h1>Zgłoszenie przyjęte</h1>
+  <p>Numer zgłoszenia</p>
+  <p class="m-nr num" id="m-nr">TF-00000</p>
+  <p class="muted" id="m-success-txt">Kosz trafia na listę kierowcy MPO. Status zobaczysz na osi czasu.</p>
+  <a class="btn btn-primary btn-xl" id="m-status-link" href="#">{{ icon('clock') }}Śledź status</a>
+  <a class="link" href="{{ url_for('ui.report_pick') }}">Zgłoś inny kosz</a>
+</section>
+{% endblock %}

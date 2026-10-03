@@ -16,6 +16,62 @@ class Point(db.Model):
     osm_tags = db.Column(db.JSON, nullable=False, default=dict)
     base_rate = db.Column(db.Float, nullable=False)  # średnie tempo zapełniania, % na godzinę
     overloaded = db.Column(db.Boolean, nullable=False, default=False)  # celowo przeciążona altana (demo)
+    # live=True: 72 punkty silnika demo (symulacja, prognoza, trasy, porównanie). live=False: punkty panelu miasta
+    # (app/city_import.py) — tylko historia syntetyczna, silnik demo ich nie widzi (Point.live_query()).
+    live = db.Column(db.Boolean, nullable=False, default=True)
+    district = db.Column(db.String(30))  # dzielnica Krakowa, np. „Stare Miasto”
+    fraction = db.Column(db.String(20), nullable=False, default="zmieszane")  # app/history.py: FRACTIONS
+    address = db.Column(db.String(160))
+    snapshot_fill = db.Column(db.Integer)  # tylko punkty miasta: zapełnienie % w chwili DEMO_NOW z generatora historii
+
+    @classmethod
+    def live_query(cls):
+        """Punkty silnika demo. Każde zapytanie silnika iterujące po punktach idzie przez tę metodę."""
+        return cls.query.filter(cls.live.is_(True))
+
+    @classmethod
+    def live_or_404(cls, point_id):
+        return cls.live_query().filter_by(id=point_id).first_or_404()
+
+
+class Pickup(db.Model):
+    """Odbiór historyczny (syntetyczny, app/history.py). Odbiory na żywo to Emptying — panel łączy oba (UNION)."""
+    id = db.Column(db.Integer, primary_key=True)
+    point_id = db.Column(db.Integer, db.ForeignKey("point.id"), nullable=False, index=True)
+    at = db.Column(db.DateTime, nullable=False, index=True)
+    fraction = db.Column(db.String(20), nullable=False)
+    mass_kg = db.Column(db.Float, nullable=False)
+    cost_pln = db.Column(db.Float, nullable=False)
+    km = db.Column(db.Float, nullable=False)  # przejazd przypisany do odbioru (CO₂, koszt)
+    fill_pct = db.Column(db.Integer, nullable=False)  # zapełnienie w chwili odbioru
+    on_demand = db.Column(db.Boolean, nullable=False, default=False)
+
+
+class ReportHistory(db.Model):
+    """Zgłoszenie historyczne (syntetyczne). Zgłoszenia na żywo to Report — panel łączy oba (UNION)."""
+    id = db.Column(db.Integer, primary_key=True)
+    point_id = db.Column(db.Integer, db.ForeignKey("point.id"), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, index=True)
+    resolved_at = db.Column(db.DateTime)
+    kind = db.Column(db.String(20), nullable=False)  # przepelniony / uszkodzony / odpady_obok / inne
+
+
+class Project(db.Model):
+    """Projekt miejski w dzielnicy. Efekt (effect_label/effect_value) liczony z historii przed/po starcie."""
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(60), unique=True, nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    district = db.Column(db.String(30), nullable=False)
+    status = db.Column(db.String(20), nullable=False)  # planowany / w_realizacji / zakonczony
+    progress_pct = db.Column(db.Integer, nullable=False)
+    budget_pln = db.Column(db.Float, nullable=False)
+    spent_pln = db.Column(db.Float, nullable=False)
+    start = db.Column(db.Date, nullable=False)
+    end = db.Column(db.Date, nullable=False)
+    metric = db.Column(db.String(30), nullable=False)  # miara efektu: app/history.py PROJECT_METRICS
+    effect_label = db.Column(db.String(120), nullable=False)
+    effect_value = db.Column(db.Float)  # None = za wcześnie (planowany)
+    icon = db.Column(db.String(30), nullable=False)  # nazwa ikony Lucide
 
 
 class Press(db.Model):
@@ -29,6 +85,8 @@ class Press(db.Model):
     kind = db.Column(db.String(10))  # full / overflow / damaged (None = fizyczny przycisk, czyli „pełny”)
     resident_id = db.Column(db.Integer, db.ForeignKey("resident.id"), index=True)  # None = anonimowe
     report_id = db.Column(db.Integer, db.ForeignKey("report.id"), index=True)
+    note = db.Column(db.String(280))  # komentarz mieszkańca z nowego formularza zgłoszenia
+    photo_id = db.Column(db.Integer)  # PhotoAnalysis.id zdjęcia dołączonego do zgłoszenia
 
 
 class StopIssue(db.Model):
@@ -167,3 +225,18 @@ class Counter(db.Model):
     key = db.Column(db.String(120), primary_key=True)
     window_start = db.Column(db.Integer, primary_key=True)  # sekundy epoki, początek okna
     count = db.Column(db.Integer, nullable=False, default=0)
+
+
+class DeviceInfo(db.Model):
+    """Masterdane urządzenia na koszu (DANE SYNTETYCZNE, app/devices.py). Panel e-papierowy: sygnał, bateria i autotest
+    nadal w Device; czujnik zapełnienia (pilotaż Nowa Huta): sygnał i autotest tutaj, bateria z wieku (devices.battery)."""
+    point_id = db.Column(db.Integer, db.ForeignKey("point.id"), primary_key=True)
+    kind = db.Column(db.String(10), nullable=False)  # panel / czujnik
+    model = db.Column(db.String(60), nullable=False)
+    serial = db.Column(db.String(20), unique=True, nullable=False)
+    installed_at = db.Column(db.DateTime, nullable=False)
+    firmware = db.Column(db.String(12), nullable=False)
+    drain = db.Column(db.Float, nullable=False, default=1.0)  # tempo zużycia baterii względem założenia (1 = nominalne)
+    loss = db.Column(db.Float, nullable=False, default=0.0)  # udział odczytów zgubionych w transmisji
+    last_seen = db.Column(db.DateTime)  # tylko czujnik; panel: Device.last_heartbeat
+    selftest_ok = db.Column(db.Boolean)  # tylko czujnik; panel: Device.selftest_ok

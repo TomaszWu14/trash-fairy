@@ -46,7 +46,7 @@ def household_bag_links(bins_with_bags, shelters, overflowing):
 
 def misuse_overview(now):
     """Wszystko, czego potrzebuje panel: plakietki nadużyć, flagi rozbieżności, linie i rekomendacje."""
-    points = {p.id: p for p in Point.query}
+    points = {p.id: p for p in Point.live_query()}
     analyses = latest_analyses(now)
     per_point = {}
     bins_with_bags = []
