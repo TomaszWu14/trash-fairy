@@ -41,27 +41,45 @@ def point_reliability(point_id):
     return reliability([r.hit for r in reversed(rows)])
 
 
-def record_press(point_id, at, ip=None, wall_at=None):
-    """Zapisuje naciśnięcie i dolicza je do otwartego zgłoszenia z ostatnich 15 min albo tworzy nowe."""
-    db.session.add(Press(point_id=point_id, at=at, ip=ip, wall_at=wall_at))
+def record_press(point_id, at, ip=None, wall_at=None, resident_id=None, source="button"):
+    """Zapisuje naciśnięcie i dolicza je do otwartego zgłoszenia z ostatnich 15 min albo tworzy nowe.
+
+    Zarejestrowany mieszkaniec podnosi wagę zgłoszenia do swojej wiarygodności, a dołączając do zgłoszenia
+    zaczętego przez kogoś innego — potwierdza je.
+    """
+    from .residents import resident_reliability  # import lokalny: residents importuje ten moduł
+    press = Press(point_id=point_id, at=at, ip=ip, wall_at=wall_at, resident_id=resident_id, source=source)
     report = (Report.query.filter(Report.point_id == point_id, Report.hit.is_(None),
                                   Report.first_at > at - MERGE_WINDOW, Report.first_at <= at)
               .order_by(Report.first_at.desc()).first())
     if report:
         report.presses += 1
         report.last_at = max(report.last_at, at)
+        if resident_id and Press.query.filter(Press.report_id == report.id,
+                                              (Press.resident_id != resident_id) | Press.resident_id.is_(None)).first():
+            report.confirmed = True
     else:
         report = Report(point_id=point_id, first_at=at, last_at=at, presses=1,
-                        weight=point_reliability(point_id))
+                        weight=point_reliability(point_id), confirmed=False)
         db.session.add(report)
+        db.session.flush()
+    if resident_id:
+        report.weight = max(report.weight, resident_reliability(resident_id))
+    press.report_id = report.id
+    db.session.add(press)
     db.session.commit()
     return report
 
 
 def resolve_reports(emptying):
-    """Opróżnienie rozstrzyga otwarte zgłoszenia punktu: poziom >= 75% → trafne, inaczej fałszywe."""
+    """Opróżnienie rozstrzyga otwarte zgłoszenia punktu: poziom >= 75% → trafne, inaczej fałszywe.
+    Trafne zgłoszenia dają punkty zarejestrowanym naciskającym."""
+    from .models import Point
+    from .residents import award
+    kind = db.session.get(Point, emptying.point_id).kind
     open_reports = Report.query.filter(Report.point_id == emptying.point_id, Report.hit.is_(None),
                                        Report.first_at <= emptying.at)
     for r in open_reports:
         r.hit = is_hit(emptying.level)
         r.resolved_at = emptying.at
+        award(r, kind)

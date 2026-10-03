@@ -106,3 +106,72 @@ z rozbiciem na floty, bo sama suma ukryłaby, że dodatkowe kilometry idą na pr
 
 **Godziny przepełnienia koszy są takie same w obu wariantach.** Przepełnienia między kursami nie da się usunąć,
 jeśli godziny kursów są stałe. Tu pomagają kompaktor albo większy kosz (rekomendacje, etap 6), a nie trasa.
+
+## Etap 5 — ekipa MPO, Claude Vision, nadużycia (sob 3.10, ~15:00–)
+
+**Jedna brama do AI: `app/llm.py` (`ask`, `ask_json`), oficjalne SDK `anthropic`, model z `ANTHROPIC_MODEL` (domyślnie `claude-opus-5`).**
+Każdy błąd (brak klucza, limit, sieć, odmowa modelu, zły JSON) zamieniamy na `LLMError` z komunikatem dla człowieka.
+Panel pokazuje komunikat i ostatni udany wynik z bazy, nigdy błąd 500 (test 9). Odpowiedź modelu jest ograniczona schematem JSON
+(structured outputs), więc nie parsujemy wolnego tekstu. Dla Opus 5 włączony jest serwerowy fallback po odmowie filtra bezpieczeństwa.
+
+**Zdjęcie: walidacja po sygnaturze pliku (JPEG, PNG, WebP, maksymalnie 8 MB), analiza w tle, plik usuwany po 7 dniach.**
+Ekipa na telefonie nie czeka na model. Wynik (poziom, nadużycia, uszkodzenia, notatka) zostaje w `photo_analysis`,
+a samo zdjęcie po 7 dniach kasuje `flask cleanup-photos` (RODO). Prompt zabrania opisywania osób i tablic rejestracyjnych.
+Odrzuciliśmy synchroniczne wywołanie w żądaniu, bo kilka sekund oczekiwania na telefonie przy koszu to zły UX.
+
+**Opróżnienie od ekipy to prawdziwy odczyt.** Zeruje szacunek i rozstrzyga zgłoszenia po tym samym progu 75% co w etapie 2.
+Gdy poziom ze zdjęcia różni się od klikniętego o więcej niż 25 p.p., panel pokazuje flagę.
+
+**Reguła altana → kosz w kodzie, a nie w AI.** AI tylko rozpoznaje „worek z domowymi śmieciami”. Powiązanie powstaje, gdy taki kosz
+stoi w promieniu 200 m od altany, którą szacunek pokazywał jako przepełnioną (>100%) w ostatnich 48 h. Wtedy altana dostaje
+rekomendację „zwiększ częstotliwość odbioru”. Bez zgłoszeń do Straży Miejskiej.
+
+**6 z 60 koszy przenieśliśmy do Grzegórzek, po 3 przy każdej przeciążonej altanie.** Najbliższy kosz z Rynku i Kazimierza stał 877 m
+od altany, więc reguła 200 m nigdy by się nie uruchomiła. Liczby po zmianie: MAE 2,4 p.p. vs 7,1 p.p.; kosze −24% wizyt, −5% km,
+puste przyjazdy z 57% do 27%; altany z 338 h do 0 h przepełnień (+163 km); 71% opróżnień koszy przy poziomie poniżej 75%.
+
+**Harmonogram MPO 08/2026 (9 383 koszy) potwierdza założenia porównania.** W Dzielnicy I 43% koszy opróżnia się 3× dziennie,
+a 36% 2× dziennie, więc nasz stały plan „2× dziennie” raczej zaniża realny koszt (szczegóły w `docs/kontekst-mpo.md`).
+
+## Etap 6 — raport, rekomendacje, jury, Metodologia, Karnet (sob 3.10, ~17:00–)
+
+**Rekomendacje (sekcja 6.8) liczymy z poziomów zastanych przy opróżnieniach, a nie z ukrytej „prawdy”.** Te dane MPO naprawdę ma od ekip.
+Reguły: kompaktor, gdy kosz jest przepełniony w ponad 50% dni mimo opróżniania 2× dziennie; większy kosz przy 20–50% dni;
+rzadsze opróżnianie, gdy mniej niż 20% opróżnień wypada przy poziomie ≥50%; interwencja przy altanie z reguły altana → kosz.
+Efekt podajemy w jednostkach fizycznych („−46 wizyt w miesiącu”). Wynik demo: 13 kompaktorów, 9 większych koszy, 13 do rzadszego opróżniania, 2 altany.
+
+**Raport „Wróżka podpowiada”: fakty liczy kod, Claude pisze 5 sekcji przez structured outputs.** Prompt zabrania dodawania liczb,
+a kod dodatkowo sprawdza, czy każda liczba z tekstu występuje w faktach. Jeśli nie, panel pokazuje ostrzeżenie.
+Raporty zapisujemy w `fairy_report`. Przy błędzie API panel pokazuje komunikat i ostatni raport. Raport powstaje raz na godzinę zegara albo na żądanie,
+a nie przy każdym pollingu, bo to by kosztowało. Odrzuciliśmy wolny markdown od modelu, bo sekcje w JSON łatwo bezpiecznie wyrenderować.
+
+**Metodologia czyta wartości wprost ze stałych w kodzie.** Złotówki i CO₂ to jawne, konfigurowalne założenia (env), nie dane MPO.
+Bilans miesięczny: −866 wizyt i ≈2 976 zł mniej (5 zł/km, 4 zł za wizytę), ale +97 km i +97 kg CO₂, bo częściej jeździmy do przeciążonych altan.
+
+**Karnet Kraków bez Nominatim.** Lista wydarzeń Karnetu ma już współrzędne, więc geokodowanie okazało się zbędne.
+Pobieramy 5 stron z 3 list (1 zapytanie na sekundę, z identyfikującym User-Agentem), a wynik trafia do `data/karnet.json`.
+Daje to 28 wydarzeń w obszarze demo w weekend demo. Godziny i skalę tłumu uzupełnia Claude, a bez klucza robią to jawne reguły:
+koncerty i festiwale to 18–22 i średni tłum, długie wystawy mały tłum. Wydarzenia z Karnetu wchodzą do symulacji i prognozy tak samo jak lista zapasowa.
+
+**Godziny przepełnienia koszy po dodaniu Karnetu: 1822 h przy stałym planie i 1823 h u wróżki (+1 h).** Piszemy „praktycznie bez zmian”,
+a nie „bez zmian”. Przepełnień między stałymi godzinami kursów nie usuwa trasa. Na to są rekomendacje (kompaktor, większy kosz).
+
+## Program „Przyjaciele Wróżki”, ochrona przed spamem, stan urządzeń (sob 3.10, ~19:00–)
+
+Źródło: brainstorm 50 pytań (`docs/brainstorm-przycisk-program.md`) i spec (`docs/superpowers/specs/2026-10-03-program-mieszkancow-design.md`).
+
+**Fizyczny przycisk z wyświetlaczem e-papierowym, a nie ekran dotykowy.** Ekran na ulicy potrzebuje stałego zasilania, gorzej znosi wandalizm
+i nie da się go odczytać w słońcu. E-papier zużywa prąd tylko przy zmianie obrazu i działa na baterii LoRaWAN. W demo jest makietą nad wirtualnym przyciskiem
+(stan, godzina kursu, a dla niezarejestrowanych kod QR do programu).
+
+**Zarejestrowani mają własną wiarygodność i potwierdzają zgłoszenia anonimowe.** Waga zgłoszenia to max z wiarygodności przycisku i mieszkańca
+(start 80%). Potwierdzone zgłoszenie nie jest osłabiane przez reguły antyspamowe. Punkty są tylko za trafne zgłoszenia (10, a za altanę 15),
+najwyżej raz na osobę, punkt i dzień, więc spam i nabijanie nic nie dają.
+
+**Dane osobowe dopiero przy nagrodzie.** Rejestracja wymaga pseudonimu, dzielnicy i HMAC numeru telefonu (samego numeru nie zapisujemy).
+Imię i nazwisko podaje tylko zwycięzca. Odrzuciliśmy pełne dane przy rejestracji (sugestia „prawdziwe dane do rozliczeń”),
+bo RODO wymaga minimalizacji, a rozliczenie i tak jest możliwe przy odbiorze nagrody. SMS jest symulowany (kod na ekranie z etykietą DEMO).
+
+**Antyspam w regułach wagi:** zgłoszenie przy koszach w promieniu 100 m z szacunkiem poniżej 30% liczy się ×0,7; ≥3 fałszywe zgłoszenia o tej porze
+(±1 h) w 14 dni dają ×0,5; zgłoszenie z telefonu z położeniem dalej niż 150 m od kosza jest odrzucane. `REQUIRE_GEO=1` wymusza położenie.
+W demo jest wyłączone, bo jury głosuje z hali, a nie spod kosza. Autotest urządzenia nie tworzy zgłoszeń, a brak sygnału przez 48 h daje flagę.

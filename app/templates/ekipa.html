@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2f3b2a">
+  <title>Trash Fairy — ekipa MPO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --cream: #f4f1ea; --paper: #fbfaf6; --ink: #1f2a1b; --plant: #2f3b2a; --plant-2: #4d6b45; --gold: #c9a227;
+            --magic: #7c3aed; --ok: #2e7d32; --bad: #c53030; --line: #e3ddcf; --muted: #5f5e55; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.4 Inter, system-ui, sans-serif; color: var(--ink); background: var(--cream); }
+    header { position: sticky; top: 0; z-index: 2; background: var(--plant); color: var(--cream); padding: 12px 16px;
+             border-bottom: 3px solid var(--gold); }
+    header h1 { margin: 0; font: 600 20px Fraunces, Georgia, serif; }
+    header p { margin: 2px 0 0; font-size: 13px; color: #d6dfcf; }
+    .demo { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700; letter-spacing: .08em;
+            background: var(--gold); color: var(--plant); padding: 2px 8px; border-radius: 999px; }
+    .tabs { display: flex; gap: 8px; padding: 12px 16px 0; }
+    .tabs button { flex: 1; font: 600 15px Inter, sans-serif; padding: 10px; border-radius: 10px; border: 2px solid var(--plant);
+                   background: #fff; color: var(--plant); }
+    .tabs button[aria-pressed="true"] { background: var(--plant); color: var(--cream); }
+    main { padding: 12px 16px 40px; max-width: 640px; margin: 0 auto; }
+    .meta { color: var(--muted); font-size: 14px; margin: 4px 0 12px; }
+    .stop { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+    .stop.next { border: 2px solid var(--gold); box-shadow: 0 4px 16px -8px rgba(0,0,0,.3); }
+    .stop.done { opacity: .55; }
+    .stop h2 { margin: 0; font-size: 17px; display: flex; gap: 8px; align-items: center; }
+    .num { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--plant-2);
+           color: #fff; font-size: 14px; flex: none; }
+    .why { margin: 4px 0 10px; font-size: 14px; color: var(--muted); }
+    fieldset { border: 0; padding: 0; margin: 0 0 10px; }
+    legend { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .levels label { position: relative; }
+    .levels input { position: absolute; opacity: 0; inset: 0; }
+    .levels span { display: grid; place-items: center; min-height: 52px; border-radius: 10px; border: 2px solid var(--line);
+                   font-weight: 700; font-size: 17px; background: var(--paper); }
+    .levels input:checked + span { border-color: var(--plant); background: var(--plant); color: #fff; }
+    .levels input:focus-visible + span { outline: 3px solid var(--gold); outline-offset: 2px; }
+    .photo { display: block; font-size: 14px; margin: 8px 0 12px; }
+    .photo input { display: block; margin-top: 6px; font-size: 14px; max-width: 100%; }
+    .submit { width: 100%; min-height: 54px; font: 700 17px Inter, sans-serif; border: 0; border-radius: 12px;
+              background: var(--plant); color: #fff; }
+    .submit:disabled { opacity: .6; }
+    .submit:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+    .msg { margin: 8px 0 0; font-size: 14px; font-weight: 600; }
+    .msg.ok { color: var(--ok); } .msg.err { color: var(--bad); }
+    .empty { text-align: center; color: var(--muted); padding: 32px 0; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Trash Fairy · ekipa MPO</h1>
+  <p id="run">Ładuję trasę…</p>
+  <span class="demo">DANE DEMONSTRACYJNE</span>
+</header>
+<div class="tabs" role="group" aria-label="Flota">
+  <button type="button" data-kind="bin" aria-pressed="true">Kosze uliczne</button>
+  <button type="button" data-kind="shelter" aria-pressed="false">Altany</button>
+</div>
+<main>
+  <p class="meta" id="meta"></p>
+  <div id="stops"></div>
+</main>
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let fleets = [], kind = 'bin';
+  const done = new Set();
+
+  function render() {
+    const f = fleets.find(x => x.kind === kind);
+    $('run').textContent = `${f.label}: kurs ${f.run_label} · ${f.vehicle}`;
+    $('meta').textContent = `${f.stops.length} punktów · ${f.km} km · zrobione: ${f.stops.filter(s => done.has(s.id)).length}`;
+    const next = f.stops.find(s => !done.has(s.id));
+    $('stops').innerHTML = f.stops.length ? f.stops.map(s => `
+      <form class="stop ${done.has(s.id) ? 'done' : ''} ${next && s.id === next.id ? 'next' : ''}" data-id="${s.id}">
+        <h2><span class="num" aria-hidden="true">${s.order}</span>${esc(s.name)}${done.has(s.id) ? ' ✓' : ''}</h2>
+        <p class="why">${esc(s.reason)}</p>
+        <fieldset>
+          <legend>Poziom zastany przed opróżnieniem</legend>
+          <div class="levels">${[25, 50, 75, 100].map(l => `
+            <label><input type="radio" name="level" value="${l}" required><span>${l}%</span></label>`).join('')}</div>
+        </fieldset>
+        <label class="photo">Zdjęcie (opcjonalnie)
+          <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment"></label>
+        <input type="hidden" name="point_id" value="${s.id}">
+        <button class="submit" type="submit">Opróżniony</button>
+        <p class="msg" role="status"></p>
+      </form>`).join('') : '<p class="empty">Na ten kurs nie trzeba nikogo wysyłać. 🧚</p>';
+    if (next) document.querySelector(`.stop[data-id="${next.id}"]`)?.scrollIntoView({ block: 'nearest' });
+  }
+
+  document.addEventListener('submit', async e => {
+    const form = e.target.closest('.stop');
+    if (!form) return;
+    e.preventDefault();
+    const btn = form.querySelector('.submit'), msg = form.querySelector('.msg');
+    btn.disabled = true;
+    msg.className = 'msg'; msg.textContent = 'Zapisuję…';
+    try {
+      const r = await fetch('/api/emptying', { method: 'POST', body: new FormData(form) });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.message);
+      done.add(Number(form.dataset.id));
+      render();
+      const again = document.querySelector(`.stop[data-id="${form.dataset.id}"] .msg`);
+      again.className = 'msg ok';
+      again.textContent = data.message + (data.photo_error ? ` Zdjęcie: ${data.photo_error}` : '');
+    } catch (err) {
+      msg.className = 'msg err'; msg.textContent = err.message || 'Brak połączenia. Spróbuj jeszcze raz.';
+      btn.disabled = false;
+    }
+  });
+
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+    kind = b.dataset.kind;
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    render();
+  }));
+
+  fetch('/api/routes').then(r => r.json()).then(d => { fleets = d.fleets; render(); });
+</script>
+</body>
+</html>

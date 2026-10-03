@@ -13,6 +13,7 @@ from .models import Event
 EVENTS_FILE = Path(__file__).resolve().parent.parent / "data" / "events.json"
 RADIUS_M = {"small": 200, "medium": 400, "large": 800}
 MULTIPLIER = {"small": 1.3, "medium": 1.6, "large": 2.0}
+SCALE_PL = {"small": "mały tłum", "medium": "średni tłum", "large": "duży tłum"}
 AFTER = timedelta(hours=1)  # ludzie rozchodzą się jeszcze godzinę po wydarzeniu
 
 

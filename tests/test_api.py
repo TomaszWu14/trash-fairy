@@ -24,8 +24,11 @@ def props(client, point_id):
 
 def test_main_path_press_turns_point_red_and_top_of_list(client, demo):
     """Test 10 z sekcji 11: naciśnięcie → stan → punkt do opróżnienia."""
+    from app.state import neighbors_map
+    lonely = {pid for pid, n in neighbors_map().items() if not n}  # bez sąsiadów w 100 m → bez kary za puste otoczenie
     calm = min((f["properties"] for f in client.get("/api/points").json["features"]
-                if f["properties"]["state"] == "ok" and f["properties"]["reliability"] >= 70),
+                if f["properties"]["state"] == "ok" and f["properties"]["reliability"] >= 70
+                and f["properties"]["id"] in lonely),
                key=lambda p: p["value"])
     r = press(client, calm["id"])
     assert r.status_code == 200 and r.json["message"] == "Wróżka już leci!"

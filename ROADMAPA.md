@@ -30,3 +30,8 @@
 - Kilka pojazdów na flotę (OR-Tools: wymiar czasu/ładowności) i okna czasowe.
 - Paliwo, CO₂ i złotówki z jawnych, konfigurowalnych współczynników na stronie Metodologia (etap 6).
 - Dodatkowe kursy poza 6:00/14:00 dla punktów krytycznych (np. wieczorem przy wydarzeniach).
+- Stały harmonogram w porównaniu z prawdziwego harmonogramu MPO (`harmonogram_oczyszczania_08_2026.xlsx`, 9 383 koszy):
+  dopasowanie koszy OSM do symboli KUL po ulicy (reverse geocoding z cache) i częstotliwość 1–3×/dzień zamiast stałych 2×/dzień.
+- Świeże zgłoszenie jako zlecenie interwencji z terminem 2 h (standard MPO dla prac interwencyjnych).
+- Program „Przyjaciele Wróżki”: prawdziwy SMS (np. Twilio Verify), odbiór nagród z danymi zwycięzcy, losowanie miesięczne, +5 pkt za zdjęcie od mieszkańca.
+- Firmware przycisku LoRaWAN: limit 1 zgłoszenie na 15 min w urządzeniu, sygnał życia i bateria raz na dobę, autotest co 6 h, e-papier.

@@ -2,8 +2,8 @@
 na opróżnieniach z harmonogramu, które „wydarzyły się” w przewiniętym czasie."""
 from datetime import timedelta
 
-from . import db
-from .models import DemoClock, Emptying
+from . import db, photos, residents
+from .models import DemoClock, Emptying, FairyReport
 from .reports import resolve_reports
 from .simulation import DEMO_NOW, FUTURE_HOURS, simulate
 
@@ -29,6 +29,9 @@ def advance(hours=1):
 def reset(weeks=8):
     """Odtwarza symulację od zera i cofa zegar do startu scenariusza (kasuje naciśnięcia z demo)."""
     stats = simulate(weeks=weeks, now=DEMO_NOW)
+    photos.seed_demo(DEMO_NOW)
+    residents.seed_demo(DEMO_NOW)
+    db.session.query(FairyReport).delete()  # raporty z poprzedniego przebiegu demo opisywały inne naciśnięcia
     clock = db.session.get(DemoClock, 1) or DemoClock(id=1)
     clock.now = DEMO_NOW
     db.session.add(clock)

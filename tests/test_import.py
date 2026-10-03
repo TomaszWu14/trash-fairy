@@ -8,7 +8,14 @@ def test_import_selects_60_bins_and_12_shelters(cache):
     assert Point.query.filter_by(kind="bin").count() == 60
     assert Point.query.filter_by(kind="shelter").count() == 12
     assert Point.query.filter_by(kind="shelter", overloaded=True).count() == 2
-    assert {p.area for p in Point.query.filter_by(kind="bin")} == {"Rynek", "Kazimierz"}
+    assert {p.area for p in Point.query.filter_by(kind="bin")} == {"Rynek", "Kazimierz", "Grzegórzki"}
+
+
+def test_overloaded_shelters_have_street_bins_nearby(cache):
+    import_points(cache)
+    bins = Point.query.filter_by(kind="bin").all()
+    for s in Point.query.filter_by(kind="shelter", overloaded=True):
+        assert any(distance_m(s.lat, s.lon, b.lat, b.lon) <= 200 for b in bins)
 
 
 def test_imported_bins_keep_minimum_gap(cache):

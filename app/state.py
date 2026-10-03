@@ -11,7 +11,8 @@ from sqlalchemy import func
 
 from . import db
 from .forecast import point_forecasts
-from .models import Emptying, Press, Report
+from .geo import distance_m
+from .models import Emptying, Point, Press, Report
 from .reports import MERGE_WINDOW, low_reliability, reliability
 from .simulation import hour_floor
 
@@ -21,6 +22,12 @@ FRESH_BAD_WEIGHT = 0.7  # świeże zgłoszenie z przycisku o takiej wadze = od r
 WEAK_AFTER_EMPTYING = timedelta(hours=2)
 WEAK_BELOW_LEVEL = 30
 OVERFLOW_HOURS = 6  # przepełniony (wg szacunku) tyle godzin bez naciśnięcia → przycisk może nie działać
+NEIGHBOR_RADIUS_M = 100
+NEIGHBORS_EMPTY_BELOW = 30
+NEIGHBORS_FACTOR = 0.7  # pojedyncze zgłoszenie przy pustych sąsiadach waży mniej (spec, pkt 4)
+TROLL_WINDOW = timedelta(days=14)
+TROLL_MIN_FALSE = 3
+TROLL_FACTOR = 0.5  # ≥3 fałszywe zgłoszenia o tej samej porze (±1 h) w 14 dni
 
 # kolor nigdy nie jest jedynym nośnikiem informacji: każdy stan ma też symbol i opis
 STATES = {
@@ -38,9 +45,36 @@ def level_state(value, fresh_strong_report=False):
     return "ok"
 
 
-def report_signal(report, level, last_emptying):
+def troll_pattern(resolved, at):
+    """Czy ten przycisk ma ≥3 fałszywe zgłoszenia o tej samej godzinie (±1 h) w ostatnich 14 dniach."""
+    same_time = [t for t, hit in resolved
+                 if hit is False and t > at - TROLL_WINDOW and min(abs(t.hour - at.hour), 24 - abs(t.hour - at.hour)) <= 1]
+    return len(same_time) >= TROLL_MIN_FALSE
+
+
+def neighbors_map():
+    points = Point.query.all()
+    return {p.id: [q.id for q in points if q.id != p.id and distance_m(p.lat, p.lon, q.lat, q.lon) <= NEIGHBOR_RADIUS_M]
+            for p in points}
+
+
+def effective_weight(report, resolved, neighbor_levels):
+    """Waga zgłoszenia po regułach antyspamowych (potwierdzone przez mieszkańca nie są osłabiane)."""
+    weight, notes = report.weight, []
+    if report.confirmed:
+        return weight, ["potwierdzone przez mieszkańca"]
+    if neighbor_levels and max(neighbor_levels) < NEIGHBORS_EMPTY_BELOW:
+        weight *= NEIGHBORS_FACTOR
+        notes.append("sąsiednie kosze puste")
+    if troll_pattern(resolved, report.first_at):
+        weight *= TROLL_FACTOR
+        notes.append("powtarzalne fałszywe zgłoszenia o tej porze")
+    return weight, notes
+
+
+def report_signal(report, level, last_emptying, weight=None):
     """Sygnał zgłoszenia w %; zgłoszenie tuż po opróżnieniu przy niskim poziomie liczy się w połowie."""
-    signal = 100 * report.weight
+    signal = 100 * (report.weight if weight is None else weight)
     weak = (last_emptying is not None and report.first_at - last_emptying < WEAK_AFTER_EMPTYING
             and level < WEAK_BELOW_LEVEL)
     return (signal / 2 if weak else signal), weak
@@ -88,27 +122,35 @@ def point_states(now):
     pressed_recently = {pid for (pid,) in db.session.query(Press.point_id).distinct()
                         .filter(Press.at >= window_start, Press.at <= now)}
 
+    from .residents import device_flags  # import lokalny: residents importuje reports → bez cykli przy starcie
+    forecasts = point_forecasts(now, last_emptying)
+    neighbors = neighbors_map()
+    offline = device_flags(now)
     out = {}
-    for pid, f in point_forecasts(now, last_emptying).items():
+    for pid, f in forecasts.items():
         level = f["est"]
         report = open_reports.get(pid)
-        signal, weak, fresh = 0.0, False, False
+        signal, weak, fresh, weight, notes = 0.0, False, False, 0.0, []
         if report:
-            signal, weak = report_signal(report, level, last_emptying.get(pid))
+            weight, notes = effective_weight(report, resolved[pid], [forecasts[n]["est"] for n in neighbors.get(pid, [])])
+            signal, weak = report_signal(report, level, last_emptying.get(pid), weight)
             fresh = now - report.last_at <= MERGE_WINDOW
         value = max(level, signal)
-        state = level_state(value, fresh and not weak and report.weight >= FRESH_BAD_WEIGHT)
+        state = level_state(value, fresh and not weak and weight >= FRESH_BAD_WEIGHT)
 
-        check_reason = None
+        check_reason = offline.get(pid)
         overflow_hours = sum(v is not None and v > 100 for v in f["recent"])
-        if low_reliability(resolved[pid], now):
+        if check_reason:
+            pass
+        elif low_reliability(resolved[pid], now):
             check_reason = "mało trafnych zgłoszeń w ostatnich 7 dniach"
         elif overflow_hours == OVERFLOW_HOURS and pid not in pressed_recently:
             check_reason = f"wg prognozy przepełniony od {OVERFLOW_HOURS} h, a nikt nie nacisnął"
 
         if report and signal >= level:
-            reason = (f"zgłoszenie: {report.presses}× naciśnięty, wiarygodność {round(report.weight * 100)}%"
-                      + (" (słaby sygnał: tuż po opróżnieniu)" if weak else ""))
+            reason = (f"zgłoszenie: {report.presses}× naciśnięty, waga {round(weight * 100)}%"
+                      + (" (słaby sygnał: tuż po opróżnieniu)" if weak else "")
+                      + (f" ({', '.join(notes)})" if notes else ""))
         else:
             reason = forecast_reason(f, now)
 

@@ -13,7 +13,8 @@ RYNEK = (50.0617, 19.9373)
 KAZIMIERZ = (50.0513, 19.9447)  # Plac Nowy
 GRZEGORZKI = (50.0590, 19.9600)
 
-BIN_AREAS = [("Rynek", RYNEK, 36), ("Kazimierz", KAZIMIERZ, 24)]
+BIN_AREAS = [("Rynek", RYNEK, 33), ("Kazimierz", KAZIMIERZ, 21)]
+BINS_NEAR_OVERLOADED_SHELTER = 3  # kosze uliczne przy przeciążonych altanach — pod regułę altana → kosz (200 m)
 SHELTERS = 12
 MIN_GAP_M = 80  # żeby kosze nie zbijały się w jednym miejscu na mapie
 OVERLOADED_SHELTERS = 2  # celowo przeciążone altany (koncepcja, sekcja 7)
@@ -52,21 +53,25 @@ def bin_rate(b, pois, stops):
 
 
 def import_points(cache, seed=42):
-    """Zastępuje punkty w bazie: 60 koszy (Rynek + Kazimierz) i 12 altan (Grzegórzki)."""
+    """Zastępuje punkty w bazie: 60 koszy (Rynek, Kazimierz, kilka przy przeciążonych altanach) i 12 altan."""
     rng = random.Random(seed)
     db.session.query(Point).delete()
+    shelters = select_spaced(cache["shelters"], GRZEGORZKI, SHELTERS, MIN_GAP_M)
+    areas = list(BIN_AREAS) + [("Grzegórzki", (s["lat"], s["lon"]), BINS_NEAR_OVERLOADED_SHELTER)
+                               for s in shelters[:OVERLOADED_SHELTERS]]
 
-    taken = []
-    for area, centre, n in BIN_AREAS:
-        for i, b in enumerate(select_spaced(cache["bins"], centre, n, MIN_GAP_M, taken=taken), 1):
+    taken, counter = [], {}
+    for area, centre, n in areas:
+        for b in select_spaced(cache["bins"], centre, n, MIN_GAP_M, taken=taken):
             taken.append(b)
+            counter[area] = counter.get(area, 0) + 1
             db.session.add(Point(
                 osm_id=b["osm_id"], kind="bin", area=area, lat=b["lat"], lon=b["lon"],
-                name=b["tags"].get("name") or f"Kosz {area} {i:02d}", osm_tags=b["tags"],
+                name=b["tags"].get("name") or f"Kosz {area} {counter[area]:02d}", osm_tags=b["tags"],
                 base_rate=bin_rate(b, cache["pois"], cache["stops"]),
             ))
 
-    for i, s in enumerate(select_spaced(cache["shelters"], GRZEGORZKI, SHELTERS, MIN_GAP_M), 1):
+    for i, s in enumerate(shelters, 1):
         overloaded = i <= OVERLOADED_SHELTERS
         db.session.add(Point(
             osm_id=s["osm_id"], kind="shelter", area="Grzegórzki", lat=s["lat"], lon=s["lon"],

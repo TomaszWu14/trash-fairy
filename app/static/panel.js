@@ -8,6 +8,7 @@ const KIND = { bin: { shape: 'circle', size: 18, label: 'Kosz' }, shelter: { sha
 const POLL_MS = 2000;
 const markers = {};
 const eventLayer = L.layerGroup().addTo(map);
+const linkLayer = L.layerGroup().addTo(map);
 const routeLayers = { bin: L.layerGroup().addTo(map), shelter: L.layerGroup().addTo(map) };
 const ROUTE_COLOR = { bin: '#2f6b3a', shelter: '#b8860b' };
 let onRoute = {};  // point_id → przystanek na najbliższym kursie
@@ -21,9 +22,11 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pinHtml = p => `<span class="tf-pinwrap${p.fresh ? ' fresh' : ''}" aria-hidden="true">`
   + `<span class="tf-pin ${KIND[p.kind].shape} ${p.state}">${p.symbol}</span>`
-  + (p.check_button ? '<span class="tf-badge">⚠</span>' : '') + '</span>';
+  + (p.check_button ? '<span class="tf-badge">⚠</span>' : '')
+  + (p.misuse?.length ? '<span class="tf-badge left">🛍</span>' : '') + '</span>';
 const describe = p => `${KIND[p.kind].label}: ${p.name}, ${p.label}, ${p.reason}`
-  + (p.fresh ? ', świeże zgłoszenie' : '') + (p.check_button ? `, sprawdź przycisk: ${p.check_reason}` : '');
+  + (p.fresh ? ', świeże zgłoszenie' : '') + (p.check_button ? `, sprawdź przycisk: ${p.check_reason}` : '')
+  + (p.misuse?.length ? `, nadużycie: ${p.misuse.join(', ')}` : '') + (p.recommendation ? ', jest rekomendacja' : '');
 const popup = p => `<b>${esc(p.name)}</b><br>${KIND[p.kind].label} · ${esc(p.area)}<br>`
   + `Stan: <b>${p.symbol} ${p.label}</b> — ${esc(p.reason)}<br>Poziom: ${p.level}% · wiarygodność przycisku: ${p.reliability}%`
   + (p.check_button ? `<br>⚠ Sprawdź przycisk: ${esc(p.check_reason)}` : '')
@@ -53,6 +56,8 @@ function renderList() {
           <small class="why">${esc(p.reason)}</small>
           ${onRoute[p.id] ? `<span class="tf-onroute">🚚 kurs ${onRoute[p.id].run}, przystanek ${onRoute[p.id].order}</span>` : ''}
           ${p.check_button ? `<small class="check">⚠ sprawdź przycisk: ${esc(p.check_reason)}</small>` : ''}
+          ${p.misuse?.length ? `<small class="misuse">🛍 ${esc(p.misuse.join(', '))}</small>` : ''}
+          ${p.recommendation ? '<small class="rec">✨ rekomendacja: zwiększ częstotliwość odbioru</small>' : ''}
         </span>
         <span class="lvl">${p.value}%</span></button>
         <a class="tf-btnlink" href="/przycisk/${p.id}" target="_blank" rel="noopener" aria-label="Otwórz przycisk punktu ${esc(p.name)}" title="Otwórz przycisk">↗</a></li>`)
@@ -63,12 +68,22 @@ function renderEvents(events) {
   eventLayer.clearLayers();
   for (const e of events) {
     const label = `${e.name} · ${e.hours}${e.active ? ' (trwa)' : ''}`;
-    L.circle([e.lat, e.lon], { radius: e.radius_m, color: '#c9a227', weight: 2, dashArray: '6 6',
-                               fillColor: '#c9a227', fillOpacity: e.active ? 0.08 : 0.03, interactive: false }).addTo(eventLayer);
+    if (e.scale !== 'small')  // małe wydarzenia bez okręgu — inaczej centrum tonie w okręgach z Karnetu
+      L.circle([e.lat, e.lon], { radius: e.radius_m, color: '#c9a227', weight: 2, dashArray: '6 6',
+                                 fillColor: '#c9a227', fillOpacity: e.active ? 0.08 : 0.03, interactive: false }).addTo(eventLayer);
     L.marker([e.lat, e.lon], { icon: L.divIcon({ className: '', iconSize: [24, 24], html: '<span class="tf-evpin" aria-hidden="true">🎪</span>' }),
                                title: label, alt: label, keyboard: true, zIndexOffset: -500 })
-      .bindPopup(`<b>${esc(e.name)}</b><br>${esc(e.venue)}<br>${e.hours}${e.active ? ' · <b>trwa</b>' : ''}<br>`
+      .bindPopup(`<b>${esc(e.name)}</b><br>${esc(e.venue)}<br>${e.hours}${e.active ? ' · <b>trwa</b>' : ''}`
+        + `<br>Źródło: ${e.source === 'karnet' ? 'Karnet Kraków' : 'lista zapasowa'}<br>`
         + `Zasięg ${e.radius_m} m: kosze w okręgu zapełniają się szybciej`).addTo(eventLayer);
+  }
+}
+
+function renderLinks(links) {
+  linkLayer.clearLayers();
+  for (const l of links) {
+    L.polyline([l.bin, l.shelter], { color: '#7c3aed', weight: 3, dashArray: '4 8', opacity: 0.9 })
+      .bindTooltip(esc(l.label), { sticky: true }).addTo(linkLayer);
   }
 }
 
@@ -85,13 +100,83 @@ function apply(data) {
   $('clock').textContent = data.clock.label;
   $('btn-advance').disabled = !data.clock.can_advance;
   renderEvents(data.events);
+  renderLinks(data.links);
   const q = data.forecast_quality;
   $('quality').innerHTML = q
     ? `<span aria-hidden="true">📈</span> Trafność prognozy (ostatnie ${q.days} dni): średni błąd <b>${q.mae} p.p.</b>, `
       + `a przy stałej średniej <b>${q.naive_mae} p.p.</b>`
     : '';
   if (detailId) openDetails(detailId, false);
-  loadRoutes();
+  loadRoutes();  loadRecommendations();
+  loadFriends();
+}
+
+async function loadFriends() {
+  const [rk, dev] = await Promise.all([fetch('/api/rankings').then(r => r.json()), fetch('/api/devices').then(r => r.json())]);
+  $('friends-sum').textContent = `${rk.members} zarejestrowanych · dzielnice: `
+    + rk.districts.map(d => `${d.district} ${d.points} pkt`).join(', ');
+  $('friends').innerHTML = rk.people.slice(0, 5).map(p => `<li>${esc(p.nick)} <small>(${esc(p.district)})</small> — ${p.points} pkt</li>`).join('');
+  $('devices').innerHTML = `<p>${dev.total} przycisków z wyświetlaczem · autotest zaległy: ${dev.selftest_due}</p>`
+    + (dev.offline.length ? `<p class="tf-flag">⚠ Bez sygnału od 48 h: ${dev.offline.map(d => esc(d.name)).join(', ')}</p>` : '')
+    + (dev.low_battery.length ? `<p>🔋 Słaba bateria: ${dev.low_battery.map(d => `${esc(d.name)} (${d.battery}%)`).join(', ')}</p>` : '');
+}
+
+// --- raport „Wróżka podpowiada” i rekomendacje (etap 6) ---
+
+function renderFairy(data) {
+  const r = data.report;
+  let html = data.error ? `<p class="tf-photo-err">⚠ ${esc(data.error)}${r ? ' Pokazuję ostatni raport.' : ''}</p>` : '';
+  if (!r) {
+    html += `<p class="tf-muted">${data.available ? 'Brak raportu. Kliknij „Odśwież raport”.'
+                                                  : 'Raport AI niedostępny: brak klucza API. Dane i rekomendacje działają bez niego.'}</p>`;
+  } else {
+    html += `<p class="tf-muted tf-small">Raport z ${r.label}${data.fresh ? '' : ' (starszy niż bieżąca godzina)'} · ${esc(r.model)}</p>`
+      + r.sections.map(s => `<h3 class="tf-h3">${esc(s.title)}</h3><p class="tf-fairytext">${esc(s.text)}</p>`).join('')
+      + (r.unknown_numbers.length ? `<p class="tf-flag">⚠ W tekście są liczby spoza danych: ${r.unknown_numbers.join(', ')}. Zweryfikuj.</p>` : '');
+  }
+  $('fairy').innerHTML = html;
+}
+
+async function loadFairy(refresh = false) {
+  const btn = $('btn-fairy');
+  btn.disabled = true;
+  if (refresh) $('fairy').insertAdjacentHTML('afterbegin', '<p class="tf-muted">✨ Wróżka pisze raport…</p>');
+  try {
+    const data = await (await fetch('/api/fairy', { method: refresh ? 'POST' : 'GET' })).json();
+    renderFairy(data);
+    if (!refresh && !data.fresh && data.available) return loadFairy(true);  // raz na godzinę zegara, nie przy każdym pollingu
+  } catch (e) {
+    $('fairy').innerHTML = '<p class="tf-photo-err">Brak połączenia z serwerem.</p>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+const REC_ICON = { shelter_intervention: '🏠', compactor: '🗜', more_often: '🔁', bigger: '⬆', less_often: '⬇' };
+
+async function loadRecommendations() {
+  const recs = await (await fetch('/api/recommendations')).json();
+  $('recs').innerHTML = recs.slice(0, 6).map(r => `<li><button type="button" data-id="${r.point_id}">
+      <span aria-hidden="true">${REC_ICON[r.type]}</span>
+      <span><b>${esc(r.label)}</b>: ${esc(r.name)}<small>${esc(r.reason)} → ${esc(r.impact)}</small></span></button></li>`).join('')
+    + (recs.length > 6 ? `<li class="tf-muted tf-small">… i ${recs.length - 6} kolejnych w szczegółach punktów</li>` : '');
+}
+
+$('recs').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-id]');
+  if (btn) openDetails(Number(btn.dataset.id));
+});
+$('btn-fairy').addEventListener('click', () => loadFairy(true));
+
+function renderJuryQr() {
+  const url = (window.PUBLIC_URL || location.origin) + '/jury';
+  const qr = qrcode(0, 'M');
+  qr.addData(url);
+  qr.make();
+  $('qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+  const local = ['localhost', '127.0.0.1'].includes(location.hostname) && !window.PUBLIC_URL;
+  $('jury-url').textContent = url + (local
+    ? ' (localhost działa tylko na tym komputerze: ustaw PUBLIC_URL albo otwórz panel przez adres IP w sieci)' : '');
 }
 
 // --- trasy (etap 4) ---
@@ -162,6 +247,8 @@ async function loadComparison() {
 }
 
 loadComparison();
+loadFairy();
+renderJuryQr();
 
 // --- szczegóły punktu (ekran 2) ---
 
@@ -186,12 +273,47 @@ async function openDetails(id, focus = true) {
   ].concat(d.check_button ? [['⚠ Sprawdź przycisk', d.check_reason]] : [])
     .map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
   $('d-button').href = `/przycisk/${d.id}`;
+  $('d-invest').hidden = !d.investment;
+  $('d-invest').innerHTML = d.investment ? `<b>${REC_ICON[d.investment.type]} Rekomendacja: ${esc(d.investment.label)}</b>`
+    + `<p>${esc(d.investment.reason)} → ${esc(d.investment.impact)}</p>` : '';
+  $('d-rec').hidden = !d.recommendation;
+  $('d-rec-text').textContent = d.recommendation ?? '';
+  $('d-photos').innerHTML = (d.photo_error ? `<p class="tf-photo-err">⚠ ${esc(d.photo_error)}`
+      + (d.photo_note ? ' Pokazuję ostatni udany wynik.' : '') + '</p>' : '')
+    + (d.photo_pending ? '<p class="tf-muted">✨ Wróżka analizuje zdjęcie…</p>' : '')
+    + (d.analyses.length ? d.analyses.map(photoCard).join('') : '<p class="tf-muted">Brak zdjęć z ostatnich dni.</p>');
+  $('d-photo-point').value = d.id;
   renderChart(d);
   if (focus) {
     $('btn-back').focus();
     map.setView(markers[id].getLatLng(), Math.max(map.getZoom(), 16));
   }
 }
+
+function photoCard(a) {
+  const when = hhmm(a.at);
+  if (a.status === 'pending') return `<div class="tf-photo"><b>${when}</b> analiza w toku…</div>`;
+  if (a.status === 'error') return `<div class="tf-photo err"><b>${when}</b> ${esc(a.error)}</div>`;
+  return `<div class="tf-photo">
+    ${a.photo_url ? `<img src="${a.photo_url}" alt="Zdjęcie punktu z ${when}" loading="lazy">` : ''}
+    <div><b>${when}</b>${a.source === 'demo' ? ' <span class="tf-muted">(dane demo)</span>' : ''} · zdjęcie: ${a.fill_level}%`
+    + (a.crew_level !== null ? ` · ekipa: ${a.crew_level}%` : '')
+    + (a.flag ? ' <span class="tf-flag">⚠ rozbieżność &gt;25 p.p.</span>' : '')
+    + (a.misuse.length ? `<br><span class="misuse">🛍 ${esc(a.misuse.join(', '))}</span>` : '')
+    + (a.note ? `<br><small>${esc(a.note)}</small>` : '') + '</div></div>';
+}
+
+$('d-photo-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.currentTarget, status = $('d-photo-status');
+  status.textContent = 'Wysyłam…';
+  try {
+    const r = await fetch('/api/photo', { method: 'POST', body: new FormData(form) });
+    const data = await r.json();
+    status.textContent = data.message;
+    if (r.ok) { form.reset(); openDetails(detailId, false); }
+  } catch (err) { status.textContent = 'Brak połączenia. Spróbuj jeszcze raz.'; }
+});
 
 function closeDetails() {
   const id = detailId;

@@ -19,6 +19,7 @@
   <div class="tf-clock" title="Zegar scenariusza demo (zamrożony, przewijany ręcznie)">
     <span aria-hidden="true">🕐</span> <span id="clock" aria-live="polite">…</span>
   </div>
+  <a class="tf-hlink" href="/metodologia">Metodologia</a>
   <button type="button" id="btn-advance" class="tf-hbtn">Przewiń +1 h</button>
   <button type="button" id="btn-reset" class="tf-hbtn tf-hbtn-ghost" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo">Reset</button>
   <div class="tf-demo" role="status">DANE DEMONSTRACYJNE · SYMULACJA</div>
@@ -41,6 +42,19 @@
         <figcaption id="d-chart-summary" class="tf-muted"></figcaption>
       </figure>
       <dl class="tf-facts" id="d-facts"></dl>
+      <div id="d-invest" class="tf-invest" hidden></div>
+      <div id="d-rec" class="tf-fairy tf-rec" hidden>
+        <b><span aria-hidden="true">✨</span> Wróżka podpowiada</b>
+        <p id="d-rec-text"></p>
+      </div>
+      <h3 class="tf-h3">Zdjęcia i analiza AI</h3>
+      <div id="d-photos" aria-live="polite"></div>
+      <form id="d-photo-form" class="tf-upload">
+        <input type="hidden" name="point_id" id="d-photo-point">
+        <label>Wgraj zdjęcie punktu <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required></label>
+        <button type="submit" class="tf-hbtn">Analizuj</button>
+        <span id="d-photo-status" class="tf-muted" role="status"></span>
+      </form>
       <a id="d-button" class="tf-btnlink" target="_blank" rel="noopener">Otwórz wirtualny przycisk ↗</a>
     </section>
 
@@ -61,8 +75,39 @@
     </section>
 
     <section class="tf-card tf-fairy" aria-labelledby="h-fairy">
-      <h2 id="h-fairy"><span aria-hidden="true">✨</span> Wróżka podpowiada</h2>
-      <p class="tf-muted">Raport pojawi się, gdy wróżka zbierze pierwsze zgłoszenia.</p>
+      <div class="flex items-center justify-between">
+        <h2 id="h-fairy" class="!mb-0"><span aria-hidden="true">✨</span> Wróżka podpowiada</h2>
+        <button type="button" id="btn-fairy" class="tf-fairybtn">Odśwież raport</button>
+      </div>
+      <div id="fairy" aria-live="polite"><p class="tf-muted">Wróżka czyta dane…</p></div>
+      <p class="tf-muted tf-small">Liczby policzył system, a AI tylko je opisuje. <a href="/metodologia">Metodologia</a></p>
+    </section>
+
+    <section class="tf-card" aria-labelledby="h-recs">
+      <h2 id="h-recs">Rekomendacje inwestycyjne</h2>
+      <ul id="recs" class="tf-recs"></ul>
+      <p class="tf-muted tf-small">Na podstawie poziomów zastanych przy opróżnieniach z ostatnich 4 tygodni.</p>
+    </section>
+
+    <section class="tf-card" aria-labelledby="h-friends">
+      <h2 id="h-friends">Przyjaciele Wróżki</h2>
+      <p class="tf-muted tf-small" id="friends-sum"></p>
+      <ol id="friends" class="tf-friends"></ol>
+      <p class="tf-small"><a href="/program">Strona programu</a> · <a href="/program/regulamin">regulamin</a></p>
+    </section>
+
+    <section class="tf-card" aria-labelledby="h-devices">
+      <h2 id="h-devices">Stan urządzeń</h2>
+      <div id="devices" class="tf-small"></div>
+    </section>
+
+    <section class="tf-card" aria-labelledby="h-jury">
+      <h2 id="h-jury">Tryb dla jury</h2>
+      <div class="tf-jury">
+        <div id="qr" role="img" aria-label="Kod QR do trybu jury"></div>
+        <div><p>Zeskanuj i naciśnij przycisk na losowym koszu przy Rynku. Punkt zrobi się czerwony na mapie w ciągu 2 sekund.</p>
+          <p class="tf-muted tf-small" id="jury-url"></p></div>
+      </div>
     </section>
 
     <section class="tf-card" aria-labelledby="h-routes">
@@ -99,6 +144,8 @@
         <li><span class="tf-pinwrap fresh" aria-hidden="true"><span class="tf-pin circle bad">!</span></span> zgłoszenie z ostatnich 15 minut</li>
         <li><span class="tf-pinwrap" aria-hidden="true"><span class="tf-pin circle ok">✓</span><span class="tf-badge">⚠</span></span> sprawdź przycisk</li>
         <li><span class="tf-evsw" aria-hidden="true">🎪</span> wydarzenie i jego zasięg (przerywany okrąg)</li>
+        <li><span class="tf-pinwrap" aria-hidden="true"><span class="tf-pin circle bad">!</span><span class="tf-badge left">🛍</span></span> nadużycie wykryte na zdjęciu</li>
+        <li><span class="tf-linksw" aria-hidden="true"></span> powiązanie: worki domowe przy przepełnionej altanie</li>
         <li><span class="tf-routesw bin" aria-hidden="true"></span> trasa koszy · <span class="tf-routesw shelter" aria-hidden="true"></span> trasa altan</li>
       </ul>
     </section>
@@ -108,6 +155,8 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>window.PUBLIC_URL = {{ public_url|tojson }};</script>
 <script src="{{ url_for('static', filename='panel.js') }}"></script>
 </body>
 </html>

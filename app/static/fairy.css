@@ -130,3 +130,46 @@ body.tf { margin: 0; font: 14px/1.45 Inter, system-ui, sans-serif; color: var(--
 .tf-cmp .better { color: var(--ok); font-weight: 600; }
 .tf-cmp .worse { color: var(--bad); font-weight: 600; }
 .tf-verdict { font-size: 13px; margin-top: 8px; }
+
+/* etap 5: nadużycia, powiązania, zdjęcia */
+.tf-badge.left { right: auto; left: -11px; background: #f5f3ff; border-color: var(--magic); }
+.tf-list .misuse, .tf-photo .misuse { color: #6d28d9; }
+.tf-list .rec { color: var(--magic); font-weight: 600; }
+.tf-linksw { display: inline-block; width: 22px; border-top: 3px dashed var(--magic); vertical-align: middle; }
+.tf-rec { border: 1px solid #ddd6fe; border-radius: 10px; padding: 10px 12px; margin: 4px 0 12px; }
+.tf-rec b { color: var(--magic); }
+.tf-rec p { margin: 4px 0 0; font-size: 13px; }
+.tf-h3 { font: 600 14px Inter, sans-serif; color: var(--plant); margin: 12px 0 6px; }
+.tf-photo { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; padding: 6px 0; border-top: 1px solid var(--line); }
+.tf-photo img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; flex: none; }
+.tf-photo.err, .tf-photo-err { color: var(--bad); }
+.tf-flag { color: #7a5a00; font-weight: 600; }
+.tf-upload { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; margin: 8px 0 12px; }
+.tf-upload input[type=file] { font-size: 12px; max-width: 100%; }
+
+/* etap 6: raport, rekomendacje, jury */
+.tf-fairybtn { font: 600 12px Inter, sans-serif; padding: 4px 10px; border-radius: 8px; cursor: pointer;
+               background: linear-gradient(90deg, var(--magic), var(--magic-2)); color: #fff; border: 0;
+               box-shadow: 0 0 12px -2px rgba(124, 58, 237, .6); }
+.tf-fairybtn:disabled { opacity: .6; cursor: wait; }
+.tf-fairybtn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.tf-fairytext { margin: 0 0 6px; font-size: 13.5px; }
+.tf-fairy .tf-h3 { color: var(--magic); margin-top: 10px; }
+.tf-hlink { color: var(--cream); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+.tf-recs { list-style: none; padding: 0; margin: 0; }
+.tf-recs button { width: 100%; display: flex; gap: 10px; align-items: flex-start; text-align: left; background: none; border: 0;
+                  padding: 6px 4px; border-radius: 8px; cursor: pointer; font: inherit; color: inherit; }
+.tf-recs button:hover { background: #f3efe4; }
+.tf-recs button:focus-visible { outline: 3px solid var(--gold); }
+.tf-recs small { display: block; color: var(--muted); font-size: 12px; }
+.tf-invest { border: 1px solid var(--line); background: #f7f9f4; border-radius: 10px; padding: 10px 12px; margin: 4px 0 10px; font-size: 13px; }
+.tf-invest p { margin: 4px 0 0; }
+.tf-jury { display: flex; gap: 14px; align-items: center; }
+#qr { width: 128px; height: 128px; flex: none; background: #fff; border-radius: 8px; }
+#qr svg { width: 100%; height: 100%; }
+.tf-jury p { margin: 0 0 6px; font-size: 13px; }
+
+/* program mieszkańców i urządzenia */
+.tf-friends { margin: 4px 0 6px; padding-left: 20px; font-size: 13px; }
+.tf-friends small { color: var(--muted); }
+#devices p { margin: 4px 0; }

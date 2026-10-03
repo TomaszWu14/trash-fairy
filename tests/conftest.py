@@ -32,7 +32,7 @@ def cache():
     """Mały, sztuczny odpowiednik data/*.geojson (bez sieci)."""
     rng = random.Random(1)
     return {
-        "bins": _scatter(rng, RYNEK, 150) + _scatter(rng, KAZIMIERZ, 120),
+        "bins": _scatter(rng, RYNEK, 150) + _scatter(rng, KAZIMIERZ, 120) + _scatter(rng, GRZEGORZKI, 60, spread=0.01),
         "shelters": _scatter(rng, GRZEGORZKI, 30, spread=0.01),
         "pois": _scatter(rng, RYNEK, 200, spread=0.002),
         "stops": _scatter(rng, RYNEK, 5, spread=0.002),
