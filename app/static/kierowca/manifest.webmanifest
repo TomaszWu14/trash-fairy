@@ -1,11 +1,12 @@
 {
-  "name": "Trash Fairy",
-  "short_name": "Trash Fairy",
-  "description": "Zgłoś pełny kosz w Krakowie jednym dotknięciem.",
+  "name": "Trash Fairy · kierowca MPO",
+  "short_name": "Kierowca",
+  "description": "Trasa kursu MPO: następny przystanek, opróżnienia i problemy, także bez zasięgu.",
   "lang": "pl",
-  "start_url": "/zglos",
-  "scope": "/zglos",
+  "start_url": "/kierowca",
+  "scope": "/kierowca",
   "display": "standalone",
+  "orientation": "portrait",
   "theme_color": "#0E1222",
   "background_color": "#0E1222",
   "icons": [
@@ -26,12 +27,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/static/zglos/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ]
 }

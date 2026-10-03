@@ -223,3 +223,26 @@ które przy okazji odświeża heartbeat urządzenia, bo nadający przycisk na pe
 poza structured outputs sprawdzamy sami pola, enumy, zakresy i długości, a odrzucona odpowiedź oznacza komunikat i ostatni dobry wynik.
 **Decyzje podejmują reguły w kodzie,** więc zmanipulowana odpowiedź AI nie zmieni trasy ani priorytetu: najwyżej ustawi skalę tłumu
 na „large”, czyli to, co reguła i tak dopuszcza. Odrzuciliśmy pydantic (nowa zależność dla trzech schematów) na rzecz 40-linijkowego walidatora.
+
+## Audyt UX, Fala 1: poprawki P0 przed demo (sob 3.10, wieczór)
+
+**Naprawiliśmy to, co jury zobaczy na telefonie i rzutniku: brak poziomego scrolla w widoku C i panelu (360–1440 px), zwijaną legendę,
+„Najbliższe przepełnienia” nad kodem QR, trasy w panelu po ulicach (OSRM, jak w widoku C), polską stronę 404 i wskaźnik świeżości danych.**
+Panel rozpychał nagłówek, bo `body` było gridem z kolumną `auto`; `minmax(0, 1fr)` naprawia to u źródła zamiast ukrywać `overflow-x`.
+Po 3 nieudanych pollach pokazujemy „Brak połączenia · dane z hh:mm” tekstem i trójkątem, nie samym kolorem. Odrzuciliśmy przepisanie panelu na tokeny widoku C (Fala 2, ROADMAPA).
+
+**Blokada odległości 150 m odejmuje dokładność GPS, obciętą do 150 m, tą samą regułą na serwerze i w telefonie.**
+Słaby GPS w kamienicy (233 m ± 120 m) nie blokuje już mieszkańca stojącego przy koszu, a podanie „dokładności 5 km” nie wyłącza kontroli.
+Odrzuciliśmy zostawienie przycisków aktywnych w stanie `far`, bo serwer i tak odrzuciłby zgłoszenie, a dwie różne reguły to gorszy błąd niż jedna łagodniejsza.
+
+## PWA kierowcy `/kierowca` (sob 3.10, wieczór)
+
+**Kierowca dostaje aplikację w czterech krokach (start zmiany → trasa z następnym przystankiem → przystanek → podsumowanie),
+w kierunku C z kanwy, z celami dotykowymi od 56 px i trybem ciemnym.** Kurs zapisujemy w telefonie jako migawkę w chwili „Rozpocznij trasę”,
+bo po każdym „Opróżniony” serwer planuje trasę od nowa i opróżniony punkt z niej wypada. Bez migawki numeracja „32/53” skakałaby, a bez zasięgu nie byłoby trasy.
+Nowe punkty z aktualnego planu pokazujemy jako „Nowy pilny punkt · +n”, a kierowca sam dopisuje je na koniec. Odrzuciliśmy ciche przestawianie kolejności w trakcie jazdy.
+
+**„Nie da się podjechać” i „Problem” to nowy `POST /api/stop-issue` (tabela `StopIssue`), który nie zmienia trasy, tylko pokazuje flagę dyspozytorowi do opróżnienia, najwyżej 12 h.**
+Decyzję, czy wysłać kogoś ponownie, zostawiamy człowiekowi. Odrzuciliśmy automatyczne przeplanowanie, bo jedno zgłoszenie z drogi nie powinno samo przestawiać floty.
+Zapisy idą przez tę samą kolejkę IndexedDB co zgłoszenia mieszkańców, ale w osobnej bazie i z własnym SW (zakres `/kierowca`), z 5 s na „Cofnij”.
+Ikony PNG 192/512 i maskable dostał przy okazji także manifest `/zglos`.

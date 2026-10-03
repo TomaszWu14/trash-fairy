@@ -3,7 +3,7 @@ na opróżnieniach z harmonogramu, które „wydarzyły się” w przewiniętym 
 from datetime import timedelta
 
 from . import db, photos, residents
-from .models import DemoClock, Emptying, FairyReport
+from .models import DemoClock, Emptying, FairyReport, StopIssue
 from .reports import resolve_reports
 from .simulation import DEMO_NOW, FUTURE_HOURS, simulate
 
@@ -31,7 +31,8 @@ def reset(weeks=8):
     stats = simulate(weeks=weeks, now=DEMO_NOW)
     photos.seed_demo(DEMO_NOW)
     residents.seed_demo(DEMO_NOW)
-    db.session.query(FairyReport).delete()  # raporty z poprzedniego przebiegu demo opisywały inne naciśnięcia
+    db.session.query(FairyReport).delete()
+    db.session.query(StopIssue).delete()  # problemy zgłoszone z PWA kierowcy w poprzednim przebiegu demo  # raporty z poprzedniego przebiegu demo opisywały inne naciśnięcia
     clock = db.session.get(DemoClock, 1) or DemoClock(id=1)
     clock.now = DEMO_NOW
     db.session.add(clock)

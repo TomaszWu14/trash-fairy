@@ -31,6 +31,15 @@ class Press(db.Model):
     report_id = db.Column(db.Integer, db.ForeignKey("report.id"), index=True)
 
 
+class StopIssue(db.Model):
+    """Kierowca na przystanku: nie da się podjechać albo problem z koszem (PWA /kierowca)."""
+    id = db.Column(db.Integer, primary_key=True)
+    point_id = db.Column(db.Integer, db.ForeignKey("point.id"), nullable=False, index=True)
+    at = db.Column(db.DateTime, nullable=False, index=True)
+    kind = db.Column(db.String(12), nullable=False)  # no_access / damaged / blocked / overflow
+    note = db.Column(db.String(200))
+
+
 class Report(db.Model):
     """Zgłoszenie: naciśnięcia jednego punktu w oknie 15 minut od pierwszego naciśnięcia."""
     id = db.Column(db.Integer, primary_key=True)

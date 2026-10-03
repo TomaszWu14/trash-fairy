@@ -20,7 +20,11 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: "IBM
 .c-brand span { color: var(--brand); }
 .c-sub { font-size: 16px; color: #C3C8D4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 0; }
 .c-sim { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 12px; border: 1px solid #2E3550; border-radius: 12px; flex: none; }
-.c-sim time { font-size: 16px; font-weight: 600; white-space: nowrap; }
+.c-sim time { font-size: 16px; font-weight: 600; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.c-fresh { flex: none; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #C3C8D4; white-space: nowrap; }
+.c-fresh-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 2px #fff; }
+.c-fresh.off { color: var(--navy); background: var(--yellow); padding: 4px 10px; border-radius: 8px; font-weight: 700; }
+.c-fresh.off .c-fresh-dot { border-radius: 0; background: var(--full); clip-path: polygon(50% 0, 100% 100%, 0 100%); box-shadow: none; width: 12px; height: 11px; }
 .c-head a { color: #fff; font-size: 16px; font-weight: 600; flex: none; }
 .c-head a:hover { color: #E4DAFF; }
 .c-demo { flex: none; display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 8px;
@@ -34,7 +38,7 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: "IBM
 .btn-ghost { background: transparent; border-color: transparent; }
 
 /* karty kroków */
-.c-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; padding: 24px 24px 0; }
+.c-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; padding: 24px 24px 0; }
 .step { position: relative; display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 20px 20px 16px;
         border-radius: 16px; border: 1px solid var(--line); background: #fff; color: var(--text); font-family: inherit;
         cursor: pointer; min-width: 0; overflow: hidden; box-shadow: 0 1px 2px rgba(14,18,34,.06); }
@@ -62,9 +66,11 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: "IBM
 .c-caption { position: absolute; left: 16px; top: 16px; z-index: 1000; display: flex; align-items: center; gap: 12px;
              padding: 10px 16px 10px 10px; max-width: 62%; font-size: 18px; line-height: 24px; font-weight: 700; }
 .c-caption .num { background: var(--yellow); color: var(--navy); }
-.c-legend { position: absolute; left: 16px; bottom: 16px; z-index: 1000; max-width: 70%; padding: 10px 14px;
-            display: flex; flex-wrap: wrap; gap: 6px 18px; }
-.lg { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; }
+.c-legend { position: absolute; left: 16px; bottom: 16px; z-index: 1000; max-width: min(70%, calc(100% - 32px)); padding: 10px 14px; }
+.c-legend summary { cursor: pointer; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; min-height: 24px; }
+.c-legend[open] summary { margin-bottom: 6px; }
+.c-legend-items { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.lg { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; min-width: 0; }
 .c-north { display: flex; align-items: center; gap: 12px; padding: 8px 12px; }
 .leaflet-control-scale-line { border-color: var(--navy); font: 700 12px "IBM Plex Sans", sans-serif; color: var(--navy); background: transparent; }
 .leaflet-control-attribution { font-size: 11px; }
@@ -136,6 +142,7 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: "IBM
              border-top: 1px solid rgba(255,255,255,.2); }
 .c-qr-foot a { color: #fff; font-size: 17px; font-weight: 700; word-break: break-all; }
 .c-qr-foot span { font-size: 14px; color: #E4DAFF; }
+.c-qr-warn { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--yellow); color: var(--navy); font-size: 14px; line-height: 20px; }
 .c-risk { background: #fff; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px;
           box-shadow: 0 1px 2px rgba(14,18,34,.08), 0 8px 24px rgba(14,18,34,.08); }
 .c-risk h2 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
@@ -165,6 +172,26 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: "IBM
   .c-head, .c-steps, .c-main { padding-left: 16px; padding-right: 16px; }
   .c-mapwrap { aspect-ratio: 3 / 4; }
   .c-effect { padding: 16px; overflow-y: auto; } .c-effect-grid { grid-template-columns: 1fr; }
-  .c-legend { max-width: calc(100% - 32px); } .c-caption { max-width: calc(100% - 32px); font-size: 16px; }
+  .c-head { gap: 8px; }
+  .c-sub { flex-basis: 100%; order: 1; }
+  .c-sim { order: 2; flex: 1 1 100%; min-width: 0; padding-left: 8px; }
+  .c-sim > svg { display: none; }
+  .c-sim time { flex: 1 1 auto; font-size: 15px; }
+  .c-sim .btn { padding: 0 12px; }
+  .btn-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .c-head > a, .c-demo, .c-fresh { order: 3; }
+  .c-caption { max-width: calc(100% - 32px); font-size: 16px; }
+  .c-caption #cap-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .c-side { max-width: none; }
 }
+
+/* strona 404 (stara naklejka QR, literówka) */
+.c-404 { max-width: 560px; margin: 0 auto; padding: 64px 16px; display: flex; flex-direction: column; gap: 16px; }
+.c-404-logo { color: var(--navy); --logo-bg: var(--page); }
+.c-404 h1 { margin: 0; font-size: 32px; line-height: 40px; }
+.c-404 p { margin: 0; font-size: 18px; line-height: 28px; color: var(--muted); }
+.c-404-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.c-404 .btn { min-height: 56px; text-decoration: none; }
+.btn-light { background: var(--surface); color: var(--text); border-color: var(--line); }
+.btn-light:hover { background: var(--track); }
+.c-404 .c-404-code { font-size: 14px; }

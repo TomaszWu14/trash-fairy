@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -34,6 +34,13 @@ def create_app(config=None):
 
     app.register_blueprint(bp)
     app.register_blueprint(api_bp)
+
+    @app.errorhandler(404)
+    def not_found(_e):
+        # stara naklejka z QR albo literówka: polska strona zamiast surowego „Not Found”; API dalej dostaje JSON
+        if request.path.startswith("/api/"):
+            return jsonify(ok=False, message="Nie znaleziono."), 404
+        return render_template("404.html"), 404
     app.cli.add_command(seed_command)
     app.cli.add_command(cleanup_photos_command)
     app.cli.add_command(karnet_command)

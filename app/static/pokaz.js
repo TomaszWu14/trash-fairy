@@ -163,7 +163,9 @@ function setStep(n) {
 document.querySelectorAll('.step').forEach(b => b.addEventListener('click', () => setStep(Number(b.dataset.step))));
 
 function renderCards() {
-  const bad = points.filter(p => p.state === 'bad').length, risk = points.filter(atRisk).length;
+  const badList = points.filter(p => p.state === 'bad'), bad = badList.length, risk = points.filter(atRisk).length;
+  $('c1').textContent = bad ? badList.slice(0, 3).map(p => p.name.replace(/^(Kosz|Altana) /, '')).join(', ') + (bad > 3 ? ` i ${bad - 3} więcej` : '')
+                            : 'Teraz żaden punkt nie jest przepełniony.';
   $('v1').textContent = bad;
   $('u1').textContent = plural(bad, 'przepełniony teraz', 'przepełnione teraz', 'przepełnionych teraz');
   $('v2').textContent = risk;
@@ -207,6 +209,7 @@ function renderQr() {
   $('qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
   $('jury-url').href = url;
   $('jury-url').textContent = url.replace(/^https?:\/\//, '');
+  $('qr-warn').hidden = !(['localhost', '127.0.0.1'].includes(location.hostname) && !window.PUBLIC_URL);
 }
 
 function renderLastReport() {
@@ -254,7 +257,7 @@ async function apply(data) {
     map.fitBounds(L.latLngBounds(points.map(p => [p.lat, p.lon])).extend([50.0702786, 20.0056628]), { paddingTopLeft: [16, 110], paddingBottomRight: [190, 90] });
     map._fitted = true;
   }
-  $('clock').textContent = `${DAYS[now.getDay()]} ${now.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })} · ${hhmm(now)}`;
+  $('clock').textContent = `${DAYS[now.getDay()]} ${now.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' })} · ${hhmm(now)}`;
   $('clock').setAttribute('datetime', data.clock.now);
   $('btn-advance').disabled = !data.clock.can_advance;
   renderZones(data.events);
@@ -266,11 +269,24 @@ async function apply(data) {
   refresh();
 }
 
+// świeżość danych: po 3 nieudanych pollach baner „brak połączenia” (tekst + kształt, nie sam kolor)
+let fails = 0, lastOk = null;
+function markFresh(ok) {
+  fails = ok ? 0 : fails + 1;
+  if (ok) lastOk = new Date();
+  const off = fails >= 3, t = lastOk ? lastOk.toTimeString().slice(0, 8) : '–';
+  $('fresh').classList.toggle('off', off);
+  $('fresh-t').textContent = off ? `Brak połączenia · dane z ${t}` : `Aktualizacja ${t}`;
+}
+
 async function poll() {
   try {
-    const data = await (await fetch(`/api/changes?since=${encodeURIComponent(version ?? '')}`)).json();
+    const r = await fetch(`/api/changes?since=${encodeURIComponent(version ?? '')}`);
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    markFresh(true);
     if (data.changed) await apply(data);
-  } catch (e) { /* chwilowy brak sieci — spróbujemy za 2 s */ }
+  } catch (e) { markFresh(false); }  // chwilowy brak sieci — spróbujemy za 2 s
   setTimeout(poll, POLL_MS);
 }
 
@@ -282,6 +298,7 @@ async function clockAction(btn, url) {
 $('btn-advance').addEventListener('click', e => clockAction(e.currentTarget, '/api/clock/advance'));
 $('btn-reset').addEventListener('click', e => clockAction(e.currentTarget, '/api/clock/reset'));
 
+if (matchMedia('(max-width: 767px)').matches) $('legend').open = false;  // na telefonie legenda nie zasłania mapy
 renderQr();
 loadComparison();
 setStep(3);

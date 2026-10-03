@@ -12,7 +12,7 @@ from sqlalchemy import func
 from . import db
 from .forecast import point_forecasts
 from .geo import distance_m
-from .models import Emptying, Point, Press, Report
+from .models import Emptying, Point, Press, Report, StopIssue
 from .reports import MERGE_WINDOW, low_reliability, reliability
 from .simulation import hour_floor
 
@@ -22,6 +22,9 @@ FRESH_BAD_WEIGHT = 0.7  # świeże zgłoszenie z przycisku o takiej wadze = od r
 WEAK_AFTER_EMPTYING = timedelta(hours=2)
 WEAK_BELOW_LEVEL = 30
 OVERFLOW_HOURS = 6  # przepełniony (wg szacunku) tyle godzin bez naciśnięcia → przycisk może nie działać
+CREW_ISSUE_WINDOW = timedelta(hours=12)  # zgłoszenie kierowcy z przystanku widać w panelu do opróżnienia, najwyżej 12 h
+CREW_ISSUES = {"no_access": "nie da się podjechać", "damaged": "kosz uszkodzony", "blocked": "zablokowany dojazd",
+               "overflow": "odpady obok kosza"}
 DAMAGE_WINDOW = timedelta(hours=48)  # zgłoszenie „uszkodzony” z /zglos trzyma flagę do opróżnienia, najwyżej 48 h
 NEIGHBOR_RADIUS_M = 100
 NEIGHBORS_EMPTY_BELOW = 30
@@ -133,6 +136,10 @@ def point_states(now):
                if last_emptying.get(pid) is None or last_emptying[pid] < at}
     overflow_reported = {pid for (pid,) in db.session.query(Press.point_id).distinct()
                          .filter(Press.kind == "overflow", Press.at > now - MERGE_WINDOW, Press.at <= now)}
+    crew_issue = {}
+    for i in StopIssue.query.filter(StopIssue.at > now - CREW_ISSUE_WINDOW, StopIssue.at <= now).order_by(StopIssue.at):
+        if last_emptying.get(i.point_id) is None or last_emptying[i.point_id] < i.at:
+            crew_issue[i.point_id] = {"kind": i.kind, "label": CREW_ISSUES[i.kind], "at": i.at.isoformat(), "note": i.note}
     out = {}
     for pid, f in forecasts.items():
         level = f["est"]
@@ -167,6 +174,7 @@ def point_states(now):
             "check_button": check_reason is not None, "check_reason": check_reason,
             "damaged_at": damaged[pid].isoformat() if pid in damaged else None,
             "overflow_reported": pid in overflow_reported,
+            "crew_issue": crew_issue.get(pid),
             "crossing": f["crossing"].isoformat() if f["crossing"] else None,
             "crossing_label": time_label(f["crossing"], now),
         }

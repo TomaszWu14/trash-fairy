@@ -12,14 +12,14 @@ from .comparison import compare
 from .events import AFTER, RADIUS_M
 from .forecast import THRESHOLD, forecast_quality, point_series
 from .misuse import misuse_overview
-from .models import Device, Emptying, Event, PhotoAnalysis, Point, Press, Report
+from .models import Device, Emptying, Event, PhotoAnalysis, Point, Press, Report, StopIssue
 from .recommendations import recommendations
 from .reports import MERGE_WINDOW, record_press, resolve_reports
 from .geo import distance_m
 from .models import Resident
 from .routes import DEPOT, next_runs, plan_routes
 from .simulation import DEMO_NOW, hour_floor
-from .state import point_states
+from .state import CREW_ISSUES, point_states
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -111,12 +111,16 @@ def point_detail(point_id):
 @bp.get("/routes")
 def routes():
     now = clock.now()
-    fleets = plan_routes(now, point_states(now))
-    for f in fleets:  # przebieg po ulicach tylko do rysowania; km zostają z road_m
+    states = point_states(now)
+    fleets = plan_routes(now, states)
+    for f in fleets:
+        for s in f["stops"]:  # PWA kierowcy: domyślny poziom zastany i znacznik stanu bez drugiego zapytania
+            st = states[s["id"]]
+            s.update(level=st["value"], state=st["state"], fresh=st["fresh"])  # przebieg po ulicach tylko do rysowania; km zostają z road_m
         out, approx_out = osrm.street_path(f["path"][:-1])
         back, approx_back = osrm.street_path(f["path"][-2:]) if f["stops"] else ([], False)
         f["geometry"] = {"out": out, "back": back, "approx": approx_out or approx_back}
-    return jsonify(depot=DEPOT, fleets=fleets)
+    return jsonify(depot=DEPOT, fleets=fleets, now=now.isoformat())
 
 
 @bp.get("/recommendations")
@@ -202,6 +206,23 @@ def emptying():
     return jsonify(ok=True, message=message, photo_error=error, analysis_id=pa.id if pa else None)
 
 
+@bp.post("/stop-issue")
+def stop_issue():
+    """Kierowca: nie da się podjechać albo problem z koszem (+ opcjonalne zdjęcie). Trasy nie zmienia, decyduje dyspozytor."""
+    point = _point_or_none(request.form.get("point_id"))
+    if point is None:
+        return jsonify(ok=False, message="Nie ma takiego punktu."), 404
+    kind = request.form.get("kind")
+    if kind not in CREW_ISSUES:
+        return jsonify(ok=False, message="Wybierz rodzaj problemu."), 400
+    note = (request.form.get("note") or "").strip()[:200] or None
+    db.session.add(StopIssue(point_id=point.id, at=clock.now(), kind=kind, note=note))
+    db.session.commit()
+    pa, error = _photo_from_request(point)
+    return jsonify(ok=True, message=f"Przekazano dyspozytorowi: {CREW_ISSUES[kind]}.", photo_error=error,
+                   analysis_id=pa.id if pa else None)
+
+
 def _nearest_point(lat, lon):
     best = min(Point.query, key=lambda q: distance_m(lat, lon, q.lat, q.lon), default=None)
     return (best, round(distance_m(lat, lon, best.lat, best.lon))) if best else (None, None)
@@ -275,6 +296,15 @@ def _retry_at(now, recent_same, ip, wall):
     return now + ((oldest + timedelta(hours=1)) - wall if oldest else timedelta(minutes=30))
 
 
+def _accuracy_m(data):
+    """Dokładność GPS z telefonu (m), obcięta do 150 m: słaby GPS w kamienicy nie blokuje zgłoszenia przy koszu,
+    a podane „accuracy 5 km” nie wyłącza kontroli odległości."""
+    try:
+        return min(max(float(data.get("accuracy_m") or 0), 0.0), GEO_RADIUS_M)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 @bp.post("/press")
 def press():
     data = request.get_json(silent=True) or request.form
@@ -289,7 +319,7 @@ def press():
             dist = distance_m(float(lat), float(lon), point.lat, point.lon)
         except (TypeError, ValueError):
             dist = None
-        if dist is None or dist > GEO_RADIUS_M:
+        if dist is None or dist - _accuracy_m(data) > GEO_RADIUS_M:
             return jsonify(ok=False, reason="too_far", distance_m=round(dist) if dist else None,
                            message="Jesteś za daleko od tego kosza (ponad 150 m)."), 403
     elif source == "qr" and os.environ.get("REQUIRE_GEO") == "1":

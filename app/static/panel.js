@@ -28,7 +28,8 @@ const pinHtml = p => `<span class="tf-pinwrap${p.fresh ? ' fresh' : ''}" aria-hi
 const describe = p => `${KIND[p.kind].label}: ${p.name}, ${p.label}, ${p.reason}`
   + (p.fresh ? ', świeże zgłoszenie' : '') + (p.check_button ? `, sprawdź przycisk: ${p.check_reason}` : '')
   + (p.misuse?.length ? `, nadużycie: ${p.misuse.join(', ')}` : '') + (p.recommendation ? ', jest rekomendacja' : '')
-  + (p.damaged_at ? ', zgłoszono uszkodzenie' : '') + (p.overflow_reported ? ', zgłoszono odpady obok' : '');
+  + (p.damaged_at ? ', zgłoszono uszkodzenie' : '') + (p.overflow_reported ? ', zgłoszono odpady obok' : '')
+  + (p.crew_issue ? `, kierowca: ${p.crew_issue.label}` : '');
 const popup = p => `<b>${esc(p.name)}</b><br>${KIND[p.kind].label} · ${esc(p.area)}<br>`
   + `Stan: <b>${p.symbol} ${p.label}</b> — ${esc(p.reason)}<br>Poziom: ${p.level}% · wiarygodność przycisku: ${p.reliability}%`
   + (p.check_button ? `<br>⚠ Sprawdź przycisk: ${esc(p.check_reason)}` : '')
@@ -61,6 +62,7 @@ function renderList() {
           ${p.misuse?.length ? `<small class="misuse">🛍 ${esc(p.misuse.join(', '))}</small>` : ''}
           ${p.damaged_at ? `<small class="check">🛠 mieszkaniec zgłosił uszkodzenie (${p.damaged_at.slice(11, 16)})</small>` : ''}
           ${p.overflow_reported ? '<small class="misuse">🛍 zgłoszenie: odpady obok kosza</small>' : ''}
+          ${p.crew_issue ? `<small class="check">Kierowca ${p.crew_issue.at.slice(11, 16)}: ${esc(p.crew_issue.label)}${p.crew_issue.note ? ` (${esc(p.crew_issue.note)})` : ''}</small>` : ''}
           ${p.recommendation ? '<small class="rec">✨ rekomendacja: zwiększ częstotliwość odbioru</small>' : ''}
         </span>
         <span class="lvl">${p.value}%</span></button>
@@ -202,7 +204,9 @@ async function loadRoutes() {
     const layer = routeLayers[f.kind];
     layer.clearLayers();
     if (!f.stops.length) continue;
-    L.polyline(f.path, { color: ROUTE_COLOR[f.kind], weight: 4, opacity: 0.75, dashArray: f.kind === 'shelter' ? '10 6' : null })
+    // przebieg po ulicach z OSRM (jak w widoku C); bez sieci serwer zwraca linię prostą
+    L.polyline(f.geometry.back, { color: ROUTE_COLOR[f.kind], weight: 2, opacity: 0.6, dashArray: '3 6', interactive: false }).addTo(layer);
+    L.polyline(f.geometry.out, { color: ROUTE_COLOR[f.kind], weight: 4, opacity: 0.8, dashArray: f.kind === 'shelter' ? '10 6' : null })
       .addTo(layer);
     L.marker([data.depot.lat, data.depot.lon], { icon: depotIcon, title: data.depot.name, alt: data.depot.name, keyboard: false })
       .bindPopup(`<b>${esc(data.depot.name)}</b><br>start i koniec tras`).addTo(layer);
@@ -386,12 +390,24 @@ function renderChart(d) {
 $('btn-back').addEventListener('click', closeDetails);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && detailId) closeDetails(); });
 
+// świeżość danych: po 3 nieudanych pollach baner „brak połączenia” (tekst + kształt, nie sam kolor)
+let fails = 0, lastOk = null;
+function markFresh(ok) {
+  fails = ok ? 0 : fails + 1;
+  if (ok) lastOk = new Date();
+  const off = fails >= 3, t = lastOk ? lastOk.toTimeString().slice(0, 8) : '–';
+  $('fresh').classList.toggle('off', off);
+  $('fresh').textContent = off ? `Brak połączenia · dane z ${t}` : `Aktualizacja ${t}`;
+}
+
 async function poll() {
   try {
     const r = await fetch(`/api/changes?since=${encodeURIComponent(version ?? '')}`);
+    if (!r.ok) throw new Error(r.status);
     const data = await r.json();
+    markFresh(true);
     if (data.changed) apply(data);
-  } catch (e) { /* chwilowy brak sieci — spróbujemy za 2 s */ }
+  } catch (e) { markFresh(false); }  // chwilowy brak sieci — spróbujemy za 2 s
   setTimeout(poll, POLL_MS);
 }
 

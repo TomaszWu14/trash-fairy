@@ -64,6 +64,21 @@ def sw():
     return resp
 
 
+@bp.get("/kierowca")
+def driver():
+    """PWA kierowcy MPO: start zmiany → trasa → przystanek → podsumowanie (offline z kolejką)."""
+    return render_template("kierowca.html")
+
+
+@bp.get("/kierowca/sw.js")
+def driver_sw():
+    """Service worker PWA kierowcy, zakres /kierowca (jak /zglos/sw.js)."""
+    resp = send_from_directory(os.path.join(current_app.static_folder, "kierowca"), "sw.js", mimetype="application/javascript")
+    resp.headers["Service-Worker-Allowed"] = "/kierowca"
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
+
 @bp.get("/epapier/<int:point_id>")
 def epaper_page(point_id):
     """Symulator ekranu e-papierowego z fizycznym przyciskiem (docs/epapier/HANDOFF.md, etap 1)."""
