@@ -23,3 +23,5 @@
 - Cały Kraków, inne sektory, inne miasta.
 - Wzorce spamu w czasie, korelacja sąsiednich przycisków.
 - Kafelki mapy z własnego serwera lub komercyjnego dostawcy przy większym ruchu (polityka użycia tile.openstreetmap.org).
+- Autoryzacja endpointów zegara demo (`/api/clock/*`). Na demo są otwarte, w pilotażu tylko dla dyspozytora.
+- Prawdziwe opróżnienia od ekipy (etap 5) zamiast harmonogramu z symulacji jako źródło trafności zgłoszeń.

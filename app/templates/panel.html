@@ -16,9 +16,11 @@
   <div class="tf-brand">Trash <span>Fairy</span> <span aria-hidden="true">✨</span></div>
   <div class="tf-sub hidden md:block">Panel dyspozytora MPO · Stare Miasto, Kazimierz, Grzegórzki</div>
   <div class="flex-1"></div>
-  <div class="tf-clock" title="Zamrożony zegar scenariusza demo">
-    <span aria-hidden="true">🕐</span> {{ demo_now.strftime('%d.%m.%Y') }}, sobota {{ demo_now.strftime('%H:%M') }}
+  <div class="tf-clock" title="Zegar scenariusza demo (zamrożony, przewijany ręcznie)">
+    <span aria-hidden="true">🕐</span> <span id="clock" aria-live="polite">…</span>
   </div>
+  <button type="button" id="btn-advance" class="tf-hbtn">Przewiń +1 h</button>
+  <button type="button" id="btn-reset" class="tf-hbtn tf-hbtn-ghost" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo">Reset</button>
   <div class="tf-demo" role="status">DANE DEMONSTRACYJNE · SYMULACJA</div>
 </header>
 
@@ -34,6 +36,10 @@
         <div class="tf-stat"><b id="n-ok">–</b><small><span class="tf-sym ok" aria-hidden="true">✓</span> w porządku</small></div>
       </div>
       <p class="tf-muted mt-2" id="n-total"></p>
+      <p class="tf-presses mt-2" aria-live="polite">
+        <span aria-hidden="true">🔴</span> W demo: <b id="n-presses">0</b> naciśnięć → <b id="n-reports">0</b> zgłoszeń
+        <small class="tf-muted block">naciśnięcia jednego punktu w ciągu 15 minut łączą się w jedno zgłoszenie</small>
+      </p>
     </section>
 
     <section class="tf-card tf-fairy" aria-labelledby="h-fairy">
@@ -60,7 +66,9 @@
         <li><span class="tf-pin square neutral" aria-hidden="true"></span> altana osiedlowa (kwadrat)</li>
         <li><span class="tf-pin circle ok" aria-hidden="true">✓</span> poniżej 60%</li>
         <li><span class="tf-pin circle warn" aria-hidden="true">~</span> 60–85%</li>
-        <li><span class="tf-pin circle bad" aria-hidden="true">!</span> powyżej 85%</li>
+        <li><span class="tf-pin circle bad" aria-hidden="true">!</span> powyżej 85% lub świeże zgłoszenie</li>
+        <li><span class="tf-pinwrap fresh" aria-hidden="true"><span class="tf-pin circle bad">!</span></span> zgłoszenie z ostatnich 15 minut</li>
+        <li><span class="tf-pinwrap" aria-hidden="true"><span class="tf-pin circle ok">✓</span><span class="tf-badge">⚠</span></span> sprawdź przycisk</li>
       </ul>
     </section>
   </aside>

@@ -1,6 +1,7 @@
-from datetime import datetime
-
 from . import db
+
+# Wszystkie znaczniki czasu w czasie demo (zegar scenariusza), naiwne datetime.
+# Wyjątek: Press.wall_at to prawdziwy czas UTC, potrzebny do limitu naciśnięć na IP.
 
 
 class Point(db.Model):
@@ -18,25 +19,38 @@ class Point(db.Model):
 
 
 class Press(db.Model):
-    """Pojedyncze naciśnięcie przycisku (scalanie w zgłoszenia robi logika, nie tabela)."""
+    """Pojedyncze naciśnięcie przycisku. Scalanie w zgłoszenia: app/reports.py."""
     id = db.Column(db.Integer, primary_key=True)
     point_id = db.Column(db.Integer, db.ForeignKey("point.id"), nullable=False, index=True)
-    at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    at = db.Column(db.DateTime, nullable=False)
     ip = db.Column(db.String(45))
+    wall_at = db.Column(db.DateTime, index=True)  # None = naciśnięcie z symulacji
+
+
+class Report(db.Model):
+    """Zgłoszenie: naciśnięcia jednego punktu w oknie 15 minut od pierwszego naciśnięcia."""
+    id = db.Column(db.Integer, primary_key=True)
+    point_id = db.Column(db.Integer, db.ForeignKey("point.id"), nullable=False, index=True)
+    first_at = db.Column(db.DateTime, nullable=False)
+    last_at = db.Column(db.DateTime, nullable=False)
+    presses = db.Column(db.Integer, nullable=False, default=1)
+    weight = db.Column(db.Float, nullable=False)  # wiarygodność przycisku w chwili zgłoszenia
+    hit = db.Column(db.Boolean)  # None = otwarte; po opróżnieniu: trafne / fałszywe
+    resolved_at = db.Column(db.DateTime)
 
 
 class Emptying(db.Model):
     """Opróżnienie punktu przez ekipę MPO, z poziomem zastanym przed opróżnieniem."""
     id = db.Column(db.Integer, primary_key=True)
     point_id = db.Column(db.Integer, db.ForeignKey("point.id"), nullable=False, index=True)
-    at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    at = db.Column(db.DateTime, nullable=False, index=True)
     level = db.Column(db.Integer, nullable=False)  # 0/25/50/75/100
 
 
 class Forecast(db.Model):
     """Szereg czasowy poziomu zapełnienia punktu.
 
-    source='sim'  — historia z symulatora (etap 1),
+    source='sim'  — symulacja (historia + 24 h „przyszłości” odsłanianej przewijaniem zegara),
     source='pred' — prognoza (etap 3).
     """
     id = db.Column(db.Integer, primary_key=True)
@@ -46,3 +60,9 @@ class Forecast(db.Model):
     source = db.Column(db.String(8), nullable=False, default="sim")
 
     __table_args__ = (db.Index("ix_forecast_point_at", "point_id", "at"),)
+
+
+class DemoClock(db.Model):
+    """Zegar scenariusza demo (jeden wiersz). W bazie, bo gunicorn ma kilka procesów."""
+    id = db.Column(db.Integer, primary_key=True)
+    now = db.Column(db.DateTime, nullable=False)
