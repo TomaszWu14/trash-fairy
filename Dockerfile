@@ -14,4 +14,4 @@ HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import os, urllib.request
 
 # seed pomija import, jeśli baza ma już punkty
 # port z env PORT (domyślnie 8080 — na serwerze 8000 jest zajęty)
-CMD flask seed && gunicorn --bind 0.0.0.0:${PORT} --workers 2 "app:create_app()"
+CMD flask seed && gunicorn --bind 0.0.0.0:${PORT} --workers 2 --preload app.wsgi:app

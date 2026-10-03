@@ -51,6 +51,8 @@ def create_app(config=None):
     with app.app_context():
         db.create_all()
         _add_missing_columns()
+        from .privacy import forget_old_ips
+        forget_old_ips()  # IP zgłoszeń starsze niż 24 h (decyzja 32)
     return app
 
 

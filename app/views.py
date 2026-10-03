@@ -188,6 +188,18 @@ def logout():
     return redirect(url_for("main.show"))
 
 
+@bp.get("/dostepnosc")
+def accessibility():
+    """Deklaracja dostępności (ustawa o dostępności cyfrowej, decyzja 31): uczciwie „częściowo zgodna”."""
+    return render_template("dostepnosc.html")
+
+
+@bp.get("/prywatnosc")
+def privacy_page():
+    """Jak używamy danych (decyzja 32)."""
+    return render_template("prywatnosc.html")
+
+
 @bp.get("/health")
 def health():
     try:

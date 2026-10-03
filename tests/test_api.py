@@ -80,3 +80,12 @@ def test_old_button_page_redirects_to_epaper(client, demo):
     pid = Point.query.first().id
     r = client.get(f"/przycisk/{pid}")
     assert r.status_code == 301 and r.headers["Location"].endswith(f"/epapier/{pid}")
+
+
+def test_city_scale_range_is_computed_from_mpo_schedule(client, demo):
+    from app import clock, comparison
+    from app.methodology import MPO_SCHEDULE, city_scale
+    c = city_scale(comparison.compare(clock.DEMO_NOW))
+    assert sum(n for _, n, _ in MPO_SCHEDULE) == 9383 and c["full"]["bins"] == 9383
+    assert 0 < c["careful"]["pln_year"] < c["full"]["pln_year"]
+    assert "Skala: cały Kraków" in client.get("/metodologia").get_data(as_text=True)

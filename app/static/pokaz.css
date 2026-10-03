@@ -266,3 +266,9 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: "IBM
               color: var(--route); text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; }
 .c-qr-alt { color: #fff; font-size: 15px; font-weight: 600; text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; }
 @media (max-width: 760px) { .c-en { padding: 8px 16px 0; } .c-map-link { bottom: auto; top: 72px; right: 16px; } }
+
+/* stopka: dostępność i prywatność (decyzje 31–32) */
+.c-foot { padding: 16px 24px 32px; font-size: 14px; color: var(--muted); text-align: center; }
+.c-foot a { color: var(--text); }
+.c-doc table { border-collapse: collapse; width: 100%; font-size: 15px; display: block; overflow-x: auto; }
+.c-doc th, .c-doc td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }

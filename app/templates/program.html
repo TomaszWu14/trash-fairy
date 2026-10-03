@@ -7,6 +7,7 @@
   <title>Przyjaciele Wróżki — program dla mieszkańców</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
   <style>
+    .consent { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; margin: 8px 0; } .consent input { width: 20px; height: 20px; flex: none; }
     :root { --plant: #0E1222; --gold: #FFD34D; --magic: #6A3FD6; --magic-2: #6A3FD6; --line: #D9D5CC; --muted: #454B57; --ok: #127A3E; --bad: #C40000; }
     * { box-sizing: border-box; }
     body { margin: 0; font: 16px/1.45 "IBM Plex Sans", system-ui, sans-serif; color: #0E1222; background: #F6F4EF; }
@@ -81,6 +82,8 @@
         <label for="phone">Numer telefonu (tylko do weryfikacji, zapisujemy jego skrót, nie numer)</label>
         <input id="phone" name="phone" required inputmode="tel" autocomplete="tel" placeholder="np. 600 100 200">
         <label for="district">Dzielnica</label><select id="district" name="district">${DISTRICTS.map(d => `<option>${esc(d)}</option>`).join('')}</select>
+        <label class="consent"><input type="checkbox" name="consent" required> Akceptuję <a href="/program/regulamin">regulamin</a>
+          i <a href="/prywatnosc">zasady danych</a> (pseudonim i skrót numeru, bez numeru w bazie).</label>
         <button class="main" type="submit">Wyślij kod SMS</button><p class="msg" id="regmsg" role="status"></p>
       </form>`;
     $('reg').addEventListener('submit', async e => {
