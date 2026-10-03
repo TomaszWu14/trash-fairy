@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Trash Fairy · Zgłoś kosz</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: {{rootW}}px; height: {{rootH}}px; display: flex; flex-direction: column; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums; box-sizing: border-box">
+
+<header style="flex: none; height: {{headH}}px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: {{t.head}}; color: {{t.onHead}}; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; gap: 0; flex: 1; min-width: 0">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 20px; line-height: 24px; font-weight: 700; letter-spacing: -0.01em">Trash <span style="color: #CDBBFF">Fairy</span><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="#CDBBFF"></path></svg></span>
+<span style="font-size: 13px; line-height: 16px; color: #C3C8D4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{headSub}}</span>
+</div>
+<span style="flex: none; display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 8px; background: #FFD34D; color: #000000; font-size: 13px; font-weight: 700; white-space: nowrap">Demo · sob. 03.10, 13:24</span>
+</header>
+
+<div style="flex: 1; min-height: 0; display: flex; flex-direction: {{bodyDir}}">
+
+<div style="flex: none; padding: {{mapPad}}">
+<div role="img" aria-label="Mapa: Kosz Rynek 03 przy Rynku Głównym, róg Szewskiej" style="position: relative; width: {{mapW}}px; height: {{mapH}}px; border-radius: 16px; overflow: hidden; background: #F1EEE8; box-shadow: 0 1px 2px rgba(14,18,34,.08), 0 4px 12px rgba(14,18,34,.08)">
+<img src="/_blob/7c566959315f6429aa53f7c883b263ec" alt="" style="position: absolute; left: {{imgL}}px; top: {{imgT}}px; width: 3200px; height: 1800px; max-width: none; filter: {{t.mapFilter}}">
+<sc-if value="{{showRing}}" hint-placeholder-val="{{ false }}">
+<span style="position: absolute; left: {{ringL}}px; top: {{ringT}}px; width: 168px; height: 168px; border-radius: 50%; border: 2px dashed #0E1222; background: rgba(14,18,34,.06); box-sizing: border-box"></span>
+<span style="position: absolute; left: {{ringLblL}}px; top: {{ringLblT}}px; font-size: 13px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: #FFFFFF; color: #0E1222">150 m</span>
+</sc-if>
+<sc-for list="{{near}}" as="n" hint-placeholder-count="4">
+<span style="position: absolute; left: {{n.l}}px; top: {{n.t}}px; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: {{n.r}}; background: {{n.c}}; box-shadow: 0 0 0 2px #FFFFFF; transform: {{n.tf}}"></span>
+</sc-for>
+<span style="position: absolute; left: {{userL}}px; top: {{userT}}px; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: #0B5FD6; box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 9px rgba(11,95,214,.22)"></span>
+<span style="position: absolute; left: {{userLblL}}px; top: {{userLblT}}px; font-size: 13px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: #0B5FD6; color: #FFFFFF">Ty</span>
+<div style="position: absolute; left: {{pinL}}px; top: {{pinT}}px; width: 40px; height: 40px; margin: -20px 0 0 -20px; filter: drop-shadow(0 2px 4px rgba(14,18,34,.4))">
+<sc-if value="{{pinOk}}" hint-placeholder-val="{{ true }}"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#127A3E" stroke="#FFFFFF" stroke-width="3"></circle><path d="M12.5 20.5l5 5 10-11" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+<sc-if value="{{pinReport}}" hint-placeholder-val="{{ false }}"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M5 9a5 5 0 0 1 5-5h20a5 5 0 0 1 5 5v15a5 5 0 0 1-5 5H15l-10 8V9z" fill="#5B2A9A" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"></path><circle cx="13" cy="16.5" r="2.4" fill="#FFFFFF"></circle><circle cx="20" cy="16.5" r="2.4" fill="#FFFFFF"></circle><circle cx="27" cy="16.5" r="2.4" fill="#FFFFFF"></circle></svg></sc-if>
+<sc-if value="{{pinWarn}}" hint-placeholder-val="{{ false }}"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L38 35 H2 Z" fill="#2F3A41" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"></path><path d="M20 14v10" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"></path><circle cx="20" cy="29.5" r="2.3" fill="#FFFFFF"></circle></svg></sc-if>
+</div>
+<span style="position: absolute; left: {{pinLblL}}px; top: {{pinLblT}}px; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #FFFFFF; color: #0E1222; box-shadow: 0 1px 4px rgba(14,18,34,.25); white-space: nowrap">Kosz Rynek 03</span>
+<span style="position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #FFFFFF; color: #0E1222; box-shadow: 0 1px 4px rgba(14,18,34,.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0B5FD6" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>{{distTxt}}</span>
+<span style="position: absolute; right: 6px; bottom: 4px; font-size: 10px; color: #454B57; background: rgba(255,255,255,.85); padding: 0 4px; border-radius: 3px">© OpenStreetMap</span>
+</div>
+</div>
+
+<div style="flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow-y: auto">
+
+<section aria-label="Kosz" style="flex: none; padding: {{cardPad}}; display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-size: 24px; line-height: 30px; font-weight: 700; letter-spacing: -0.01em">Kosz Rynek 03</h1>
+<sc-if value="{{showFullCard}}" hint-placeholder-val="{{ true }}">
+<span style="font-size: 16px; line-height: 22px; color: {{t.muted}}">Rynek Główny 3, róg Szewskiej · kosz uliczny 120 l</span>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-radius: 12px; background: {{t.surface}}; border: 1px solid {{t.line}}">
+<span style="font-size: 17px; line-height: 24px">Szacujemy <strong>62 %</strong>. Odbiór planowo <strong>ok. 14:00</strong>.</span>
+<span style="position: relative; display: block; height: 8px; border-radius: 4px; background: {{t.track}}"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 62%; border-radius: 4px; background: {{t.primary}}"></span></span>
+</div>
+</sc-if>
+<sc-if value="{{showCompactCard}}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 16px; line-height: 22px; color: {{t.muted}}">Rynek Główny 3, róg Szewskiej</span>
+</sc-if>
+</section>
+
+<div style="flex: 1 0 8px"></div>
+
+<section aria-label="Zgłoszenie" style="flex: none; padding: 20px 16px 24px; background: {{t.surface}}; border-radius: {{sheetRadius}}; box-shadow: {{t.sheetShadow}}; display: flex; flex-direction: column; gap: 12px">
+
+<sc-if value="{{isNoSignal}}" hint-placeholder-val="{{ false }}">
+<div role="note" style="display: flex; gap: 12px; padding: 12px; border-radius: 12px; background: {{t.warnTint}}">
+<svg width="28" height="28" viewBox="0 0 40 40" style="flex: none" aria-hidden="true"><path d="M20 3 L38 35 H2 Z" fill="{{t.warnFill}}" stroke-linejoin="round"></path><path d="M20 14v10" stroke="{{t.warnGlyph}}" stroke-width="3.5" stroke-linecap="round"></path><circle cx="20" cy="29.5" r="2.3" fill="{{t.warnGlyph}}"></circle></svg>
+<span style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 17px; line-height: 22px">Przycisk na koszu chwilowo nie działa</strong><span style="font-size: 16px; line-height: 22px; color: {{t.muted}}">Zgłoszenie przez telefon działa normalnie i trafia do dyspozytora.</span></span>
+</div>
+</sc-if>
+<sc-if value="{{isFar}}" hint-placeholder-val="{{ false }}">
+<div role="note" style="display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 12px; background: {{t.surface2}}">
+<span style="display: flex; gap: 12px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B5FD6" stroke-width="2.2" style="flex: none" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+<span style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 17px; line-height: 22px">Jesteś ok. 280 m od tego kosza</strong><span style="font-size: 16px; line-height: 22px; color: {{t.muted}}">Zgłoszenia przyjmujemy z odległości do 150 m, żeby trafiły do właściwego kosza. Podejdź bliżej albo wybierz kosz obok siebie.</span></span></span>
+<span style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" style="min-height: 48px; border-radius: 12px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Odśwież lokalizację</button>
+<button type="button" style="min-height: 48px; border-radius: 12px; border: 2px solid {{t.line}}; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Kosze w pobliżu</button>
+</span>
+</div>
+</sc-if>
+<sc-if value="{{isLimit}}" hint-placeholder-val="{{ false }}">
+<div role="note" style="display: flex; gap: 12px; padding: 12px; border-radius: 12px; background: {{t.surface2}}">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="{{t.text}}" stroke-width="2.2" style="flex: none" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+<span style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 17px; line-height: 22px">Dziękujemy za Twoją pomoc</strong><span style="font-size: 16px; line-height: 22px; color: {{t.muted}}">Z tego telefonu wysłano kilka zgłoszeń w krótkim czasie. Kolejne możesz wysłać o <strong style="color: {{t.text}}">13:54</strong>.</span></span>
+</div>
+</sc-if>
+<sc-if value="{{isOffline}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: #0E1222; color: #FFFFFF">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFD34D" stroke-width="2.2" stroke-linecap="round" style="flex: none" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0M12 19h.01M3 3l18 18"></path></svg>
+<span style="font-size: 16px; line-height: 22px"><strong>Brak zasięgu.</strong> Zgłoszenie jest zapisane w telefonie.</span>
+</div>
+</sc-if>
+
+<sc-if value="{{showPickTitle}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h2 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 700">Co widzisz?</h2>
+<span style="font-size: 16px; line-height: 22px; color: {{t.muted}}">Jedno dotknięcie wysyła zgłoszenie.</span>
+</div>
+</sc-if>
+
+<sc-if value="{{showButtons}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{opts}}" as="o" hint-placeholder-count="3">
+<sc-if value="{{o.isBtn}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{o.pick}}" disabled="{{o.disabled}}" style="display: flex; align-items: center; gap: 16px; width: 100%; min-height: 72px; padding: 12px 16px; border-radius: 14px; border: 2px solid {{o.border}}; background: {{o.bg}}; color: {{o.fg}}; font-family: inherit; text-align: left; cursor: {{o.cursor}}; box-sizing: border-box">
+<span style="flex: none; width: 40px; height: 40px; opacity: {{o.iconOp}}">
+<sc-if value="{{o.isNear}}" hint-placeholder-val="{{ true }}"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect x="8.5" y="8.5" width="23" height="23" rx="3" transform="rotate(45 20 20)" fill="#F0A500"></rect><path d="M20 27V13.5M14.5 19L20 13.5l5.5 5.5" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+<sc-if value="{{o.isFull}}" hint-placeholder-val="{{ false }}"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect x="4" y="4" width="32" height="32" rx="5" fill="#C40000"></rect><path d="M20 10v13" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"></path><circle cx="20" cy="29" r="2.6" fill="#FFFFFF"></circle></svg></sc-if>
+<sc-if value="{{o.isWarn}}" hint-placeholder-val="{{ false }}"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L38 35 H2 Z" fill="{{o.warnFill}}" stroke-linejoin="round"></path><path d="M20 14v10" stroke="{{o.warnGlyph}}" stroke-width="3.5" stroke-linecap="round"></path><circle cx="20" cy="29.5" r="2.3" fill="{{o.warnGlyph}}"></circle></svg></sc-if>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-size: 20px; line-height: 26px; font-weight: 700">{{o.label}}</span>
+<span style="font-size: 16px; line-height: 20px; color: {{o.subFg}}">{{o.sub}}</span>
+</span>
+</button>
+</sc-if>
+<sc-if value="{{o.isSending}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; flex-direction: column; gap: 12px; min-height: 72px; padding: 14px 16px; border-radius: 14px; background: {{t.primary}}; color: {{t.onPrimary}}; box-sizing: border-box">
+<span style="display: flex; align-items: center; gap: 12px">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex: none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3"></circle><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path></svg>
+<span style="flex: 1; font-size: 20px; line-height: 26px; font-weight: 700">Wysyłamy: {{o.label}}</span>
+<button type="button" onClick="{{undo}}" style="flex: none; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 2px solid currentColor; background: transparent; color: inherit; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Cofnij</button>
+</span>
+<span style="position: relative; display: block; height: 6px; border-radius: 3px; background: rgba(127,127,127,.35)"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 70%; border-radius: 3px; background: #FFD34D"></span></span>
+</div>
+</sc-if>
+<sc-if value="{{o.isQueued}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; flex-direction: column; gap: 4px; min-height: 72px; padding: 14px 16px; border-radius: 14px; border: 2px dashed {{t.text}}; background: {{t.surface2}}; box-sizing: border-box">
+<span style="font-size: 20px; line-height: 26px; font-weight: 700">{{o.label}} · w kolejce od 13:24</span>
+<span style="font-size: 16px; line-height: 22px; color: {{t.muted}}">Wyślemy, gdy wróci zasięg. Możesz zamknąć aplikację.</span>
+</div>
+</sc-if>
+<sc-if value="{{o.isError}}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 2px solid {{t.fullBorder}}; background: {{t.fullTint}}; box-sizing: border-box">
+<span style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 20px; line-height: 26px; font-weight: 700">{{o.label}} · nie udało się wysłać</span>
+<span style="font-size: 16px; line-height: 22px">To problem po naszej stronie. Zgłoszenie czeka w telefonie.</span>
+</span>
+<button type="button" onClick="{{retry}}" style="min-height: 52px; border-radius: 12px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font-family: inherit; font-size: 19px; font-weight: 700; cursor: pointer">Spróbuj ponownie</button>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{showExtras}}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 12px; border: 1px solid {{t.line}}; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Dodaj zdjęcie</button>
+<button type="button" style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 12px; border: 1px solid {{t.line}}; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Komentarz</button>
+</div>
+</sc-if>
+<sc-if value="{{showPrivacy}}" hint-placeholder-val="{{ true }}">
+<span style="display: flex; gap: 8px; align-items: flex-start; font-size: 14px; line-height: 20px; color: {{t.muted}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex: none; margin-top: 2px" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Zapisujemy tylko czas i miejsce zgłoszenia. Bez konta i numeru telefonu.</span>
+</sc-if>
+
+<sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; gap: 12px; align-items: flex-start">
+<svg width="40" height="40" viewBox="0 0 40 40" style="flex: none" aria-hidden="true"><path d="M5 9a5 5 0 0 1 5-5h20a5 5 0 0 1 5 5v15a5 5 0 0 1-5 5H15l-10 8V9z" fill="#5B2A9A"></path><path d="M13 16.5l4.5 4.5 9-9" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 700">{{doneTitle}}</h2>
+<span style="font-size: 16px; line-height: 22px; color: {{t.muted}}">{{doneBody}}</span>
+</div>
+</div>
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 12px; background: {{t.surface2}}">
+<span style="display: flex; flex-direction: column; gap: 0"><span style="font-size: 16px; line-height: 22px; color: {{t.muted}}">Przewidywany odbiór</span><span style="font-size: 48px; line-height: 56px; font-weight: 700; letter-spacing: -0.02em">ok. 14:00</span></span>
+<span style="font-size: 16px; line-height: 22px; font-weight: 600; text-align: right; padding-bottom: 8px">{{chosenLabel}}</span>
+</div>
+<ol aria-label="Status zgłoszenia" style="list-style: none; margin: 0; padding: 0; position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px">
+<span aria-hidden="true" style="position: absolute; left: 16.6%; right: 16.6%; top: 11px; height: 3px; background: {{t.track}}"></span>
+<span aria-hidden="true" style="position: absolute; left: 16.6%; width: 33.4%; top: 11px; height: 3px; background: {{t.primary}}"></span>
+<li style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center"><span style="width: 24px; height: 24px; border-radius: 50%; background: {{t.primary}}; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{t.onPrimary}}" stroke-width="4" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></span><span style="font-size: 16px; line-height: 20px; font-weight: 700">Przyjęte</span><span style="font-size: 15px; line-height: 20px; color: {{t.muted}}">{{acceptedAt}}</span></li>
+<li style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center"><span style="width: 24px; height: 24px; border-radius: 50%; background: {{t.surface}}; border: 3px solid {{t.primary}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{t.primary}}"></span></span><span style="font-size: 16px; line-height: 20px; font-weight: 700">Zaplanowane</span><span style="font-size: 15px; line-height: 20px; color: {{t.muted}}">kurs 14:00</span></li>
+<li style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center"><span style="width: 24px; height: 24px; border-radius: 50%; background: {{t.surface}}; border: 3px solid {{t.line}}; box-sizing: border-box"></span><span style="font-size: 16px; line-height: 20px; font-weight: 700; color: {{t.muted}}">Opróżnione</span><span style="font-size: 15px; line-height: 20px; color: {{t.muted}}">po kursie</span></li>
+</ol>
+<span style="display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 22px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><circle cx="17" cy="9" r="2.8"></circle><path d="M16 14.2A5.5 5.5 0 0 1 21.5 20"></path></svg>{{othersTxt}}</span>
+<sc-if value="{{member}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-radius: 12px; background: #2A1A63; color: #FFFFFF">
+<span style="flex: none; width: 44px; height: 44px; border-radius: 50%; background: #CDBBFF; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="#2A1A63"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><strong style="font-size: 17px; line-height: 22px">+10 pkt po potwierdzeniu przez ekipę</strong><span style="font-size: 15px; line-height: 20px; color: #E4DAFF">Smok_z_Kazimierza · odznaka „Oko Rynku” · 7. miejsce w Starym Mieście</span></span>
+</div>
+</sc-if>
+<sc-if value="{{anon}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-radius: 12px; border: 1px solid {{t.line}}">
+<svg width="28" height="28" viewBox="0 0 24 24" style="flex: none" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="#7B5FD0"></path></svg>
+<span style="flex: 1; font-size: 16px; line-height: 22px">Zgłaszasz częściej? Dołącz do <strong>Przyjaciół Wróżki</strong> i zbieraj punkty.</span>
+<a href="#przyjaciele" style="flex: none; font-size: 16px; font-weight: 700; color: {{t.accent}}">Więcej</a>
+</div>
+</sc-if>
+<button type="button" style="min-height: 56px; border-radius: 14px; border: 0; background: {{t.primary}}; color: {{t.onPrimary}}; font-family: inherit; font-size: 19px; font-weight: 700; cursor: pointer">Śledź status</button>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: -4px">
+<button type="button" style="min-height: 48px; border-radius: 12px; border: 2px solid {{t.line}}; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Kosze w okolicy</button>
+<button type="button" onClick="{{again}}" style="min-height: 48px; border-radius: 12px; border: 2px solid {{t.line}}; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Zgłoś inny kosz</button>
+</div>
+</div>
+</sc-if>
+</section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"screen":{"editor":"enum","options":["start","sending","sent","dup","offline","far","limit","error","nosignal"],"default":"start"},"member":{"editor":"boolean","default":false},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"layout":{"editor":"enum","options":["phone","tablet","desktop"],"default":"phone"},"chosen":{"editor":"enum","options":["full","over","broken"],"default":"full"},"$preview":{"width":390,"height":844}}'>
+const TH={
+ light:{bg:'#F6F4EF',surface:'#FFFFFF',surface2:'#EFECE5',text:'#0E1222',muted:'#454B57',line:'#CFC9BE',head:'#0E1222',onHead:'#FFFFFF',primary:'#0E1222',onPrimary:'#FFFFFF',accent:'#2A1A63',track:'#E3DFD6',
+  nearTint:'#FFF3D1',fullTint:'#FBE4E4',warnTint:'#E8EBED',nearBorder:'#B57D00',fullBorder:'#C40000',warnBorder:'#2F3A41',warnFill:'#2F3A41',warnGlyph:'#FFFFFF',sheetShadow:'0 -8px 24px rgba(14,18,34,.10)',mapFilter:'none'},
+ dark:{bg:'#0B0E1A',surface:'#151A2B',surface2:'#1E2439',text:'#EEF0F6',muted:'#B7BDCD',line:'#3A4260',head:'#05070F',onHead:'#FFFFFF',primary:'#CDBBFF',onPrimary:'#0E1222',accent:'#CDBBFF',track:'#2A3048',
+  nearTint:'#33290C',fullTint:'#3A1616',warnTint:'#232A33',nearBorder:'#F0A500',fullBorder:'#FF6B6B',warnBorder:'#A7B2BA',warnFill:'#A7B2BA',warnGlyph:'#0E1222',sheetShadow:'0 -8px 24px rgba(0,0,0,.45)',mapFilter:'invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.9)'}
+};
+const OPTS=[
+ {id:'full',label:'Pełny',sub:'Nie mieści się więcej',kind:'near'},
+ {id:'over',label:'Przepełniony, odpady obok',sub:'Worki lub śmieci wokół kosza',kind:'full'},
+ {id:'broken',label:'Uszkodzony',sub:'Zepsuty, przewrócony, bez klapy',kind:'warn'}
+];
+const NEAR=[{dx:74,dy:-36,k:'ok'},{dx:-100,dy:24,k:'ok'},{dx:128,dy:40,k:'near'},{dx:-58,dy:-44,k:'ok'},{dx:20,dy:52,k:'ok'}];
+class Component extends DCLogic {
+ constructor(props){super(props);this.state={screen:null,chosen:null};}
+ componentWillUnmount(){clearTimeout(this.tm);}
+ renderVals(){
+  const p=this.props;
+  const screen=this.state.screen||p.screen||'start';
+  const chosen=this.state.chosen||p.chosen||'full';
+  const t=TH[p.theme==='dark'?'dark':'light'];
+  const layout=p.layout||'phone';
+  const isDone=screen==='sent'||screen==='dup';
+  const banner=screen==='far'||screen==='limit'||screen==='nosignal'||screen==='offline';
+  let rootW=390,rootH=844,headH=56,mapW=358,mapH=isDone?120:(banner?112:148),bodyDir='column',mapPad='16px 16px 0',cardPad='16px 16px 0',sheetRadius='20px 20px 0 0',headSub='MPO Kraków · zgłoś stan kosza';
+  if(layout==='tablet'){rootW=768;rootH=1024;headH=64;mapW=336;mapH=928;bodyDir='row';mapPad='16px';cardPad='16px 16px 0 0';sheetRadius='20px 0 0 0';headSub='Kraków nie potrzebuje więcej koszy, potrzebuje wróżki.';}
+  if(layout==='desktop'){rootW=1024;rootH=768;headH=64;mapW=528;mapH=672;bodyDir='row';mapPad='16px';cardPad='16px 16px 0 0';sheetRadius='20px 0 0 0';headSub='Kraków nie potrzebuje więcej koszy, potrzebuje wróżki.';}
+  const cx=mapW/2,cy=mapH/2;
+  const far=screen==='far';
+  const ux=far?cx+150:cx-18,uy=far?Math.max(16,cy-40):cy+16;
+  const pick=(id)=>()=>{this.setState({screen:'sending',chosen:id});clearTimeout(this.tm);this.tm=setTimeout(()=>this.setState({screen:'sent'}),1400);};
+  const disabledAll=screen==='far'||screen==='limit';
+  const opts=OPTS.map(o=>{
+   const isCh=o.id===chosen;
+   let mode='btn';
+   if(screen==='sending'||screen==='offline'||screen==='error'){mode=isCh?(screen==='sending'?'sending':screen==='offline'?'queued':'error'):'off';}
+   if(disabledAll)mode='off';
+   const off=mode==='off';
+   return Object.assign({},o,{
+    isBtn:mode==='btn'||off,isSending:mode==='sending',isQueued:mode==='queued',isError:mode==='error',
+    isNear:o.kind==='near',isFull:o.kind==='full',isWarn:o.kind==='warn',
+    disabled:off,cursor:off?'not-allowed':'pointer',iconOp:off?0.4:1,
+    bg:off?t.surface2:t[o.kind+'Tint'],border:off?t.line:t[o.kind+'Border'],fg:off?t.muted:t.text,subFg:t.muted,
+    warnFill:t.warnFill,warnGlyph:t.warnGlyph,
+    pick:off?null:pick(o.id)
+   });
+  });
+  const near=NEAR.filter(n=>cx+n.dx>8&&cx+n.dx<mapW-8&&cy+n.dy>8&&cy+n.dy<mapH-8).map(n=>({l:cx+n.dx,t:cy+n.dy,c:n.k==='ok'?'#127A3E':'#F0A500',r:n.k==='ok'?'50%':'2px',tf:n.k==='ok'?'none':'rotate(45deg)'}));
+  const chosenOpt=OPTS.find(o=>o.id===chosen)||OPTS[0];
+  return {
+   t,rootW,rootH,headH,headSub,bodyDir,mapPad,cardPad,sheetRadius,mapW,mapH,
+   imgL:cx-960,imgT:cy-510,
+   showRing:far,ringL:cx-84,ringT:cy-84,ringLblL:cx-20,ringLblT:cy+60,
+   near,userL:ux,userT:uy,userLblL:ux+12,userLblT:uy-26,
+   pinL:cx,pinT:cy,pinLblL:cx-56,pinLblT:cy+24,
+   pinOk:!isDone&&screen!=='nosignal',pinReport:isDone,pinWarn:screen==='nosignal'&&!isDone,
+   distTxt:far?'Jesteś ok. 280 m od kosza':'Jesteś ok. 40 m od kosza',
+   showFullCard:!isDone,showCompactCard:isDone,
+   isNoSignal:screen==='nosignal',isFar:far,isLimit:screen==='limit',isOffline:screen==='offline',
+   showPickTitle:!isDone&&!banner&&screen!=='error'&&screen!=='sending',
+   showButtons:!isDone,showExtras:screen==='start'||screen==='nosignal',showPrivacy:screen==='start'||screen==='nosignal'||screen==='sending',
+   opts,isDone,
+   doneTitle:screen==='dup'?'Wróżka już wie!':'Dziękujemy. Dyspozytor widzi zgłoszenie.',
+   doneBody:screen==='dup'?'Twoje naciśnięcie dołączyliśmy do zgłoszenia z 13:11.':'Zgłoszenie podniosło priorytet tego kosza na trasie.',
+   acceptedAt:screen==='dup'?'13:11':'13:24',
+   othersTxt:screen==='dup'?'Ty i 2 inne osoby zgłosiły ten kosz.':'2 inne osoby też to zgłosiły.',
+   chosenLabel:'Twoje zgłoszenie: '+chosenOpt.label,
+   member:!!p.member,anon:!p.member,
+   undo:()=>{clearTimeout(this.tm);this.setState({screen:'start'});},
+   retry:()=>{this.setState({screen:'sending'});clearTimeout(this.tm);this.tm=setTimeout(()=>this.setState({screen:'sent'}),1400);},
+   again:()=>this.setState({screen:'start'})
+  };
+ }
+}
+</script>
+</body>
+</html>

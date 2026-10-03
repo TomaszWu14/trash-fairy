@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Obudowa z przyciskiem · widok z przodu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="position: relative; width: 900px; height: 1300px; overflow: hidden; background: #E9E7E2; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #0E1222">
+
+<span style="position: absolute; left: 395px; top: 860px; width: 110px; height: 440px; background: #4B5056"></span>
+<span style="position: absolute; left: 230px; top: 1010px; width: 440px; height: 300px; border-radius: 24px 24px 0 0; background: #3F5A46"></span>
+<span style="position: absolute; left: 250px; top: 1030px; width: 400px; height: 28px; border-radius: 6px; background: #2E4334"></span>
+<span style="position: absolute; left: 380px; top: 1100px; font-size: 22px; font-weight: 700; color: #DCE6DE; letter-spacing: .08em">MPO</span>
+
+<div style="position: absolute; left: 140px; top: 70px; width: 620px; height: 820px; border-radius: 32px; background: #3A3F44; box-shadow: inset 0 0 0 6px #2C3034, 0 18px 40px rgba(14,18,34,.35)">
+<span style="position: absolute; left: 22px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background: #23272A; box-shadow: inset 0 0 0 3px #575D63"></span>
+<span style="position: absolute; right: 22px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background: #23272A; box-shadow: inset 0 0 0 3px #575D63"></span>
+<span style="position: absolute; left: 22px; bottom: 22px; width: 14px; height: 14px; border-radius: 50%; background: #23272A; box-shadow: inset 0 0 0 3px #575D63"></span>
+<span style="position: absolute; right: 22px; bottom: 22px; width: 14px; height: 14px; border-radius: 50%; background: #23272A; box-shadow: inset 0 0 0 3px #575D63"></span>
+<span style="position: absolute; left: 0; right: 0; top: 40px; text-align: center; font-size: 18px; font-weight: 700; letter-spacing: .14em; color: #A9B0B6">MPO KRAKÓW · TRASH FAIRY</span>
+
+<div style="position: absolute; left: 70px; top: 90px; width: 480px; height: 288px; padding: 0; background: #FFFFFF; box-shadow: 0 0 0 16px #15181B, inset 0 0 0 1px #CCCCCC; overflow: hidden">
+<div style="width: 800px; height: 480px; transform: scale(0.6); transform-origin: 0 0">
+<dc-import name="Epaper" state="confirm" tri="{{ false }}" hint-size="800px,480px"></dc-import>
+</div>
+</div>
+
+<div style="position: absolute; left: 110px; top: 440px; width: 400px; height: 300px; border-radius: 20px; background: #FFD34D; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 24px; box-sizing: border-box">
+<span style="font-size: 40px; line-height: 44px; font-weight: 700; color: #000000; letter-spacing: .02em">PEŁNY? NACIŚNIJ</span>
+<svg width="28" height="20" viewBox="0 0 28 20" style="margin-top: 6px" aria-hidden="true"><path d="M2 2 L14 16 L26 2" fill="none" stroke="#000000" stroke-width="4"></path></svg>
+<span style="margin-top: 10px; width: 150px; height: 150px; border-radius: 50%; background: #B9BEC3; box-shadow: inset 0 0 0 10px #8C9298, inset 0 -10px 18px rgba(0,0,0,.25), 0 6px 0 #6E7378"></span>
+</div>
+
+<span style="position: absolute; left: 0; right: 0; bottom: 48px; text-align: center; font-size: 16px; font-weight: 500; color: #A9B0B6">Nr urządzenia 1183 · zgłoszenie także przez QR na ekranie</span>
+</div>
+
+<div style="position: absolute; left: 800px; top: 70px; width: 60px; height: 1230px">
+<span style="position: absolute; left: 28px; top: 300px; bottom: 0; width: 3px; background: #0E1222"></span>
+<span style="position: absolute; left: 14px; top: 300px; width: 31px; height: 3px; background: #0E1222"></span>
+<span style="position: absolute; left: -28px; top: 620px; transform: rotate(-90deg); transform-origin: center; font-size: 20px; font-weight: 700; white-space: nowrap">ok. 120 cm do środka ekranu</span>
+</div>
+<div style="position: absolute; left: 40px; top: 1180px; font-size: 16px; font-weight: 500; color: #454B57; width: 160px; line-height: 22px">Słupek i kosz poglądowo, nie w skali.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":900,"height":1300}}'>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Komponenty i tokeny · Zgłoszenie</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2A1A63}a:hover{color:#0E1222}
+.k{font-family:"IBM Plex Sans",system-ui,sans-serif;color:#0E1222;font-variant-numeric:tabular-nums}
+.sec{background:#FFFFFF;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px;box-shadow:0 1px 2px rgba(14,18,34,.06)}
+.h{margin:0;font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#454B57}
+.sw{display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:18px}
+.chip{height:56px;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(14,18,34,.12)}
+.rb{display:flex;align-items:center;gap:16px;width:100%;min-height:72px;padding:12px 16px;border-radius:14px;border:2px solid;font-family:inherit;text-align:left;box-sizing:border-box;background:none;cursor:pointer;color:#0E1222}
+.rb-t{font-size:20px;line-height:26px;font-weight:700}
+.rb-s{font-size:16px;line-height:20px;color:#454B57}
+.cap{font-size:13px;color:#454B57}
+.badge{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 6px;border-radius:999px;background:#F6F4EF;font-size:15px;font-weight:600}
+</style>
+</helmet>
+<div class="k" style="width: 1280px; box-sizing: border-box; padding: 40px; background: #F6F4EF; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; align-items: baseline; gap: 16px">
+<h1 style="margin: 0; font-size: 32px; line-height: 40px; font-weight: 700">Zgłoszenie mieszkańca · komponenty i tokeny</h1>
+<span style="font-size: 16px; color: #454B57">IBM Plex Sans · siatka 8 px · WCAG 2.1 AA</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+<section class="sec" style="grid-column: span 2">
+<h2 class="h">Kolory marki i powierzchnie</h2>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px">
+<div class="sw"><span class="chip" style="background: #0E1222"></span><strong>Granat</strong>#0E1222 · tekst, przycisk główny</div>
+<div class="sw"><span class="chip" style="background: #CDBBFF"></span><strong>Lila</strong>#CDBBFF · akcent, główny w ciemnym</div>
+<div class="sw"><span class="chip" style="background: #FFD34D"></span><strong>Żółć</strong>#FFD34D · demo, postęp</div>
+<div class="sw"><span class="chip" style="background: #2A1A63"></span><strong>Fiolet</strong>#2A1A63 · program, linki</div>
+<div class="sw"><span class="chip" style="background: #F6F4EF"></span><strong>Tło</strong>#F6F4EF</div>
+<div class="sw"><span class="chip" style="background: #FFFFFF"></span><strong>Powierzchnia</strong>#FFFFFF</div>
+<div class="sw"><span class="chip" style="background: #454B57"></span><strong>Tekst 2</strong>#454B57 · 8,6:1 na tle</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px">
+<div class="sw"><span class="chip" style="background: #0B0E1A"></span><strong>Ciemny · tło</strong>#0B0E1A</div>
+<div class="sw"><span class="chip" style="background: #151A2B"></span><strong>Ciemny · arkusz</strong>#151A2B</div>
+<div class="sw"><span class="chip" style="background: #1E2439"></span><strong>Ciemny · pole</strong>#1E2439</div>
+<div class="sw"><span class="chip" style="background: #EEF0F6"></span><strong>Ciemny · tekst</strong>#EEF0F6</div>
+<div class="sw"><span class="chip" style="background: #B7BDCD"></span><strong>Ciemny · tekst 2</strong>#B7BDCD</div>
+<div class="sw"><span class="chip" style="background: #CDBBFF"></span><strong>Ciemny · główny</strong>#CDBBFF + tekst #0E1222</div>
+<div class="sw"><span class="chip" style="background: #FFF3D1"></span><strong>Tła przycisków</strong>#FFF3D1 · #FBE4E4 · #E8EBED</div>
+</div>
+</section>
+
+<section class="sec">
+<h2 class="h">Typografia i odstępy</h2>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 48px; line-height: 56px; font-weight: 700">ok. 14:00 <span class="cap">48/56 · czas odbioru</span></span>
+<span style="font-size: 24px; line-height: 30px; font-weight: 700">Kosz Rynek 03 <span class="cap">24/30 · nazwa</span></span>
+<span style="font-size: 20px; line-height: 26px; font-weight: 700">Pełny <span class="cap">20/26 · przycisk</span></span>
+<span style="font-size: 17px; line-height: 24px">Szacujemy 62 % <span class="cap">17/24 · status</span></span>
+<span style="font-size: 16px; line-height: 22px">Tekst podstawowy <span class="cap">16/22 · minimum</span></span>
+<span style="font-size: 14px; line-height: 20px; color: #454B57">Prywatność, metadane <span class="cap">14/20</span></span>
+</div>
+<div style="display: flex; align-items: flex-end; gap: 8px">
+<span style="width: 8px; height: 8px; background: #CDBBFF"></span><span style="width: 12px; height: 12px; background: #CDBBFF"></span><span style="width: 16px; height: 16px; background: #CDBBFF"></span><span style="width: 24px; height: 24px; background: #CDBBFF"></span><span style="width: 32px; height: 32px; background: #CDBBFF"></span>
+<span class="cap">8 · 12 · 16 · 24 · 32 px · promienie 12 / 14 / 16 / 20</span>
+</div>
+</section>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+<section class="sec">
+<h2 class="h">Przycisk zgłoszenia</h2>
+<button class="rb" type="button" style="border-color: #B57D00; background: #FFF3D1"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect x="8.5" y="8.5" width="23" height="23" rx="3" transform="rotate(45 20 20)" fill="#F0A500"></rect><path d="M20 27V13.5M14.5 19L20 13.5l5.5 5.5" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="display: flex; flex-direction: column"><span class="rb-t">Pełny</span><span class="rb-s">Nie mieści się więcej</span></span></button>
+<button class="rb" type="button" style="border-color: #C40000; background: #FBE4E4"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect x="4" y="4" width="32" height="32" rx="5" fill="#C40000"></rect><path d="M20 10v13" stroke="#fff" stroke-width="4" stroke-linecap="round"></path><circle cx="20" cy="29" r="2.6" fill="#fff"></circle></svg><span style="display: flex; flex-direction: column"><span class="rb-t">Przepełniony, odpady obok</span><span class="rb-s">Worki lub śmieci wokół kosza</span></span></button>
+<button class="rb" type="button" style="border-color: #2F3A41; background: #E8EBED"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L38 35 H2 Z" fill="#2F3A41"></path><path d="M20 14v10" stroke="#fff" stroke-width="3.5" stroke-linecap="round"></path><circle cx="20" cy="29.5" r="2.3" fill="#fff"></circle></svg><span style="display: flex; flex-direction: column"><span class="rb-t">Uszkodzony</span><span class="rb-s">Zepsuty, przewrócony, bez klapy</span></span></button>
+<div role="status" style="display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #0E1222; color: #fff">
+<span style="display: flex; align-items: center; gap: 12px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3"></circle><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path></svg><span style="flex: 1; font-size: 20px; font-weight: 700">Wysyłamy: Pełny</span><button type="button" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 2px solid #fff; background: none; color: #fff; font-family: inherit; font-size: 16px; font-weight: 700">Cofnij</button></span>
+<span style="position: relative; display: block; height: 6px; border-radius: 3px; background: rgba(255,255,255,.3)"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 70%; border-radius: 3px; background: #FFD34D"></span></span>
+</div>
+<button class="rb" type="button" disabled style="border-color: #CFC9BE; background: #EFECE5; color: #454B57; cursor: not-allowed"><svg width="40" height="40" viewBox="0 0 40 40" style="opacity: .4" aria-hidden="true"><rect x="8.5" y="8.5" width="23" height="23" rx="3" transform="rotate(45 20 20)" fill="#F0A500"></rect><path d="M20 27V13.5M14.5 19L20 13.5l5.5 5.5" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="display: flex; flex-direction: column"><span class="rb-t">Pełny</span><span class="rb-s">Wyłączony: limit lub odległość</span></span></button>
+<span class="cap">Wysokość min. 72 px (wymóg 64), etykieta 20 px, cała szerokość. Kolor + kształt + znak + słowo.</span>
+</section>
+
+<section class="sec">
+<h2 class="h">Badge stanu (wspólne z panelem)</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span class="badge"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#127A3E"></circle><path d="M12.5 20.5l5 5 10-11" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path></svg>OK</span>
+<span class="badge"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><rect x="8.5" y="8.5" width="23" height="23" rx="3" transform="rotate(45 20 20)" fill="#F0A500"></rect><path d="M20 27V13.5M14.5 19L20 13.5l5.5 5.5" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Zbliża się do pełna</span>
+<span class="badge"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><rect x="4" y="4" width="32" height="32" rx="5" fill="#C40000"></rect><path d="M20 10v13" stroke="#fff" stroke-width="4.5" stroke-linecap="round"></path><circle cx="20" cy="29" r="3" fill="#fff"></circle></svg>Przepełniony</span>
+<span class="badge"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><path d="M5 9a5 5 0 0 1 5-5h20a5 5 0 0 1 5 5v15a5 5 0 0 1-5 5H15l-10 8V9z" fill="#5B2A9A"></path><circle cx="13" cy="16.5" r="2.6" fill="#fff"></circle><circle cx="20" cy="16.5" r="2.6" fill="#fff"></circle><circle cx="27" cy="16.5" r="2.6" fill="#fff"></circle></svg>Zgłoszenie mieszkańca</span>
+<span class="badge"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L38 35 H2 Z" fill="#2F3A41"></path><path d="M20 14v10" stroke="#fff" stroke-width="4" stroke-linecap="round"></path><circle cx="20" cy="29.5" r="2.6" fill="#fff"></circle></svg>Ostrzeżenie czujnika</span>
+<span class="badge"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="#127A3E" stroke-width="3"></circle><circle cx="20" cy="20" r="12" fill="#127A3E"></circle><path d="M15 20.5l3.5 3.5 6.5-7" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>Altana (podwójna obwódka)</span>
+</div>
+
+<h2 class="h" style="margin-top: 8px">Karta kosza</h2>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 24px; line-height: 30px; font-weight: 700">Kosz Rynek 03</span>
+<span style="font-size: 16px; color: #454B57">Rynek Główny 3, róg Szewskiej · kosz uliczny 120 l</span>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-radius: 12px; border: 1px solid #CFC9BE">
+<span style="font-size: 17px; line-height: 24px">Szacujemy <strong>62 %</strong>. Odbiór planowo <strong>ok. 14:00</strong>.</span>
+<span style="position: relative; display: block; height: 8px; border-radius: 4px; background: #E3DFD6"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 62%; border-radius: 4px; background: #0E1222"></span></span>
+</div>
+</div>
+
+<h2 class="h" style="margin-top: 8px">Mini-mapa</h2>
+<div style="position: relative; height: 140px; border-radius: 16px; overflow: hidden; background: #F1EEE8">
+<img src="/_blob/7c566959315f6429aa53f7c883b263ec" alt="Mini-mapa okolicy Rynku" style="position: absolute; left: -786px; top: -440px; width: 3200px; height: 1800px; max-width: none">
+<svg width="36" height="36" viewBox="0 0 40 40" style="position: absolute; left: 156px; top: 52px" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#127A3E" stroke="#fff" stroke-width="3"></circle><path d="M12.5 20.5l5 5 10-11" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="position: absolute; left: 140px; top: 96px; width: 14px; height: 14px; border-radius: 50%; background: #0B5FD6; box-shadow: 0 0 0 3px #fff"></span>
+</div>
+<span class="cap">Podkład OSM, punkt na środku, kropka „Ty”, okrąg 150 m tylko przy zbyt dużej odległości.</span>
+</section>
+
+<section class="sec">
+<h2 class="h">Oś statusu</h2>
+<ol style="list-style: none; margin: 0; padding: 0; position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px">
+<span aria-hidden="true" style="position: absolute; left: 16.6%; right: 16.6%; top: 11px; height: 3px; background: #E3DFD6"></span>
+<span aria-hidden="true" style="position: absolute; left: 16.6%; width: 33.4%; top: 11px; height: 3px; background: #0E1222"></span>
+<li style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center"><span style="width: 24px; height: 24px; border-radius: 50%; background: #0E1222; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></span><strong style="font-size: 16px">Przyjęte</strong><span style="font-size: 15px; color: #454B57">13:24</span></li>
+<li style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center"><span style="width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 3px solid #0E1222; box-sizing: border-box; display: flex; align-items: center; justify-content: center"><span style="width: 8px; height: 8px; border-radius: 50%; background: #0E1222"></span></span><strong style="font-size: 16px">Zaplanowane</strong><span style="font-size: 15px; color: #454B57">kurs 14:00</span></li>
+<li style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center"><span style="width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 3px solid #CFC9BE; box-sizing: border-box"></span><strong style="font-size: 16px; color: #454B57">Opróżnione</strong><span style="font-size: 15px; color: #454B57">po kursie</span></li>
+</ol>
+
+<h2 class="h" style="margin-top: 8px">Toast offline</h2>
+<div role="status" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: #0E1222; color: #fff">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFD34D" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0M12 19h.01M3 3l18 18"></path></svg>
+<span style="font-size: 16px; line-height: 22px"><strong>Brak zasięgu.</strong> Wyślemy, gdy wróci zasięg.</span>
+</div>
+
+<h2 class="h" style="margin-top: 8px">Pusty stan</h2>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 16px; border-radius: 12px; border: 1px dashed #CFC9BE; text-align: center">
+<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#454B57" stroke-width="1.6" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+<strong style="font-size: 17px">Brak innych koszy w pobliżu</strong>
+<span style="font-size: 16px; line-height: 22px; color: #454B57">W promieniu 150 m nie ma koszy z kodem Trash Fairy.</span>
+</div>
+
+<h2 class="h" style="margin-top: 8px">Błąd</h2>
+<div role="alert" style="display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 2px solid #C40000; background: #FBE4E4">
+<span style="font-size: 20px; line-height: 26px; font-weight: 700">Pełny · nie udało się wysłać</span>
+<span style="font-size: 16px; line-height: 22px">To problem po naszej stronie. Zgłoszenie czeka w telefonie.</span>
+<button type="button" style="min-height: 52px; border-radius: 12px; border: 0; background: #0E1222; color: #fff; font-family: inherit; font-size: 19px; font-weight: 700">Spróbuj ponownie</button>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1560}}'>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

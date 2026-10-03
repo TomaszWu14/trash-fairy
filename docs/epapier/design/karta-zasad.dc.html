@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Karta zasad · e-papier</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.k{font-family:"IBM Plex Sans",system-ui,sans-serif;color:#0E1222}
+.sec{background:#FFFFFF;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.h{margin:0;font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#454B57}
+.row{display:flex;align-items:baseline;gap:12px;font-size:15px;line-height:21px}
+.m{color:#454B57}
+.shape{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:15px;text-align:center}
+</style>
+</helmet>
+<div class="k" style="width: 1280px; height: 980px; box-sizing: border-box; padding: 40px; background: #F6F4EF; display: flex; flex-direction: column; gap: 24px">
+<h1 style="margin: 0; font-size: 32px; line-height: 40px; font-weight: 700">Wyświetlacz na koszu · karta zasad</h1>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; flex: 1">
+
+<section class="sec">
+<h2 class="h">Siatka 800×480</h2>
+<div style="position: relative; width: 352px; height: 211px; background: #fff; outline: 2px solid #000">
+<span style="position: absolute; left: 0; top: 0; width: 352px; height: 28px; border-bottom: 2px solid #000; box-sizing: border-box; font-size: 11px; font-weight: 700; padding: 6px 8px">nagłówek 64</span>
+<span style="position: absolute; left: 0; top: 28px; width: 257px; height: 123px; box-sizing: border-box; font-size: 11px; font-weight: 700; padding: 6px 8px">stan 584×280</span>
+<span style="position: absolute; left: 257px; top: 28px; width: 95px; height: 123px; border-left: 2px solid #000; box-sizing: border-box; font-size: 11px; font-weight: 700; padding: 6px 8px">QR 216</span>
+<span style="position: absolute; left: 11px; top: 151px; width: 330px; height: 39px; border: 2px solid #000; box-sizing: border-box; font-size: 11px; font-weight: 700; padding: 4px 8px">częściowe 752×88</span>
+<span style="position: absolute; left: 0; top: 190px; width: 352px; height: 21px; box-sizing: border-box; font-size: 11px; font-weight: 700; padding: 3px 8px">stopka 48</span>
+</div>
+<span class="row"><strong>Moduł</strong><span class="m">8 px · marginesy 24 px · odstępy 16/20/24</span></span>
+<span class="row"><strong>Kolejność</strong><span class="m">stan (co się dzieje) → liczby (kiedy) → QR (więcej) → stopka</span></span>
+<span class="row"><strong>Stałe pozycje</strong><span class="m">każdy stan używa tej samej siatki, zmienia się tylko treść pól</span></span>
+</section>
+
+<section class="sec">
+<h2 class="h">Typografia · IBM Plex Sans 500 / 700</h2>
+<span style="font-size: 56px; line-height: 60px; font-weight: 700; text-transform: uppercase">Zgłoszono</span>
+<span class="row"><strong>Nagłówek stanu</strong><span class="m">56/60, 700, wersaliki (jedyne) · nocą 60/64 + odbiór 48</span></span>
+<span style="font-size: 32px; line-height: 38px; font-weight: 700">13:24 · ekipa ok. 14:00</span>
+<span class="row"><strong>Kluczowa liczba</strong><span class="m">32/38 · wartości pól 30/38, 700</span></span>
+<span style="font-size: 24px; line-height: 30px; font-weight: 500">Dyspozytor już wie.</span>
+<span class="row"><strong>Opis</strong><span class="m">24/30 · etykiety i podpis QR 20/24, 500</span></span>
+<span style="font-size: 16px; line-height: 20px">Bateria 78 % · ostatni sygnał 13:20</span>
+<span class="row"><strong>Stopka</strong><span class="m">16/20 (min. 13), 500</span></span>
+</section>
+
+<section class="sec">
+<h2 class="h">Linie i pasek zapełnienia</h2>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="display: flex; align-items: center; gap: 12px"><span style="width: 120px; height: 3px; background: #000"></span><span class="m" style="font-size: 15px">3 px · ramki, separatory</span></span>
+<span style="display: flex; align-items: center; gap: 12px"><span style="width: 120px; height: 2px; background: #000"></span><span class="m" style="font-size: 15px">2 px · absolutne minimum</span></span>
+</div>
+<span style="display: flex; gap: 4px"><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box; background: #000"></span><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box; background: #000"></span><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box; background: #000"></span><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box; background: #000"></span><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box; background: #000"></span><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box; background: #000"></span><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box"></span><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box"></span><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box"></span><span style="width: 18px; height: 34px; border: 3px solid #000; box-sizing: border-box"></span><strong style="font-size: 28px; margin-left: 8px">62 %</strong></span>
+<span class="row"><strong>Bloki</strong><span class="m">10 × 18×34 px, ramka 3 px, 1 blok = 10 %, zaokrąglenie w dół. Brak danych: same puste ramki + „brak danych”.</span></span>
+<span class="row"><strong>Zakazane</strong><span class="m">szarości, dithering, gradienty, linie 1 px, animacje, kolor jako jedyny nośnik.</span></span>
+</section>
+
+<section class="sec" style="grid-column: span 2">
+<h2 class="h">Kształty stanów · wypełnione czernią, znak wycięty na biało</h2>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px">
+<span class="shape"><svg width="72" height="72" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#000"></circle><path d="M11 20.5l6 6 12-13" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="square"></path></svg><strong>OK</strong><span class="m">koło ✓ · stany 1, 4, 7</span></span>
+<span class="shape"><svg width="72" height="72" viewBox="0 0 40 40" aria-hidden="true"><rect x="7" y="7" width="26" height="26" transform="rotate(45 20 20)" fill="#000"></rect><path d="M20 29V12M13.5 18.5L20 12l6.5 6.5" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="square"></path></svg><strong>Zbliża się do pełna</strong><span class="m">romb ↑ · ≥ 85 % przed kursem</span></span>
+<span class="shape"><svg width="72" height="72" viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="38" height="38" fill="#000"></rect><rect x="17" y="7" width="6" height="17" fill="#fff"></rect><rect x="17" y="28" width="6" height="6" fill="#fff"></rect></svg><strong>Przepełniony</strong><span class="m">kwadrat ! · stan 5</span></span>
+<span class="shape"><svg width="72" height="72" viewBox="0 0 40 40" aria-hidden="true"><path d="M2 6a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v20a4 4 0 0 1-4 4H14l-12 9V6z" fill="#000"></path><rect x="9" y="14" width="5" height="5" fill="#fff"></rect><rect x="17.5" y="14" width="5" height="5" fill="#fff"></rect><rect x="26" y="14" width="5" height="5" fill="#fff"></rect></svg><strong>Zgłoszenie</strong><span class="m">dymek … · stany 2, 3</span></span>
+<span class="shape"><svg width="72" height="72" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 1 L39 38 H1 Z" fill="#000"></path><rect x="17.5" y="13" width="5" height="13" fill="#fff"></rect><rect x="17.5" y="29" width="5" height="5" fill="#fff"></rect></svg><strong>Ostrzeżenie urządzenia</strong><span class="m">trójkąt ! · stan 6</span></span>
+</div>
+<span class="row"><strong>Kolor</strong><span class="m">Wariant 1-bitowy jest wzorcowy. W 3-kolorowym czerwień wypełnia tylko pas stanu tuż po zmianie (stan 2), znak w kształcie też czerwony. Treść jest identyczna z wersją czarną, więc nic nie ginie bez koloru.</span></span>
+</section>
+
+<section class="sec">
+<h2 class="h">QR</h2>
+<span class="row"><strong>Rozmiar</strong><span class="m">168×168 px z białą ramką 8 px (kod 152 px), obrys 3 px, min. 150 px</span></span>
+<span class="row"><strong>Jeden kod na stan</strong><span class="m">zawsze z podpisem 20 px: co się stanie po zeskanowaniu</span></span>
+<span class="row"><strong>Cel linku</strong><span class="m">1, 6, 7 → zgłoszenie z telefonu · 2, 3, 5 → status kosza · 4 → Przyjaciele Wróżki</span></span>
+<span class="row"><strong>Bez telefonu</strong><span class="m">wszystko, co ważne, jest napisane na ekranie, QR to dodatek</span></span>
+<span class="row"><strong>Ton</strong><span class="m">spokojny, bez wykrzykników, bez danych osobowych i pseudonimów</span></span>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":980}}'>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

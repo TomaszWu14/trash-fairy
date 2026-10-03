@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trash Fairy — metodologia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='fairy.css') }}">
+  <style>
+    body.tf { display: block; }
+    .doc { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+    .doc h1 { font: 600 28px Fraunces, Georgia, serif; color: var(--plant); margin: 0 0 4px; }
+    .doc h2 { font: 600 19px Fraunces, Georgia, serif; color: var(--plant); margin: 28px 0 8px; }
+    .doc p, .doc li { line-height: 1.55; }
+    .doc table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; border: 1px solid var(--line); }
+    .doc th, .doc td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .doc th { background: #f3efe4; font-weight: 600; }
+    .doc td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .note { background: #fff7d6; border: 1px solid var(--gold); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .kpi { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .kpi b { display: block; font: 600 24px Fraunces, Georgia, serif; color: var(--plant); }
+    .kpi small { color: var(--muted); }
+    a { color: var(--plant-2); }
+  </style>
+</head>
+<body class="tf">
+<header class="tf-header">
+  <div class="tf-brand">Trash <span>Fairy</span> <span aria-hidden="true">✨</span></div>
+  {% include "_nav.html" %}
+  <div style="flex:1"></div>
+  <div class="tf-demo">DANE DEMONSTRACYJNE</div>
+</header>
+<main class="doc">
+  <h1>Jak liczymy i skąd są dane</h1>
+  <p class="tf-muted">Wszystkie wartości w tabelach poniżej strona czyta wprost ze stałych w kodzie, więc nie mogą się rozjechać z tym, co liczy aplikacja.</p>
+
+  <h2>Najważniejsze wyniki</h2>
+  <div class="kpis">
+    {% if quality %}<div class="kpi"><b>{{ '%.1f'|format(quality.mae)|replace('.', ',') }} p.p.</b><small>średni błąd prognozy (stała średnia: {{ '%.1f'|format(quality.naive_mae)|replace('.', ',') }} p.p.)</small></div>{% endif %}
+    <div class="kpi"><b>{{ '{:,}'.format(money.visits_month).replace(',', ' ') }}</b><small>wizyt mniej w miesiącu</small></div>
+    <div class="kpi"><b>{{ '{:+,}'.format(-money.km_month).replace(',', ' ') }} km</b><small>w miesiącu (więcej kursów do przeciążonych altan)</small></div>
+    <div class="kpi"><b>≈ {{ '{:,}'.format(money.pln_month).replace(',', ' ') }} zł</b><small>miesięcznie, według założeń niżej</small></div>
+  </div>
+
+  <h2>Porównanie: stały harmonogram kontra Trash Fairy ({{ result.weeks }} tygodnie)</h2>
+  <table>
+    <thead><tr><th>Flota</th><th>Miara</th><th class="num">Stały</th><th class="num">Wróżka</th></tr></thead>
+    <tbody>
+    {% for kind, label in [('bin', 'Kosze uliczne'), ('shelter', 'Altany')] %}
+      {% for key, name in [('visits', 'wizyty'), ('km', 'km'), ('empty_share', 'puste przyjazdy (%)'), ('overflow_hours', 'godziny przepełnienia')] %}
+      <tr><td>{% if loop.first %}{{ label }}{% endif %}</td><td>{{ name }}</td>
+          <td class="num">{{ result.fixed[kind][key] }}</td><td class="num">{{ result.fairy[kind][key] }}</td></tr>
+      {% endfor %}
+    {% endfor %}
+    </tbody>
+  </table>
+  <p>Oba warianty odtwarzają ten sam przebieg zapełniania (wspólny seed). Wróżka decyduje wyłącznie na podstawie własnej prognozy,
+     której profil uczy się na tygodniach sprzed okresu porównania, i bez przycisków. To wariant ostrożny.</p>
+
+  <h2>Założenia finansowe i CO₂</h2>
+  <p class="note">To <b>założenia</b>, nie dane MPO. Można je zmienić zmiennymi środowiskowymi
+    <code>COST_PER_KM_PLN</code>, <code>COST_PER_VISIT_PLN</code> i <code>CO2_KG_PER_KM</code>.</p>
+  <table>
+    <tbody>
+      <tr><td>Koszt kilometra (paliwo i eksploatacja)</td><td class="num">{{ money.assumptions.cost_per_km }} zł/km</td></tr>
+      <tr><td>Koszt wizyty przy punkcie (praca ekipy)</td><td class="num">{{ money.assumptions.cost_per_visit }} zł</td></tr>
+      <tr><td>Emisja CO₂</td><td class="num">{{ money.assumptions.co2_per_km }} kg/km</td></tr>
+      <tr><td>Bilans miesięczny: wizyty, km, CO₂</td>
+          <td class="num">−{{ money.visits_month }} wizyt · {{ '{:+}'.format(-money.km_month) }} km · {{ '{:+}'.format(-money.co2_kg_month) }} kg CO₂</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Reguły i parametry</h2>
+  <table>
+    <thead><tr><th>Obszar</th><th>Założenie</th><th>Wartość</th></tr></thead>
+    <tbody>{% for area, what, value in assumptions %}<tr><td>{{ area }}</td><td>{{ what }}</td><td>{{ value }}</td></tr>{% endfor %}</tbody>
+  </table>
+
+  <h2>Źródła danych i licencje</h2>
+  <ul>
+    <li><b>OpenStreetMap</b>: pozycje koszy, altan, lokali i przystanków oraz podkład mapy. © OpenStreetMap contributors, licencja ODbL 1.0 (pobrane przez Overpass API, cache w <code>data/*.geojson</code>).</li>
+    <li><b>Harmonogram oczyszczania MPO 08/2026</b>, arkusz „Kosze”: 9 383 kosze w Krakowie, w Dzielnicy I 43% opróżnianych 3× dziennie. To kontekst dla stałego harmonogramu.</li>
+    <li><b>KRKnews, 8.09.2026</b>: apel MPO o niewyrzucanie domowych śmieci do koszy ulicznych.</li>
+    <li><b>Analiza stanu gospodarki odpadami komunalnymi w GMK za 2025 r.</b>: skala kosztów systemu (dotyczy odpadów z nieruchomości, nie koszy ulicznych).</li>
+    <li><b>Wszystkie dane operacyjne</b> (poziomy, opróżnienia, naciśnięcia, zdjęcia demo) są <b>syntetyczne</b>.</li>
+  </ul>
+
+  <h2>Rola AI</h2>
+  <p>Claude (Anthropic) tylko <b>opisuje i rozpoznaje</b>: ocenia zdjęcie kosza (poziom, nadużycia, uszkodzenia) i pisze raport z gotowych liczb.
+     <b>Decyzje</b> (stan punktu, priorytet, trasa, rekomendacja, powiązanie altana → kosz) podejmują wyłącznie reguły opisane wyżej.
+     Liczby w raporcie, których nie ma w danych, panel oznacza ostrzeżeniem. Przy błędzie API aplikacja pokazuje komunikat i ostatni wynik.</p>
+
+  <h2>Prywatność (RODO)</h2>
+  <ul>
+    <li>Przycisk nie zbiera danych osobowych. Adres IP służy wyłącznie do limitu naciśnięć.</li>
+    <li>Zdjęcia od ekip są usuwane po 7 dniach (<code>flask cleanup-photos</code>), a w bazie zostaje tylko wynik analizy.</li>
+    <li>Model ma zakaz opisywania osób, twarzy i tablic rejestracyjnych. Rozmywanie twarzy jest w planach rozwoju.</li>
+  </ul>
+
+  <h2>Ograniczenia</h2>
+  <ul>
+    <li>Dane są syntetyczne. Prawdziwy pilotaż powinien uczyć profil na odczytach ekip i zdjęciach.</li>
+    <li>Odległości liczymy w linii prostej ×1,3, bez sieci ulic (OSRM jest w planach).</li>
+    <li>Na flotę przypada jeden pojazd, a kursy odbywają się w stałych godzinach 6:00 i 14:00.</li>
+  </ul>
+
+  <h2>Przejrzystość</h2>
+  <p>Koncepcja powstała przed wydarzeniem (<code>docs/KONCEPCJA.md</code>, bez kodu). <b>Cały kod powstał podczas HackYeah, 3–4.10.2026.</b>
+     Uzasadnienia decyzji są w <code>DECYZJE.md</code>.</p>
+</main>
+</body>
+</html>

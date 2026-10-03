@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trash Fairy — pokaz dla jury</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='pokaz.css') }}">
+</head>
+<body>
+<header class="c-head">
+  <div class="c-brand">Trash&nbsp;<span>Fairy</span>
+    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="#CDBBFF"/><path d="M19.5 1 L20.2 3.3 L22.5 4 L20.2 4.7 L19.5 7 L18.8 4.7 L16.5 4 L18.8 3.3 Z" fill="#FFD34D"/></svg>
+  </div>
+  <span class="c-sub">Kosze opróżnione, zanim się przepełnią · MPO Kraków</span>
+  <div class="c-sim" role="group" aria-label="Symulacja czasu">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C3C8D4" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    <time id="clock" aria-live="polite">…</time>
+    <button type="button" class="btn" id="btn-advance">Przewiń +1 h</button>
+    <button type="button" class="btn btn-ghost" id="btn-reset" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo">Reset</button>
+  </div>
+  <a href="/dyspozytor">Panel</a>
+  <a href="/metodologia">Metodologia</a>
+  <span class="c-demo" role="status">Dane demonstracyjne · symulacja</span>
+</header>
+
+<nav class="c-steps" aria-label="Historia w 4 krokach">
+  {% set steps = [
+    (1, 'Problem', 'full', 'przepełnione teraz', 'Mieszkańcy widzą je, zanim MPO się dowie.'),
+    (2, 'Predykcja', 'near', 'zagrożonych', 'Przekroczą 85% przed kolejnym kursem.'),
+    (3, 'Trasa', None, 'pkt', ''),
+    (4, 'Efekt', None, 'godzin przepełnień', '4 tygodnie vs stały harmonogram.'),
+  ] %}
+  {% for n, title, mk, unit, cap in steps %}
+  <button type="button" class="step" data-step="{{ n }}" aria-pressed="{{ 'true' if n == 3 else 'false' }}">
+    <span class="bar{% if n <= 3 %} on{% endif %}"></span>
+    <span class="step-t"><span class="num">{{ n }}</span>{{ title }}</span>
+    <span class="step-v">{% if mk %}<span class="mk st-{{ mk }}" aria-hidden="true"></span>{% endif %}<b id="v{{ n }}">–</b><small id="u{{ n }}">{{ unit }}</small></span>
+    <span class="cap" id="c{{ n }}">{{ cap }}</span>
+  </button>
+  {% endfor %}
+</nav>
+
+<main class="c-main">
+  <section class="c-stage" aria-label="Widok kroku">
+    <div class="c-mapwrap">
+      <div id="map" role="region" aria-label="Mapa koszy i altan: Stare Miasto, Kazimierz, Grzegórzki. Pełna lista punktów jest w panelu dyspozytora."></div>
+      <div class="glass c-caption" aria-live="polite"><span class="num" id="cap-n">3</span><span id="cap-t">…</span></div>
+      <div class="glass c-legend" aria-label="Legenda">
+        <span class="lg"><span class="mk mk-sm st-ok"></span>OK</span>
+        <span class="lg"><span class="mk mk-sm st-near"></span>Zbliża się do pełna</span>
+        <span class="lg"><span class="mk mk-sm st-full"></span>Przepełniony</span>
+        <span class="lg"><span class="mk mk-sm st-report"></span>Zgłoszenie</span>
+        <span class="lg"><span class="mk mk-sm st-warn"></span>Sprawdź przycisk</span>
+        <span class="lg"><span class="mk mk-sm st-ok alt"></span>Altana</span>
+        <span class="lg"><span style="width:24px;height:24px;border-radius:50%;border:3px solid var(--full);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:#fff">22</span>Klaster · kolor = najgorszy</span>
+        <span class="lg"><span style="width:22px;height:16px;border:2px dashed var(--zone);border-radius:50%"></span>Wydarzenie</span>
+        <span class="lg route-lg"><svg width="28" height="10" aria-hidden="true"><line x1="0" y1="5" x2="28" y2="5" stroke="#0050B5" stroke-width="5"/></svg><span id="lg-bin">Kosze</span></span>
+        <span class="lg route-lg"><svg width="28" height="10" aria-hidden="true"><line x1="0" y1="5" x2="28" y2="5" stroke="#8E2C8C" stroke-width="4" stroke-dasharray="7 4"/></svg><span id="lg-shelter">Altany</span></span>
+      </div>
+      <div class="c-effect" id="effect" hidden>
+        <h2><span class="num">4</span>Przed i po: 4 tygodnie</h2>
+        <div class="c-effect-grid" id="effect-grid"></div>
+        <p class="note">Ten sam przebieg zapełniania dla obu wariantów. Stały plan: kosze 2× dziennie, altany co 3 dni. Szczegóły w <a href="/metodologia">Metodologii</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <aside class="c-side">
+    <section class="c-qr" aria-labelledby="qr-h">
+      <svg width="120" height="96" viewBox="0 0 120 96" aria-hidden="true"><path d="M88 8 L91 22 L105 25 L91 28 L88 42 L85 28 L71 25 L85 22 Z" fill="#CDBBFF"/><path d="M60 4 L61.5 10 L67.5 11.5 L61.5 13 L60 19 L58.5 13 L52.5 11.5 L58.5 10 Z" fill="#FFD34D"/><path d="M108 50 L109.2 55 L114 56.2 L109.2 57.4 L108 62 L106.8 57.4 L102 56.2 L106.8 55 Z" fill="#FFFFFF" opacity=".7"/></svg>
+      <div class="c-live"><span class="live" aria-hidden="true"></span>Na żywo · sprawdźcie sami</div>
+      <h2 id="qr-h">Zgłoś pełny kosz – zobacz go na mapie za 2 s</h2>
+      <div class="c-qr-row">
+        <div id="qr" role="img" aria-label="Kod QR do trybu jury"></div>
+        <ol><li>Zeskanuj kod</li><li>Naciśnij przycisk kosza przy Rynku</li><li>Patrz na mapę</li></ol>
+      </div>
+      <div class="c-qr-foot">
+        <a id="jury-url" href="/jury" target="_blank" rel="noopener">/jury</a>
+        <span id="last-report" aria-live="polite">Ostatnie: jeszcze nikt</span>
+      </div>
+    </section>
+
+    <section class="c-risk" aria-labelledby="risk-h">
+      <h2 id="risk-h">Najbliższe przepełnienia</h2>
+      <ol id="risk"><li class="foot">Liczę prognozę…</li></ol>
+    </section>
+  </aside>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>window.PUBLIC_URL = {{ public_url|tojson }}; window.BASEMAP_SVG = {{ url_for('static', filename='img/krakow-basemap.svg')|tojson }};</script>
+<script src="{{ url_for('static', filename='pokaz.js') }}"></script>
+</body>
+</html>

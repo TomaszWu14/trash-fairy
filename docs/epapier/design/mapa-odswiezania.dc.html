@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Mapa obszarów odświeżania</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="position: relative; width: 1400px; height: 640px; overflow: hidden; background: #F6F4EF; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #0E1222">
+<span style="position: absolute; left: 40px; top: 28px; font-size: 28px; line-height: 36px; font-weight: 700">Mapa obszarów odświeżania · ekran 800×480</span>
+
+<div style="position: absolute; left: 40px; top: 96px; width: 800px; height: 480px; box-shadow: 0 0 0 1px #CFC9BE">
+<dc-import name="Epaper" state="calm" tri="{{ false }}" hint-size="800px,480px"></dc-import>
+<span style="position: absolute; left: 0; top: 0; width: 800px; height: 64px; box-sizing: border-box; border: 4px dashed #0B5FD6; background: rgba(11,95,214,.10)"></span>
+<span style="position: absolute; left: 0; top: 64px; width: 584px; height: 280px; box-sizing: border-box; border: 4px dashed #5B2A9A; background: rgba(91,42,154,.08)"></span>
+<span style="position: absolute; left: 584px; top: 64px; width: 216px; height: 280px; box-sizing: border-box; border: 4px dashed #5B2A9A; background: rgba(91,42,154,.08)"></span>
+<span style="position: absolute; left: 20px; top: 340px; width: 760px; height: 96px; box-sizing: border-box; border: 5px solid #C2570C; background: rgba(194,87,12,.12)"></span>
+<span style="position: absolute; left: 0; top: 432px; width: 800px; height: 48px; box-sizing: border-box; border: 4px dashed #454B57; background: rgba(69,75,87,.10)"></span>
+<span style="position: absolute; left: 8px; top: 8px; width: 32px; height: 32px; border-radius: 50%; background: #0B5FD6; color: #fff; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center">1</span>
+<span style="position: absolute; left: 8px; top: 72px; width: 32px; height: 32px; border-radius: 50%; background: #5B2A9A; color: #fff; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span>
+<span style="position: absolute; left: 760px; top: 72px; width: 32px; height: 32px; border-radius: 50%; background: #5B2A9A; color: #fff; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span>
+<span style="position: absolute; left: 744px; top: 348px; width: 32px; height: 32px; border-radius: 50%; background: #C2570C; color: #fff; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center">3</span>
+<span style="position: absolute; left: 760px; top: 440px; width: 32px; height: 32px; border-radius: 50%; background: #454B57; color: #fff; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center">4</span>
+</div>
+
+<div style="position: absolute; left: 880px; top: 96px; width: 480px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; gap: 12px"><span style="flex: none; width: 32px; height: 32px; border-radius: 50%; background: #0B5FD6; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center">1</span><span style="display: flex; flex-direction: column; gap: 4px"><strong style="font-size: 18px">Statyczny · nagłówek</strong><span style="font-size: 16px; line-height: 22px; color: #454B57">Nazwa, numer urządzenia. Zmienia się tylko przy serwisie.</span></span></div>
+<div style="display: flex; gap: 12px"><span style="flex: none; width: 32px; height: 32px; border-radius: 50%; background: #5B2A9A; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span><span style="display: flex; flex-direction: column; gap: 4px"><strong style="font-size: 18px">Pełne odświeżenie przy zdarzeniu · stan + QR</strong><span style="font-size: 16px; line-height: 22px; color: #454B57">Kształt, nagłówek stanu, opis i kod QR zmieniają się razem, jedno mignięcie (2–15 s). Naciśnięcie przycisku: cel poniżej 5 s do stanu 2.</span></span></div>
+<div style="display: flex; gap: 12px"><span style="flex: none; width: 32px; height: 32px; border-radius: 50%; background: #C2570C; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center">3</span><span style="display: flex; flex-direction: column; gap: 4px"><strong style="font-size: 18px">Odświeżanie częściowe · jedyny obszar „żywy”</strong><span style="font-size: 16px; line-height: 22px; color: #454B57">Bloki zapełnienia, liczba osób, czasy („ok. 14:00”, „ok. 12 min”, „34 z 53”). Bez migania całego ekranu. Stała ramka 3 px, stałe pozycje pól, zmienia się tylko treść.</span></span></div>
+<div style="display: flex; gap: 12px"><span style="flex: none; width: 32px; height: 32px; border-radius: 50%; background: #454B57; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center">4</span><span style="display: flex; flex-direction: column; gap: 4px"><strong style="font-size: 18px">Stopka · raz na godzinę</strong><span style="font-size: 16px; line-height: 22px; color: #454B57">Adres (stały), bateria i ostatni sygnał. Aktualizowane przy cogodzinnym odświeżeniu, nie przy każdym zdarzeniu.</span></span></div>
+<div style="padding: 16px; border-radius: 12px; background: #FFFFFF; font-size: 15px; line-height: 22px">
+<strong>Wyzwalacze:</strong> naciśnięcie → 2 · trasa zaplanowana → 3 · czujnik po opróżnieniu → 4 · 100 % z otwartym zgłoszeniem → 5 · brak sygnału 48 h lub bateria &lt; 15 % → 6 · 22:00–06:00 → 7. Zmiana liczby osób lub czasu w obrębie stanu → tylko obszar 3.
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1400,"height":640}}'>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>
