@@ -50,3 +50,5 @@
 - Model per zadanie (Sonnet 5 / Haiku 4.5 dla prostych wywołań), gdy wolumen wywołań AI wzrośnie.
 - Panel dyspozytora w układzie mobilnym i w trybie ciemnym (całodobowa dyspozytornia).
 - Pełna wersja angielska interfejsu.
+- Ikony SVG (sprite) zamiast emoji w panelu, programie i metodologii (decyzja 21, pocięta w fali B).
+- Jeden plik `tokens.css` dla wszystkich ekranów i test „zero heksów poza tokens.css” (dziś: te same wartości w pokaz.css, fairy.css, kierowca.css, zglos.css).

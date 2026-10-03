@@ -10,12 +10,18 @@
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --page: #0B0E1A; --surface: #151A2B; --surface2: #1F2539; --line: #2E3550; --text: #F3F4F8; --muted: #B4BACB;
     --navy: #05070F; --accent: #CDBBFF; --ring: #151A2B;  /* stany i trasy bez zmian: biały znak na nich trzyma AA */
     color-scheme: dark;
   }
 }
+/* ?theme=dark (ramka na /telefony, „Pokaż tryb nocny”) wymusza ciemny niezależnie od systemu */
+:root[data-theme="dark"] {
+  --page: #0B0E1A; --surface: #151A2B; --surface2: #1F2539; --line: #2E3550; --text: #F3F4F8; --muted: #B4BACB;
+  --navy: #05070F; --accent: #CDBBFF; --ring: #151A2B;  /* stany i trasy bez zmian: biały znak na nich trzyma AA */
+  color-scheme: dark;
+  }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { min-height: 100dvh; background: var(--page); color: var(--text); font: 16px/1.4 "IBM Plex Sans", system-ui, sans-serif;
@@ -136,3 +142,5 @@ body { min-height: 100dvh; background: var(--page); color: var(--text); font: 16
 .k-logout button { min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--on-navy-muted); background: transparent;
                    color: var(--on-navy); font: inherit; font-weight: 700; cursor: pointer; }
 .k-net a { color: inherit; font-weight: 700; }
+.k-preview { margin: 0; padding: 8px 16px; font-size: 13px; background: var(--surface2); color: var(--text); border-bottom: 1px solid var(--line); }
+.k-preview a { color: var(--text); font-weight: 700; }

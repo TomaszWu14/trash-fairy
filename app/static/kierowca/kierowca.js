@@ -1,10 +1,11 @@
 // PWA kierowcy: start zmiany → trasa → przystanek → podsumowanie.
 // Migawka kursu w localStorage: po „Opróżniony” serwer planuje trasę od nowa (punkt z niej wypada), a kierowca ma mieć
 // stałą numerację i trasę bez zasięgu. Nowe punkty z aktualnego planu pokazujemy jako różnicę („Nowy pilny punkt”).
-const UNDO_MS = 5000, POLL_MS = 30000, KEY = 'tf-kierowca';
+const PREVIEW = !!window.KIEROWCA?.preview;  // ramka dla jury: zapisy wyłączone, osobna migawka
+const UNDO_MS = 5000, POLL_MS = 30000, KEY = PREVIEW ? 'tf-kierowca-podglad' : 'tf-kierowca';
 const LEVELS = [25, 50, 75, 100];
 const ISSUES = { no_access: 'Nie da się podjechać', damaged: 'Kosz uszkodzony', blocked: 'Zablokowany dojazd', overflow: 'Odpady obok kosza' };
-const STATE_LBL = { ok: 'OK', warn: 'zbliża się do pełna', bad: 'przepełniony' };
+const STATE_LBL = { ok: 'w porządku', warn: 'zapełnia się', bad: 'do opróżnienia' };  // słownik: decyzja 18
 const DAYS = ['niedz.', 'pon.', 'wt.', 'śr.', 'czw.', 'pt.', 'sob.'];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -168,6 +169,12 @@ function drawMap() {
 
 // --- akcje: zapis lokalnie od razu, wysyłka po 5 s (Cofnij), kolejka IndexedDB gdy brak sieci ---
 function act(s, result, item, msg) {
+  if (PREVIEW) {  // jury widzi całą aplikację, ale nikt z sali nie zafałszuje danych
+    $('toast').innerHTML = '<span>W podglądzie zapisy są wyłączone. Zaloguj się jako <b>driver_bin</b>, żeby zapisać.</span>';
+    $('toast').hidden = false;
+    setTimeout(() => { $('toast').hidden = true; }, 4000);
+    return;
+  }
   if (pending) commit();
   snap.results[s.id] = result;
   snap.cur = null;
@@ -231,7 +238,7 @@ async function updateNet() {
 
 async function refresh() {
   try {
-    const r = await fetch('/api/kierowca/kurs');  // tylko kurs floty z loginu (decyzja 2)
+    const r = await fetch(PREVIEW ? '/api/kierowca/kurs?podglad=1' : '/api/kierowca/kurs');  // tylko kurs floty z loginu (decyzja 2)
     if (r.status === 401) {
       if (!snap) { location.href = '/logowanie?next=/kierowca'; return; }
       needsLogin = true;  // z zapisanym kursem pracujemy dalej offline, zapisy czekają na ponowne logowanie
@@ -304,7 +311,7 @@ addEventListener('online', () => { online = true; flush(); });
 addEventListener('offline', () => { online = false; updateNet(); });
 navigator.serviceWorker?.addEventListener('message', e => { if (e.data?.type === 'tf-flushed') updateNet(); });
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/kierowca/sw.js', { scope: '/kierowca' }).catch(() => {});
+if ('serviceWorker' in navigator && !PREVIEW) navigator.serviceWorker.register('/kierowca/sw.js', { scope: '/kierowca' }).catch(() => {});
 render();
 refresh();
 flush();

@@ -13,6 +13,7 @@ from .osm_import import RYNEK
 
 JURY_POOL = 6  # tyle koszy najbliżej Rynku losujemy dla jury — punkty dobrze widoczne na mapie
 
+JURY_POINT_ID = 18  # ten sam kosz w ramkach /telefony, w QR jury i na slajdach (decyzja 13)
 bp = Blueprint("main", __name__)
 
 
@@ -21,6 +22,13 @@ def show():
     """Widok C „Pokaz dla jury”: historia w 4 krokach na jednej mapie."""
     clock.maybe_auto_reset()  # kolejny widz po 30 min bezczynności zaczyna od 13:30
     return render_template("pokaz.html", public_url=os.environ.get("PUBLIC_URL", ""))
+
+
+@bp.get("/telefony")
+def phones():
+    """Dla jury: cykl jednego kosza w trzech ramkach (e-papier, mieszkaniec, kierowca w podglądzie) — decyzje 11–13."""
+    clock.maybe_auto_reset()
+    return render_template("telefony.html", point=db.get_or_404(Point, JURY_POINT_ID), public_url=os.environ.get("PUBLIC_URL", ""))
 
 
 @bp.get("/dyspozytor")
@@ -75,10 +83,13 @@ def api_docs():
 
 
 @bp.get("/kierowca")
-@auth.require("driver")
 def driver():
-    """PWA kierowcy MPO: start zmiany → trasa → przystanek → podsumowanie (offline z kolejką)."""
-    return render_template("kierowca.html")
+    """PWA kierowcy MPO: start zmiany → trasa → przystanek → podsumowanie (offline z kolejką).
+    ?podglad=1: dla jury (ramka na /telefony), bez logowania, prawdziwa trasa floty koszy, zapisy wyłączone (decyzja 11)."""
+    preview = request.args.get("podglad") == "1"
+    if not preview and auth.role() != "driver":
+        return redirect(url_for("main.login", next="/kierowca"))
+    return render_template("kierowca.html", preview=preview)
 
 
 @bp.get("/kierowca/sw.js")

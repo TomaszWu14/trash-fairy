@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pl">
+<html lang="pl"{% if request.args.get('theme') in ('light', 'dark') %} data-theme="{{ request.args.get('theme') }}"{% endif %}>
 {% from "_logo.html" import logo %}
 <head>
   <meta charset="utf-8">

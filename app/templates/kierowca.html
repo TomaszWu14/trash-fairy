@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pl">
+<html lang="pl"{% if request.args.get('theme') in ('light', 'dark') %} data-theme="{{ request.args.get('theme') }}"{% endif %}>
 {% from "_logo.html" import logo %}
 <head>
   <meta charset="utf-8">
@@ -17,14 +17,16 @@
 <header class="k-head">
   <span class="k-brand" style="--logo-bg:var(--navy)">{{ logo(26, '#FFD34D') }}<span id="head-t">Trash Fairy · kierowca</span></span>
   <span class="k-net" id="net" role="status"><span class="k-net-dot" aria-hidden="true"></span><span id="net-t">Łączę…</span></span>
-  {% if user %}<form method="post" action="{{ url_for('main.logout') }}" class="k-logout">
+  {% if user and not preview %}<form method="post" action="{{ url_for('main.logout') }}" class="k-logout">
     <span>{{ user.login }}</span><button type="submit">Wyloguj</button></form>{% endif %}
 </header>
 <p class="k-demo">Demo · zegar <time id="clock">…</time></p>
+{% if preview %}<p class="k-preview" role="note"><strong>Podgląd dla jury:</strong> prawdziwa trasa floty koszy, zapisy wyłączone.
+  <a href="{{ url_for('main.login', next='/kierowca') }}" target="_top">Zaloguj się jako kierowca</a></p>{% endif %}
 <main id="app" class="k-main" tabindex="-1"><p class="k-muted">Ładuję kurs…</p></main>
 <div class="k-toast" id="toast" role="status" hidden></div>
 <script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
-<script>self.TF_DB_NAME = 'trash-fairy-kierowca';</script>
+<script>self.TF_DB_NAME = 'trash-fairy-kierowca'; window.KIEROWCA = { preview: {{ preview|tojson }} };</script>
 <script src="{{ url_for('static', filename='zglos/queue.js') }}"></script>
 <script src="{{ url_for('static', filename='kierowca/kierowca.js') }}"></script>
 </body>

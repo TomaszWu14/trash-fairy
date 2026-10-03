@@ -7,7 +7,7 @@
   --off-bg: #EFECE5; --off-border: #CFC9BE;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0B0E1A; --surface: #151A2B; --surface2: #1E2439; --text: #EEF0F6; --muted: #B7BDCD; --line: #3A4260;
     --head: #05070F; --primary: #CDBBFF; --on-primary: #0E1222; --accent: #CDBBFF; --track: #2A3048;
     --near-tint: #33290C; --full-tint: #3A1616; --warn-tint: #232A33; --near-border: #F0A500; --full-border: #FF6B6B; --warn-border: #A7B2BA;
@@ -16,6 +16,15 @@
     --off-bg: #1E2439; --off-border: #3A4260;
   }
 }
+/* ?theme=dark (ramka na /telefony, „Pokaż tryb nocny”) wymusza ciemny niezależnie od systemu */
+:root[data-theme="dark"] {
+  --bg: #0B0E1A; --surface: #151A2B; --surface2: #1E2439; --text: #EEF0F6; --muted: #B7BDCD; --line: #3A4260;
+  --head: #05070F; --primary: #CDBBFF; --on-primary: #0E1222; --accent: #CDBBFF; --track: #2A3048;
+  --near-tint: #33290C; --full-tint: #3A1616; --warn-tint: #232A33; --near-border: #F0A500; --full-border: #FF6B6B; --warn-border: #A7B2BA;
+  --warn-fill: #A7B2BA; --warn-glyph: #0E1222; --sheet-shadow: 0 -8px 24px rgba(0,0,0,.45);
+  --map-filter: invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+  --off-bg: #1E2439; --off-border: #3A4260;
+  }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: "IBM Plex Sans", system-ui, sans-serif;

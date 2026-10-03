@@ -1,27 +1,25 @@
 <!doctype html>
-<html lang="pl" data-theme="light">
+<html lang="pl">
 {% from "_logo.html" import logo %}
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Trash Fairy — panel dyspozytora</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='zglos/icon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', filename='fairy.css') }}">
 </head>
 <body class="tf">
 <header class="tf-header">
-  <div class="tf-brand" style="display:flex;align-items:center;gap:8px;color:#fff;--logo-bg:#2f3b2a">{{ logo(26, '#c4b5fd') }}<span>Trash <span>Fairy</span></span></div>
+  <div class="tf-brand" style="display:flex;align-items:center;gap:8px;color:#fff;--logo-bg:#0E1222">{{ logo(26, '#CDBBFF') }}<span>Trash <span>Fairy</span></span></div>
   {% include "_nav.html" %}
   <div class="flex-1"></div>
   <div class="tf-clock" title="Zegar scenariusza demo (zamrożony, przewijany ręcznie)">
     <span aria-hidden="true">🕐</span> <span id="clock" aria-live="polite">…</span>
   </div>
   <button type="button" id="btn-advance" class="tf-hbtn">Przewiń +1 h</button>
-  <button type="button" id="btn-reset" class="tf-hbtn tf-hbtn-ghost" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo">Reset</button>
+  {% if is_dispatcher %}<button type="button" id="btn-reset" class="tf-hbtn tf-hbtn-ghost" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo">Reset</button>{% endif %}
   <div class="tf-demo" role="status" title="Dane demonstracyjne, symulacja">DEMO · SYMULACJA</div>
   <span class="tf-fresh" id="fresh" role="status">Łączę…</span>
 </header>
@@ -71,7 +69,7 @@
       <h2 id="h-summary">Sytuacja teraz</h2>
       <div class="grid grid-cols-3 gap-2 text-center">
         <div class="tf-stat"><b id="n-bad">–</b><small><span class="tf-sym bad" aria-hidden="true">!</span> do opróżnienia</small></div>
-        <div class="tf-stat"><b id="n-warn">–</b><small><span class="tf-sym warn" aria-hidden="true">~</span> zapełnia się</small></div>
+        <div class="tf-stat"><b id="n-warn">–</b><small><span class="tf-sym warn" aria-hidden="true">↑</span> zapełnia się</small></div>
         <div class="tf-stat"><b id="n-ok">–</b><small><span class="tf-sym ok" aria-hidden="true">✓</span> w porządku</small></div>
       </div>
       <p class="tf-muted mt-2" id="n-total"></p>
@@ -146,15 +144,14 @@
     <section class="tf-card" aria-labelledby="h-legend" data-tab="sytuacja">
       <h2 id="h-legend">Legenda</h2>
       <ul class="tf-legend">
-        <li><span class="tf-pin circle neutral" aria-hidden="true"></span> kosz uliczny (koło)</li>
-        <li><span class="tf-pin square neutral" aria-hidden="true"></span> altana osiedlowa (kwadrat)</li>
-        <li><span class="tf-pin circle ok" aria-hidden="true">✓</span> poniżej 60%</li>
-        <li><span class="tf-pin circle warn" aria-hidden="true">~</span> 60–85%</li>
-        <li><span class="tf-pin circle bad" aria-hidden="true">!</span> powyżej 85% lub świeże zgłoszenie</li>
-        <li><span class="tf-pinwrap fresh" aria-hidden="true"><span class="tf-pin circle bad">!</span></span> zgłoszenie z ostatnich 15 minut</li>
-        <li><span class="tf-pinwrap" aria-hidden="true"><span class="tf-pin circle ok">✓</span><span class="tf-badge">⚠</span></span> sprawdź przycisk</li>
+        <li><span class="tf-pin ok" aria-hidden="true">✓</span> W porządku (poniżej 60%)</li>
+        <li><span class="tf-pin warn" aria-hidden="true">↑</span> Zapełnia się (60–85%)</li>
+        <li><span class="tf-pin bad" aria-hidden="true">!</span> Do opróżnienia (powyżej 85% lub świeże zgłoszenie)</li>
+        <li><span class="tf-pin ok alt" aria-hidden="true">✓</span> altana osiedlowa: podwójna obwódka (dowolny stan)</li>
+        <li><span class="tf-pinwrap fresh" aria-hidden="true"><span class="tf-pin bad">!</span></span> zgłoszenie z ostatnich 15 minut</li>
+        <li><span class="tf-pinwrap" aria-hidden="true"><span class="tf-pin ok">✓</span><span class="tf-badge">⚠</span></span> sprawdź przycisk</li>
         <li><span class="tf-evsw" aria-hidden="true">🎪</span> wydarzenie i jego zasięg (przerywany okrąg)</li>
-        <li><span class="tf-pinwrap" aria-hidden="true"><span class="tf-pin circle bad">!</span><span class="tf-badge left">🛍</span></span> nadużycie wykryte na zdjęciu</li>
+        <li><span class="tf-pinwrap" aria-hidden="true"><span class="tf-pin bad">!</span><span class="tf-badge left">🛍</span></span> nadużycie wykryte na zdjęciu</li>
         <li><span class="tf-linksw" aria-hidden="true"></span> powiązanie: worki domowe przy przepełnionej altanie</li>
         <li><span class="tf-routesw bin" aria-hidden="true"></span> trasa koszy · <span class="tf-routesw shelter" aria-hidden="true"></span> trasa altan</li>
         <li><span class="tf-jam" aria-hidden="true">korek ×1,8</span> punkt pomiaru ruchu (TomTom): prędkość swobodna / obecna; przy korku ≥ 1,5 trasa kropkowana</li>

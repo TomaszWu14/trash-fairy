@@ -19,20 +19,20 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C3C8D4" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
     <time id="clock" aria-live="polite">…</time>
     <button type="button" class="btn" id="btn-advance">Przewiń +1 h</button>
-    <button type="button" class="btn btn-ghost" id="btn-reset" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg><span class="btn-t">Reset</span></button>
+    {% if is_dispatcher %}<button type="button" class="btn btn-ghost" id="btn-reset" title="Wróć do soboty 13:30 i skasuj naciśnięcia z demo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg><span class="btn-t">Reset</span></button>{% endif %}
   </div>
-  <a href="/dyspozytor">Panel</a>
-  <a href="/metodologia">Metodologia</a>
+  {% include "_nav.html" %}
   <span class="c-demo" role="status">Dane demonstracyjne · symulacja</span>
   <span class="c-fresh" id="fresh" role="status"><span class="c-fresh-dot" aria-hidden="true"></span><span id="fresh-t">Łączę…</span></span>
 </header>
 
+<p class="c-en" lang="en">Live demo for Kraków's waste company MPO: Problem → Prediction → Route → Effect. Data is synthetic.</p>
 <nav class="c-steps" aria-label="Historia w 4 krokach">
   {% set steps = [
     (1, 'Problem', 'full', 'przepełnione teraz', 'Mieszkańcy widzą je, zanim MPO się dowie.'),
     (2, 'Predykcja', 'near', 'zagrożonych', 'Przekroczą 85% przed kolejnym kursem.'),
     (3, 'Trasa', None, 'pkt', ''),
-    (4, 'Efekt', None, 'godzin przepełnień', '4 tygodnie vs stały harmonogram.'),
+    (4, 'Efekt', None, '', '4 tygodnie vs stały harmonogram.'),
   ] %}
   {% for n, title, mk, unit, cap in steps %}
   <button type="button" class="step" data-step="{{ n }}" aria-pressed="{{ 'true' if n == 3 else 'false' }}">
@@ -50,10 +50,10 @@
       <div id="map" role="region" aria-label="Mapa koszy i altan: Stare Miasto, Kazimierz, Grzegórzki. Pełna lista punktów jest w panelu dyspozytora."></div>
       <div class="glass c-caption" aria-live="polite"><span class="num" id="cap-n">3</span><span id="cap-t">…</span></div>
       <details class="glass c-legend" id="legend" open><summary>Legenda</summary><div class="c-legend-items">
-        <span class="lg"><span class="mk mk-sm st-ok"></span>OK</span>
-        <span class="lg"><span class="mk mk-sm st-near"></span>Zbliża się do pełna</span>
-        <span class="lg"><span class="mk mk-sm st-full"></span>Przepełniony</span>
-        <span class="lg"><span class="mk mk-sm st-report"></span>Zgłoszenie</span>
+        <span class="lg"><span class="mk mk-sm st-ok"></span>W porządku</span>
+        <span class="lg"><span class="mk mk-sm st-near"></span>Zapełnia się</span>
+        <span class="lg"><span class="mk mk-sm st-full"></span>Do opróżnienia</span>
+        <span class="lg"><span class="mk mk-sm st-report"></span>Zgłoszenie mieszkańca</span>
         <span class="lg"><span class="mk mk-sm st-warn"></span>Sprawdź przycisk</span>
         <span class="lg"><span class="mk mk-sm st-ok alt"></span>Altana</span>
         <span class="lg"><span style="width:24px;height:24px;border-radius:50%;border:3px solid var(--full);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:#fff">22</span>Klaster · kolor = najgorszy</span>
@@ -61,6 +61,7 @@
         <span class="lg route-lg"><svg width="28" height="10" aria-hidden="true"><line x1="0" y1="5" x2="28" y2="5" stroke="#0050B5" stroke-width="5"/></svg><span id="lg-bin">Kosze</span></span>
         <span class="lg route-lg"><svg width="28" height="10" aria-hidden="true"><line x1="0" y1="5" x2="28" y2="5" stroke="#8E2C8C" stroke-width="4" stroke-dasharray="7 4"/></svg><span id="lg-shelter">Altany</span></span>
       </div></details>
+      <a class="glass c-map-link" href="/telefony#kierowca">Zobacz tę trasę w telefonie kierowcy →</a>
       <div class="c-effect" id="effect" hidden>
         <h2><span class="num">4</span>Przed i po: 4 tygodnie</h2>
         <div class="c-effect-grid" id="effect-grid"></div>
@@ -86,6 +87,7 @@
         <a id="jury-url" href="/jury" target="_blank" rel="noopener">/jury</a>
         <span id="last-report" aria-live="polite">Ostatnie: jeszcze nikt</span>
       </div>
+      <a class="c-qr-alt" href="/telefony#mieszkaniec">Bez telefonu? Kliknij w telefonie na ekranie →</a>
       <p class="c-qr-warn" id="qr-warn" role="note" hidden><strong>Uwaga:</strong> ten adres działa tylko na tym komputerze. Ustaw <code>PUBLIC_URL</code> albo otwórz pokaz przez adres IP w sieci.</p>
     </section>
 

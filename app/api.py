@@ -26,6 +26,8 @@ bp = Blueprint("api", __name__, url_prefix="/api")
 # Limit naciśnięć na IP. Łagodny, bo na sali cała publiczność wychodzi zwykle z jednego adresu (NAT).
 SAME_POINT_GAP = timedelta(seconds=2)
 PER_IP_HOUR = 120
+JURY_POINT_ID = 18  # kosz z /telefony i QR jury (app/views.py)
+JURY_PER_PHONE_HOUR = 20
 GEO_RADIUS_M = 150  # zgłoszenie z telefonu z położeniem dalej niż 150 m od kosza odrzucamy (spec, pkt 4)
 
 WEEKDAYS = ["poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota", "niedziela"]
@@ -148,12 +150,16 @@ def routes():
 
 
 @bp.get("/kierowca/kurs")
-@auth.require("driver")
 def driver_run():
-    """PWA kierowcy: tylko kurs jego floty (decyzja 2), z przebiegiem po ulicach i korektą czasu z ruchu."""
+    """PWA kierowcy: tylko kurs jego floty (decyzja 2), z przebiegiem po ulicach i korektą czasu z ruchu.
+    ?podglad=1 bez logowania: kurs floty koszy do odczytu (ramka dla jury); trasy i tak są publiczne na /."""
+    preview = request.args.get("podglad") == "1" and auth.role() != "driver"
+    if not preview and auth.role() != "driver":
+        return jsonify(ok=False, login_required=True, message="Zaloguj się jako kierowca."), 401
     now = clock.now()
     states = point_states(now)
-    f = next(f for f in current_routes(now) if f["kind"] == auth.fleet())
+    fleet = "bin" if preview else auth.fleet()
+    f = next(f for f in current_routes(now) if f["kind"] == fleet)
     for s in f["stops"]:
         st = states[s["id"]]
         s.update(level=st["value"], state=st["state"], fresh=st["fresh"])
@@ -381,10 +387,18 @@ def press():
     wall = datetime.now(UTC).replace(tzinfo=None)
     now = clock.now()
     ip = request.remote_addr
-    recent_same = Press.query.filter(Press.ip == ip, Press.point_id == point.id,
-                                     Press.wall_at > wall - SAME_POINT_GAP).first()
-    hourly = Press.query.filter(Press.ip == ip, Press.wall_at > wall - timedelta(hours=1)).count()
-    if recent_same or hourly >= PER_IP_HOUR:
+    # kosz jury (decyzja 13): cała sala ma jedno IP z Wi-Fi, więc liczymy po identyfikatorze telefonu, nie po IP
+    jury_client = (data.get("jury") and point.id == JURY_POINT_ID and str(data.get("client_id") or "")[:64]) or None
+    if jury_client:
+        blocked = (not rate.hit(f"jury-gap:{jury_client}", 1, int(SAME_POINT_GAP.total_seconds()))
+                   or not rate.hit(f"jury-hour:{jury_client}", JURY_PER_PHONE_HOUR, 3600))
+        recent_same = None
+    else:
+        recent_same = Press.query.filter(Press.ip == ip, Press.point_id == point.id,
+                                         Press.wall_at > wall - SAME_POINT_GAP).first()
+        hourly = Press.query.filter(Press.ip == ip, Press.wall_at > wall - timedelta(hours=1)).count()
+        blocked = recent_same or hourly >= PER_IP_HOUR
+    if blocked:
         return jsonify(ok=False, retry_at=f"{_retry_at(now, recent_same, ip, wall):%H:%M}",
                        message="Wróżka już wie! Spróbuj za chwilę."), 429
 

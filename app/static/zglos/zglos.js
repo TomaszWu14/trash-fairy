@@ -191,6 +191,7 @@ function pick(kind) {
 async function send() {
   const body = { point_id: Z.pointId, kind: S.chosen, source: 'qr', client_id: clientId, created_at: new Date().toISOString() };
   if (S.pos && !Z.jury) Object.assign(body, { lat: S.pos.lat, lon: S.pos.lon, accuracy_m: Math.round(S.pos.acc) });
+  if (Z.jury) body.jury = true;  // kosz jury: limit po telefonie, nie po IP sali
   if (S.comment) body.comment = S.comment;
   if (!navigator.onLine) return queue(body);
   let r, data;

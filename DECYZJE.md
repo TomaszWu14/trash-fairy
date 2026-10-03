@@ -288,3 +288,16 @@ których wcześniej nie widziała (panel nie zauważał nowego problemu). Przy o
 2 workery dawały fałszywe pełne mignięcia; teraz `hashlib`. Auto-reset demo po 30 min bezczynności, warunkowy UPDATE wybiera jeden worker.
 Biblioteki i fonty lokalnie (bez unpkg, jsDelivr i Google Fonts), licencja AGPL-3.0 z `NOTICE`, model `claude-opus-5-5` z fallbackiem po odmowie.
 **CI (GitHub Actions: pytest) i auto-merge do `main`** na prośbę autora: PR scala się sam po zielonym teście, Redeploy w Coolify zostaje ręczny.
+
+## Fala B: jedna aplikacja dla jury (sob 3.10, noc)
+
+**`/telefony`: cykl kosza 18 w trzech działających ramkach** (e-papier, PWA mieszkańca, PWA kierowcy w podglądzie `?podglad=1` bez zapisów).
+QR jury zawsze na kosz 18, a limit w trybie jury liczymy po identyfikatorze telefonu (`client_id`), nie po IP, bo cała sala ma jedno IP z Wi-Fi.
+Ramki wymuszają jasny motyw (`?theme=light`, `data-theme`), a „Pokaż tryb nocny” przełącza kierowcę świadomie. Menu zależne od roli w jednym `_nav.html`.
+**Słownik stanów**: W porządku ✓ koło / Zapełnia się ↑ romb / Do opróżnienia ! kwadrat, altana = podwójna obwódka; karta 1 liczy „przepełnione”
+tylko przy szacunku ≥ 100%, a karta 4 pokazuje puste przyjazdy 57% → 27% i altany zamiast uśrednionego „−16%”.
+**Paleta C wszędzie przez podmianę wartości zmiennych**, IBM Plex zamiast Fraunces i Inter, Tailwind i DaisyUI usunięte z panelu.
+**Kolor trasy altan zostaje śliwkowy `#8E2C8C`**: proponowany turkus `#00727A` miał względem zieleni stanu OK kontrast jasności tylko 1,05:1
+(dla daltonisty ten sam kolor), a śliwka różni się od dymka zgłoszenia typem znaku (linia przerywana vs kształt). Kontrasty tekstu: biały na niebieskim
+trasy 7,5:1, ciemny znak na bursztynie 8,9:1, bursztynowy tekst `#7A4F00` na bieli 7,1:1, fiolet AI `#6A3FD6` na bieli 6,4:1.
+Pocięte (decyzja 48): ikony SVG zamiast emoji i jeden plik `tokens.css` dla wszystkich ekranów — w ROADMAPA.md.
