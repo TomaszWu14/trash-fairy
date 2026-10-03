@@ -54,3 +54,18 @@ def test_driver_pwa_page_sw_and_manifest(client):
     m = client.get("/static/kierowca/manifest.webmanifest").get_json(force=True)
     assert m["scope"] == "/kierowca" and {"192x192", "512x512"} <= {i["sizes"] for i in m["icons"]}
     assert any(i["purpose"] == "maskable" for i in m["icons"])
+
+
+def test_progress_skip_and_far_flag(client, demo):
+    from tests.conftest import login
+    from app.models import Emptying
+    login(client, "driver_bin")
+    a, b = Point.query.filter_by(kind="bin").limit(2).all()
+    far = client.post("/api/emptying", data={"point_id": a.id, "level": 75, "lat": a.lat + 0.01, "lon": a.lon, "accuracy_m": 20})
+    assert far.status_code == 200  # bez blokady, tylko flaga (decyzja 28)
+    assert Emptying.query.filter_by(source="crew").one().far_m > 150
+    assert client.post("/api/stop-issue", data={"point_id": b.id, "kind": "skip"}).status_code == 200
+    assert point_states(clock.now())[b.id]["crew_issue"] is None  # pominięcie nie flaguje punktu
+    login(client)
+    bins = next(f for f in client.get("/api/routes").json["fleets"] if f["kind"] == "bin")["progress"]
+    assert bins["done"] == 1 and bins["skipped"] == 1 and bins["far"] == [a.name] and bins["last"]["what"] == "pominięty"

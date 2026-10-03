@@ -52,10 +52,14 @@ function renderMap() {
   }
 }
 
+const RANKS = { bad: 0, warn: 1, ok: 2 };
+const urgency = (a, b) => RANKS[a.state] - RANKS[b.state] || (b.fresh - a.fresh)
+  || (a.crossing || '9').localeCompare(b.crossing || '9') || b.value - a.value;
+
 function renderList() {
   $('point-list').innerHTML = points
     .filter(p => filter === 'all' || p.kind === filter)
-    .sort((a, b) => (b.state === 'bad') - (a.state === 'bad') || b.value - a.value)
+    .sort(urgency)  // najpierw do opróżnienia i świeże zgłoszenia, potem najwcześniejsze 85% (decyzja 15)
     .map(p => `<li><button type="button" data-id="${p.id}" aria-label="${esc(describe(p))}. Pokaż szczegóły.">
         ${pinHtml(p)}
         <span class="name">${esc(p.name)}
@@ -207,6 +211,15 @@ function renderConditions(c) {
   }
 }
 
+// postęp kierowcy (decyzja 30): tekstem, bez paska bez mianownika (plan zmienia się po każdym opróżnieniu)
+function progress(p) {
+  if (!p) return '';
+  const parts = [`opróżnione: <b>${p.done}</b>`, `problemy: <b>${p.issues}</b>`, `pominięte: <b>${p.skipped}</b>`];
+  return `<p class="tf-progress">Kierowca od startu demo · ${parts.join(' · ')}`
+    + (p.last ? ` · ostatnio ${p.last.at}: ${esc(p.last.name)} (${p.last.what})` : ' · brak akcji')
+    + (p.far.length ? `<br><span class="check">Oznaczone ponad 150 m od kosza: ${p.far.map(esc).join(', ')}</span>` : '') + '</p>';
+}
+
 // --- trasy (etap 4) ---
 
 async function loadRoutes() {
@@ -220,6 +233,7 @@ async function loadRoutes() {
       <p class="meta">Kurs ${f.run_label} · ${f.vehicle} · <b>${f.stops.length}</b> punktów · <b>${f.km} km</b>
         · jazda ok. <b>${f.drive_min} min</b>${data.traffic ? ` (bez korków ${f.drive_min_free} min)` : ''}
         · kolejny kurs ${f.following_label}</p>
+      ${progress(f.progress)}
       ${f.stops.length ? `<ol>${f.stops.map(s => `<li>${esc(s.name)}<small>${esc(s.reason)}</small></li>`).join('')}</ol>`
                        : '<p class="tf-muted">Na ten kurs nie trzeba nikogo wysyłać.</p>'}
     </div>`).join('');
@@ -471,4 +485,6 @@ function armReset(btn, run) {
 }
 armReset($('btn-reset'), () => clockAction($('btn-reset'), '/api/clock/reset'));
 
+const askedPoint = Number(new URLSearchParams(location.search).get('point'));  // z dymka na / („Szczegóły w panelu”)
+if (askedPoint) setTimeout(() => openDetails(askedPoint), 1500);
 poll();

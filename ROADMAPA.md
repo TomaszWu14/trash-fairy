@@ -52,3 +52,5 @@
 - Pełna wersja angielska interfejsu.
 - Ikony SVG (sprite) zamiast emoji w panelu, programie i metodologii (decyzja 21, pocięta w fali B).
 - Jeden plik `tokens.css` dla wszystkich ekranów i test „zero heksów poza tokens.css” (dziś: te same wartości w pokaz.css, fairy.css, kierowca.css, zglos.css).
+- „Wyślij do kierowcy” (tabela Dispatch), „Moje zgłoszenia” w PWA mieszkańca, tabela punktów pod mapą na `/`, sekcja „Pilne teraz” w panelu (pocięte w fali C).
+- Punkty programu za opróżnienie oznaczone ponad 150 m od kosza wstrzymane do potwierdzenia przez dyspozytora (dziś: tylko flaga w panelu).

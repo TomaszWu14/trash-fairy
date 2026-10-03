@@ -21,6 +21,9 @@ const I = {
 
 let live = null, online = navigator.onLine, kind = 'bin', pending = null, photo = null, map = null, queued = 0, needsLogin = false;
 let snap = load();
+let pos = null;  // położenie do flagi „daleko od kosza” (decyzja 28): bez zgody zapis i tak przechodzi
+if (navigator.geolocation && !PREVIEW) navigator.geolocation.watchPosition(p => { pos = p.coords; }, () => {}, { enableHighAccuracy: true, maximumAge: 60000 });
+const where = () => pos ? { lat: pos.latitude, lon: pos.longitude, accuracy_m: Math.round(pos.accuracy) } : {};
 let screen = snap ? 'route' : 'start';
 if (snap) kind = snap.kind;
 
@@ -290,15 +293,15 @@ document.addEventListener('click', e => {
   const s = screen === 'stop' ? cur() : null;
   if (t.dataset.done && s) {
     const level = Number(document.querySelector('input[name=level]:checked').value);
-    return act(s, { status: 'done', level }, { url: '/api/emptying', fields: { point_id: s.id, level }, photo, photoName: photo?.name },
+    return act(s, { status: 'done', level }, { url: '/api/emptying', fields: { point_id: s.id, level, ...where() }, photo, photoName: photo?.name },
                `Opróżniony: ${s.name} (${level}%)`);
   }
   if (t.dataset.issue && s) {
     const k = t.dataset.issue;
-    return act(s, { status: 'issue', kind: k }, { url: '/api/stop-issue', fields: { point_id: s.id, kind: k }, photo, photoName: photo?.name },
+    return act(s, { status: 'issue', kind: k }, { url: '/api/stop-issue', fields: { point_id: s.id, kind: k, ...where() }, photo, photoName: photo?.name },
                `${ISSUES[k]}: ${s.name}`);
   }
-  if (t.dataset.skip && s) return act(s, { status: 'skip' }, null, `Pominięto: ${s.name}`);
+  if (t.dataset.skip && s) return act(s, { status: 'skip' }, { url: '/api/stop-issue', fields: { point_id: s.id, kind: 'skip' } }, `Pominięto: ${s.name}`);  // pominięcie widzi dyspozytor (decyzja 30)
   if (t.id === 'finish') { commit(); snap = null; save(); return go('start'); }
 });
 document.addEventListener('change', e => {
