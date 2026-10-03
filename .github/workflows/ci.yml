@@ -22,5 +22,5 @@ jobs:
         with:
           python-version: "3.12"  # jak w Dockerfile
           cache: pip
-      - run: pip install -r requirements.txt
-      - run: python -m pytest -q
+      - run: pip install -r requirements.txt pytest-xdist
+      - run: python -m pytest -q -n auto  # równolegle: każdy test ma własną bazę w pamięci

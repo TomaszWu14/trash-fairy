@@ -92,7 +92,8 @@ function renderMarkers() {
       const m = L.marker([p.lat, p.lon], { icon: markerIcon(p), title, alt: title, keyboard: true });
       m.tf = p;
       m.bindPopup(() => `<b>${esc(m.tf.name)}</b><br>${LBL[m.tf.look]} · ${m.tf.value}%<br>${esc(m.tf.reason)}`
-        + `<br><a href="/zglos/${m.tf.id}" target="_blank" rel="noopener">Zgłoś z telefonu ↗</a> · <a href="/epapier/${m.tf.id}" target="_blank" rel="noopener">Ekran na koszu ↗</a>`);
+        + (m.tf.crossing ? `<br>85% ok. ${m.tf.crossing.slice(11, 16)}` : '') + (stopOf[m.tf.id] ? ` · przystanek ${stopOf[m.tf.id].order}` : '')
+        + `<br><a href="/dyspozytor?point=${m.tf.id}">Szczegóły w panelu →</a> · <a href="/zglos/${m.tf.id}" target="_blank" rel="noopener">Zgłoś z telefonu ↗</a>`);
       markers[p.id] = m;
       cluster.addLayer(m);
     }

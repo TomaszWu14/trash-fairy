@@ -143,6 +143,7 @@ def routes():
         f["geometry"] = {"out": out, "back": back, "approx": approx_out or approx_back}
     k = traffic.city_ratio()
     for f in fleets:  # ruch zmienia tylko czas przejazdu, nigdy punktów ani km
+        f["progress"] = crew_progress(f["kind"])
         f["drive_min"] = traffic.drive_min(f["km"], k)
         f["drive_min_free"] = traffic.drive_min(f["km"])
     return jsonify(depot=DEPOT, fleets=fleets, now=now.isoformat(),
@@ -249,7 +250,7 @@ def emptying():
         level = None
     if level not in LEVELS:
         return jsonify(ok=False, message="Wybierz poziom: 0, 25, 50, 75 albo 100%."), 400
-    e = Emptying(point_id=point.id, at=clock.now(), level=level)
+    e = Emptying(point_id=point.id, at=clock.now(), level=level, source="crew", far_m=_far_m(point, request.form))
     db.session.add(e)
     resolve_reports(e)
     db.session.commit()
@@ -269,15 +270,36 @@ def stop_issue():
     if not auth.can_touch(point):
         return jsonify(ok=False, message="Ten punkt nie należy do Twojej floty."), 403
     kind = request.form.get("kind")
-    if kind not in CREW_ISSUES:
+    if kind not in CREW_ISSUES and kind != "skip":  # skip = „Pomiń” z PWA kierowcy (postęp kursu, decyzja 30)
         return jsonify(ok=False, message="Wybierz rodzaj problemu."), 400
     note = (request.form.get("note") or "").strip()[:200] or None
     db.session.add(StopIssue(point_id=point.id, at=clock.now(), kind=kind, note=note))
     db.session.commit()
     clock.touch()
     pa, error = _photo_from_request(point)
-    return jsonify(ok=True, message=f"Przekazano dyspozytorowi: {CREW_ISSUES[kind]}.", photo_error=error,
+    return jsonify(ok=True, message="Pominięto przystanek." if kind == "skip" else f"Przekazano dyspozytorowi: {CREW_ISSUES[kind]}.", photo_error=error,
                    analysis_id=pa.id if pa else None)
+
+
+def _far_m(point, form):
+    """Odległość telefonu kierowcy od kosza minus dokładność GPS (jak u mieszkańca); None bez położenia. Nie blokuje (decyzja 28)."""
+    try:
+        d = distance_m(float(form["lat"]), float(form["lon"]), point.lat, point.lon)
+    except (KeyError, TypeError, ValueError):
+        return None
+    return max(0, round(d - _accuracy_m(form)))
+
+
+def crew_progress(kind):
+    """Postęp kierowcy floty od resetu demo (decyzja 30): opróżnienia, problemy, pominięcia, oznaczenia daleko od kosza."""
+    pts = {p.id: p.name for p in Point.query.filter_by(kind=kind)}
+    em = Emptying.query.filter(Emptying.source == "crew", Emptying.point_id.in_(pts)).order_by(Emptying.id).all()
+    iss = StopIssue.query.filter(StopIssue.point_id.in_(pts)).order_by(StopIssue.id).all()
+    last = max([(e.at, "opróżniony", e.point_id) for e in em] + [(i.at, "pominięty" if i.kind == "skip" else "problem", i.point_id) for i in iss],
+               default=None)
+    return {"done": len(em), "issues": sum(i.kind != "skip" for i in iss), "skipped": sum(i.kind == "skip" for i in iss),
+            "far": [pts[e.point_id] for e in em if e.far_m is not None and e.far_m > GEO_RADIUS_M],
+            "last": {"at": f"{last[0]:%H:%M}", "what": last[1], "name": pts[last[2]]} if last else None}
 
 
 def _nearest_point(lat, lon):

@@ -311,3 +311,13 @@ Pocięte (decyzja 48): ikony SVG zamiast emoji i jeden plik `tokens.css` dla wsz
 **`/dostepnosc` i `/prywatnosc`**, IP zgłoszeń kasowane po 24 h przy starcie aplikacji (bez crona), zgoda przy rejestracji w programie.
 **Gunicorn z `--preload` (`app/wsgi.py`)**: porównanie liczy się raz przed forkiem workerów, zamiast 2–5 s w każdym workerze przy pierwszym wejściu.
 Pozostałe punkty fali C (postęp kierowcy, Pilne w panelu, flaga GPS, dymek → szczegóły, smoke.py) zostają na część 2.
+
+## Fala C, część 2 (niedz. 4.10, noc)
+
+**Postęp kierowcy w panelu tekstem** (opróżnione, problemy, pominięte, ostatnia akcja), bez paska procentowego: plan zmienia się po każdym
+opróżnieniu, więc „12 z 53” byłoby nieprawdą. „Pomiń” trafia na serwer jako `StopIssue(kind="skip")` i nie flaguje punktu.
+**Położenie przy „Opróżniony”** zapisujemy jako `far_m` (odległość minus dokładność GPS, ta sama reguła co u mieszkańca); ponad 150 m daje
+flagę w panelu, bez blokady. Wstrzymanie punktów programu do potwierdzenia przez dyspozytora — ROADMAPA (zabrakło czasu).
+Lista punktów w panelu posortowana po pilności, dymek pinu na `/` prowadzi do szczegółów w panelu, `scripts/smoke.py` (11 kontroli).
+**Testy równolegle (`pytest-xdist -n auto`)**: 207 testów w 43 s zamiast 149 s, bez zmiany treści testów (każdy ma własną bazę w pamięci).
+Pocięte: „Wyślij do kierowcy”, „Moje zgłoszenia”, tabela punktów pod mapą, osobna sekcja „Pilne teraz” (jest sortowanie).

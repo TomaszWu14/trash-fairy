@@ -227,3 +227,4 @@ body.tf { margin: 0; font: 14px/1.45 "IBM Plex Sans", system-ui, sans-serif; col
 .tf-pin.bad { border-radius: 3px; }
 .tf-pin.alt { box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor, 0 1px 4px rgba(0,0,0,.4); }
 .tf-pin.neutral.alt { color: #fff; }
+.tf-progress { margin: 6px 0 0; font-size: 13px; color: var(--ink); }

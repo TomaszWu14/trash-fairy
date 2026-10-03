@@ -26,4 +26,4 @@ UI po polsku, WCAG 2.1 AA, kolor nigdy jedynym nośnikiem informacji. Styl: konc
 - `python scripts/fetch_osm.py` — odśwież cache OSM w `data/*.geojson` (zwykle niepotrzebne, cache jest w repo)
 - `flask --app app seed [--force]` — import punktów + 8 tygodni symulacji
 - `flask --app app run` — serwer lokalny
-- `python -m pytest -q` — testy
+- `python -m pytest -q -n auto` — testy równolegle (~45 s; `pip install pytest-xdist`), bez `-n auto` ~2,5 min

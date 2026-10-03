@@ -59,6 +59,8 @@ class Emptying(db.Model):
     point_id = db.Column(db.Integer, db.ForeignKey("point.id"), nullable=False, index=True)
     at = db.Column(db.DateTime, nullable=False, index=True)
     level = db.Column(db.Integer, nullable=False)  # 0/25/50/75/100
+    source = db.Column(db.String(10))  # None = symulacja, "crew" = zapis z PWA kierowcy lub panelu
+    far_m = db.Column(db.Integer)  # odległość telefonu od kosza minus dokładność GPS (None = bez położenia)
 
 
 class Forecast(db.Model):

@@ -181,7 +181,8 @@ def _point_states(now):
     overflow_reported = {pid for (pid,) in db.session.query(Press.point_id).distinct()
                          .filter(Press.kind == "overflow", Press.at > now - MERGE_WINDOW, Press.at <= now)}
     crew_issue = {}
-    for i in StopIssue.query.filter(StopIssue.at > now - CREW_ISSUE_WINDOW, StopIssue.at <= now).order_by(StopIssue.at):
+    for i in (StopIssue.query.filter(StopIssue.at > now - CREW_ISSUE_WINDOW, StopIssue.at <= now, StopIssue.kind != "skip")
+              .order_by(StopIssue.at)):  # „Pomiń” liczy się tylko w postępie kursu, nie flaguje punktu
         if last_emptying.get(i.point_id) is None or last_emptying[i.point_id] < i.at:
             crew_issue[i.point_id] = {"kind": i.kind, "label": CREW_ISSUES[i.kind], "at": i.at.isoformat(), "note": i.note}
     out = {}

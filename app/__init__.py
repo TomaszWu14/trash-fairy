@@ -60,7 +60,8 @@ def _add_missing_columns():
     """Bez Alembica: dokładamy nowe, opcjonalne kolumny do istniejącej bazy (np. press.kind z ekranu /zglos)."""
     from sqlalchemy import inspect, text
     insp = inspect(db.engine)
-    for table, column, ddl in [("press", "kind", "VARCHAR(10)"), ("demo_clock", "last_activity", "TIMESTAMP")]:
+    for table, column, ddl in [("press", "kind", "VARCHAR(10)"), ("demo_clock", "last_activity", "TIMESTAMP"),
+                               ("emptying", "source", "VARCHAR(10)"), ("emptying", "far_m", "INTEGER")]:
         if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
             db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
             db.session.commit()
