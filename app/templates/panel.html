@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pl" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trash Fairy — panel dyspozytora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='fairy.css') }}">
+</head>
+<body class="tf">
+<header class="tf-header">
+  <div class="tf-brand">Trash <span>Fairy</span> <span aria-hidden="true">✨</span></div>
+  <div class="tf-sub hidden md:block">Panel dyspozytora MPO · Stare Miasto, Kazimierz, Grzegórzki</div>
+  <div class="flex-1"></div>
+  <div class="tf-clock" title="Zamrożony zegar scenariusza demo">
+    <span aria-hidden="true">🕐</span> {{ demo_now.strftime('%d.%m.%Y') }}, sobota {{ demo_now.strftime('%H:%M') }}
+  </div>
+  <div class="tf-demo" role="status">DANE DEMONSTRACYJNE · SYMULACJA</div>
+</header>
+
+<main class="tf-main">
+  <div id="map" role="region" aria-label="Mapa punktów odbioru odpadów. Ta sama lista jest dostępna w panelu bocznym."></div>
+
+  <aside class="tf-aside">
+    <section class="tf-card" aria-labelledby="h-summary">
+      <h2 id="h-summary">Sytuacja teraz</h2>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="tf-stat"><b id="n-bad">–</b><small><span class="tf-sym bad" aria-hidden="true">!</span> do opróżnienia</small></div>
+        <div class="tf-stat"><b id="n-warn">–</b><small><span class="tf-sym warn" aria-hidden="true">~</span> zapełnia się</small></div>
+        <div class="tf-stat"><b id="n-ok">–</b><small><span class="tf-sym ok" aria-hidden="true">✓</span> w porządku</small></div>
+      </div>
+      <p class="tf-muted mt-2" id="n-total"></p>
+    </section>
+
+    <section class="tf-card tf-fairy" aria-labelledby="h-fairy">
+      <h2 id="h-fairy"><span aria-hidden="true">✨</span> Wróżka podpowiada</h2>
+      <p class="tf-muted">Raport pojawi się, gdy wróżka zbierze pierwsze zgłoszenia.</p>
+    </section>
+
+    <section class="tf-card" aria-labelledby="h-list">
+      <div class="flex items-center justify-between mb-2">
+        <h2 id="h-list" class="!mb-0">Punkty</h2>
+        <div class="join" role="group" aria-label="Filtr typu punktu">
+          <button class="btn btn-xs join-item tf-filter" data-kind="all" aria-pressed="true">Wszystkie</button>
+          <button class="btn btn-xs join-item tf-filter" data-kind="bin" aria-pressed="false">Kosze</button>
+          <button class="btn btn-xs join-item tf-filter" data-kind="shelter" aria-pressed="false">Altany</button>
+        </div>
+      </div>
+      <ul id="point-list" class="tf-list" aria-label="Punkty posortowane od najbardziej zapełnionych"></ul>
+    </section>
+
+    <section class="tf-card" aria-labelledby="h-legend">
+      <h2 id="h-legend">Legenda</h2>
+      <ul class="tf-legend">
+        <li><span class="tf-pin circle neutral" aria-hidden="true"></span> kosz uliczny (koło)</li>
+        <li><span class="tf-pin square neutral" aria-hidden="true"></span> altana osiedlowa (kwadrat)</li>
+        <li><span class="tf-pin circle ok" aria-hidden="true">✓</span> poniżej 60%</li>
+        <li><span class="tf-pin circle warn" aria-hidden="true">~</span> 60–85%</li>
+        <li><span class="tf-pin circle bad" aria-hidden="true">!</span> powyżej 85%</li>
+      </ul>
+    </section>
+  </aside>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='panel.js') }}"></script>
+</body>
+</html>

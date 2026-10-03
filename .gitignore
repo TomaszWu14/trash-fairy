@@ -1,3 +1,9 @@
 .venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+.env
+*.db
+instance/
+demo_photos/
+.idea/workspace.xml

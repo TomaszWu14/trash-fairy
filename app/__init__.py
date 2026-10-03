@@ -1,0 +1,33 @@
+import os
+
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+
+def database_url():
+    """DATABASE_URL z env; Coolify/Heroku podają postgres(ql)://, a my używamy sterownika psycopg 3."""
+    url = os.environ.get("DATABASE_URL", "sqlite:///trash_fairy.db")
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
+
+def create_app(config=None):
+    app = Flask(__name__)
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url()
+    app.config.update(config or {})
+    os.makedirs(app.instance_path, exist_ok=True)
+    db.init_app(app)
+
+    from . import models  # noqa: F401  rejestracja tabel
+    from .cli import seed_command
+    from .views import bp
+
+    app.register_blueprint(bp)
+    app.cli.add_command(seed_command)
+    with app.app_context():
+        db.create_all()
+    return app
