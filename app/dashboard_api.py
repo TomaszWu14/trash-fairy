@@ -60,7 +60,10 @@ def _date(name):
     if raw is None or raw == "":
         return None
     try:
-        return date.fromisoformat(raw)
+        d = date.fromisoformat(raw)
+        if not date(2020, 1, 1) <= d <= date(2100, 12, 31):  # 0001-01-01 / 9999-12-31 przepełniały timedelta (500)
+            raise ValueError
+        return d
     except ValueError:
         raise ApiError(400, "nieprawidlowa_data", f"Parametr „{name}” musi być datą w formacie RRRR-MM-DD.") from None
 

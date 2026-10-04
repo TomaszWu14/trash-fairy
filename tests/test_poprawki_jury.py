@@ -1,5 +1,6 @@
 """Poprawki P0 pod jury: AI w przepływie zgłoszenia, EXIF, powód priorytetu, „uszkodzony”/„inne”, limit per IP."""
 import io
+from datetime import UTC, datetime
 from types import SimpleNamespace
 
 import pytest
@@ -99,7 +100,7 @@ def test_photo_with_vision_result_is_verified_by_rule(client, demo, monkeypatch)
 
 def pa(**kw):
     return SimpleNamespace(**({"status": "done", "bin_visible": True, "condition": "pelny", "confidence": 0.9,
-                               "note": "Pełny.", "people": False} | kw))
+                               "note": "Pełny.", "people": False, "wall_at": datetime.now(UTC).replace(tzinfo=None)} | kw))
 
 
 @pytest.mark.parametrize("analysis, kind, status", [
@@ -167,9 +168,52 @@ def test_full_report_still_raises_fill(client, demo):
 
 # --- #13: limit per IP ---
 
-def test_rate_limit_per_ip(client, demo):
+def test_rate_limit_per_ip(client, demo, monkeypatch):
+    from app import api_pl
+    monkeypatch.setattr(api_pl, "REPORTS_PER_IP_HOUR", 3)  # na produkcji 200 (jedno IP sali), tu mała liczba
     p = lonely_ok_bin()
-    for i in range(30):
+    for i in range(3):
         assert send(client, p, klient=f"tel-{i}").status_code == 201
     r = send(client, p, klient="tel-31")
     assert r.status_code == 429 and r.json == {"blad": r.json["blad"], "kod": "za_duzo_zgloszen"}
+
+
+def test_demo_reset_twice_in_a_row_is_refused_not_run_in_parallel(client, demo, monkeypatch):
+    from app import rate
+    monkeypatch.setattr(rate.time, "time", lambda: 1_000_000.0)  # okno limitu stałe: bez losowej granicy 20-sekundowego bloku
+    assert client.post("/api/demo/reset").status_code == 200
+    r = client.post("/api/demo/reset")
+    assert r.status_code == 429 and r.json["kod"] == "reset_trwa"
+
+
+def test_decompression_bomb_and_oversized_body_rejected(client, demo):
+    big = Image.new("1", (9000, 9000))  # 81 MP, kilka kB po kompresji PNG
+    buf = io.BytesIO()
+    big.save(buf, "PNG")
+    p = lonely_ok_bin()
+    r = send(client, p, photo=buf.getvalue())
+    assert r.status_code == 400 and r.json["kod"] == "zle_zdjecie"
+    r = client.post("/api/zgloszenia", data={"zdjecie": (io.BytesIO(b"\xff\xd8\xff" + b"0" * (11 * 1024 * 1024)), "a.jpg")},
+                    content_type="multipart/form-data")
+    assert r.status_code == 413 and r.json["kod"] == "za_duzy_plik"
+
+
+def test_pending_analysis_older_than_two_minutes_falls_back_to_manual_check():
+    from datetime import UTC, datetime, timedelta
+    pa = SimpleNamespace(status="pending", wall_at=datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=3))
+    assert photos.verification(pa, "full")["status"] == "do_weryfikacji"
+    pa.wall_at = datetime.now(UTC).replace(tzinfo=None)
+    assert photos.verification(pa, "full")["status"] == "w_toku"
+
+
+def test_analysis_unexpected_error_is_recorded_not_left_pending(client, demo, monkeypatch):
+    p = lonely_ok_bin()
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
+    monkeypatch.setattr(llm, "ask_json", lambda *a, **k: (_ for _ in ()).throw(KeyError("boom")))
+    nr = send(client, p, photo=jpeg_with_gps(p.lat, p.lon)).json["numer"]
+    assert client.get(f"/api/zgloszenia/{nr}").json["ai"]["status"] == "do_weryfikacji"
+
+
+def test_security_headers(client):
+    h = client.get("/health").headers
+    assert h["X-Content-Type-Options"] == "nosniff" and "frame-ancestors" in h["Content-Security-Policy"]

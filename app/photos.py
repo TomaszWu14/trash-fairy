@@ -88,6 +88,8 @@ RESIDENT_SYSTEM = (
     "nie opisuj ich w reason. Jeśli kosza nie widać, ustaw bin_visible = false i confidence poniżej 0.3."
 )
 VERIFY_MIN_CONFIDENCE = 0.7
+PENDING_MAX = timedelta(minutes=2)  # dłużej „w toku” = analiza nie wróci, status „Do weryfikacji”
+MAX_PIXELS = 40_000_000  # ok. 7000×5700; więcej to podejrzany plik (bomba dekompresyjna: mały PNG, gigabajty w pamięci)
 # typ zgłoszenia (Press.kind) → stany ze zdjęcia, które go potwierdzają; „inne” nie ma czego potwierdzać
 CONSISTENT = {"full": {"pelny", "odpady_obok"}, "overflow": {"odpady_obok"}, "damaged": {"uszkodzony"}}
 
@@ -101,6 +103,8 @@ def verification(pa, kind):
         return None
     out = {"status": "do_weryfikacji", "etykieta": "Do weryfikacji", "pewnosc": None, "stan": None,
            "uzasadnienie": "Analiza AI niedostępna. Zdjęcie sprawdzi dyspozytor.", "zdjecie_publiczne": False}
+    if pa.status == "pending" and datetime.now(UTC).replace(tzinfo=None) - pa.wall_at > PENDING_MAX:
+        return out  # wątek analizy padł (restart workera): dyspozytor sprawdzi zdjęcie sam
     if pa.status == "pending":
         return out | {"status": "w_toku", "etykieta": "Analiza AI w toku", "uzasadnienie": "Sprawdzamy zdjęcie, to potrwa kilka sekund."}
     if pa.status != "done":
@@ -120,6 +124,8 @@ def strip_metadata(data, mt):
     Duże zdjęcia zmniejszamy do 2048 px: tyle wystarcza analizie i kierowcy. Rzuca wyjątek dla uszkodzonego pliku."""
     from PIL import Image, ImageOps
     with Image.open(io.BytesIO(data)) as src:
+        if src.width * src.height > MAX_PIXELS:  # rozmiar z nagłówka, zanim zdekodujemy piksele
+            raise ValueError("obraz za duży")
         img = ImageOps.exif_transpose(src)
         img.thumbnail((2048, 2048))
         fmt = {"image/jpeg": "JPEG", "image/png": "PNG", "image/webp": "WEBP"}[mt]
@@ -180,8 +186,8 @@ def analyze(analysis_id):
         result = llm.ask_json("Oceń to zdjęcie według schematu.", RESIDENT_SCHEMA if resident else SCHEMA,
                               system=RESIDENT_SYSTEM if resident else SYSTEM,
                               images=[llm.image_block(data, pa.media_type)], max_tokens=2000)
-    except (llm.LLMError, OSError) as e:
-        pa.status, pa.error = "error", str(e)[:255]
+    except Exception as e:  # LLMError, OSError i każdy inny błąd: analiza nie może zostać „w toku” na zawsze
+        pa.status, pa.error = "error", str(e)[:255] or type(e).__name__
     else:
         pa.status = "done"
     if pa.status == "done" and resident:

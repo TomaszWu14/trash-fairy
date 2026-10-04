@@ -12,12 +12,13 @@
                  splitLine: { lineStyle: { color: C.line, type: [4, 4] } } };
   // ECharts (1 MB) ładowany po pierwszym malowaniu, gdy strona nie dołączyła go tagiem <script> (dashboard: Lighthouse)
   const afterLoad = () => new Promise(ok => document.readyState === 'complete' ? ok() : addEventListener('load', ok, { once: true }));
-  window.TF.echarts = (window.echarts ? Promise.resolve() : afterLoad().then(() => new Promise((ok, fail) => {
-    const s = Object.assign(document.createElement('script'), { src: document.documentElement.dataset.echarts, onload: ok, onerror: fail });
+  window.TF.loadEcharts = () => (window.echarts ? Promise.resolve() : afterLoad().then(() => new Promise((ok, fail) => {
+    const s = Object.assign(document.createElement('script'), { src: document.documentElement.dataset.echarts, onload: ok, onerror: () => { s.remove(); fail(); } });
     document.head.append(s);
   }))).then(() => echarts.registerTheme('tf', theme));
+  window.TF.echarts = window.TF.loadEcharts();
   const theme = {
-    color: C.series, backgroundColor: 'transparent',
+    color: C.series, backgroundColor: 'transparent', aria: { enabled: true },  // opis wykresu dla czytników ekranu
     textStyle: { fontFamily: C.font, color: C.ink2 },
     grid: { left: 8, right: 12, top: 36, bottom: 8, containLabel: true },
     categoryAxis: { ...axis, splitLine: { show: false } }, valueAxis: { ...axis, axisLine: { show: false } },

@@ -84,8 +84,12 @@ def reports(now):
     hist = (select(ReportHistory.point_id, Point.district, Point.fraction, ReportHistory.created_at,
                    case((ReportHistory.resolved_at <= now, ReportHistory.resolved_at)).label("resolved_at"), ReportHistory.kind)
             .join(Point, Point.id == ReportHistory.point_id).where(ReportHistory.created_at <= now))
+    first_kind = (select(Press.kind).where(Press.report_id == Report.id).order_by(Press.at, Press.id).limit(1)
+                  .correlate(Report).scalar_subquery())
+    kind = case((first_kind == "overflow", "odpady_obok"), (first_kind == "damaged", "uszkodzony"), (first_kind == "other", "inne"),
+                else_="przepelniony")  # Press.kind → słownik historii (ReportHistory.kind); przycisk = przepełniony
     live = (select(Report.point_id, Point.district, Point.fraction, Report.first_at.label("created_at"),
-                   case((Report.resolved_at <= now, Report.resolved_at)).label("resolved_at"), literal("przepelniony").label("kind"))
+                   case((Report.resolved_at <= now, Report.resolved_at)).label("resolved_at"), kind.label("kind"))
             .join(Point, Point.id == Report.point_id)
             .where(Report.first_at <= now, Report.id.in_(select(Press.report_id).where(Press.wall_at.isnot(None)))))
     return union_all(hist, live).subquery("zgloszenia")

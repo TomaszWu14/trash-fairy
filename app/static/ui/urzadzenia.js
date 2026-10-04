@@ -35,7 +35,7 @@
   function renderChips(statusy, sel) {
     const all = statusy.reduce((a, s) => a + s.liczba, 0);
     document.getElementById('u-chips').innerHTML = [{ status: '', etykieta: 'Każdy status', liczba: all }, ...statusy].map(s => {
-      const [c, i] = s.status ? ST[s.status] : ['neutral', 'filter'];
+      const [c, i] = s.status ? (ST[s.status] || ST.ok) : ['neutral', 'filter'];
       return `<label class="chip-f${s.liczba ? '' : ' zero'}" data-c="${c}"><input type="radio" name="status" value="${s.status}"${s.status === sel ? ' checked' : ''}>
         <span>${icon(i, 'i-sm')}${esc(s.status === 'ok' ? 'Sprawne' : s.etykieta)}<b class="num">${num(s.liczba)}</b></span></label>`;
     }).join('');
@@ -67,7 +67,7 @@
       ${battery(d)}
       <p class="u-left">${icon('calendar', 'i-sm')}<span>${left(d)} · ${date(d.wymiana_data)}</span></p>
       <div class="u-foot"><div><span class="subtle">Ostatni odczyt</span><b>${esc(d.ostatni_odczyt.opis)}</b><span class="subtle">${TF.ago(d.ostatni_odczyt.czas)}</span></div>
-        <div class="u-spark" title="Odczyty dziennie w 6 pełnych dniach; razem z dzisiejszymi: ${num(d.odczyty_7d)}">${TF.spark(d.odczyty_dni.slice(0, -1), 88, 30)}<span class="subtle num">${num(d.odczyty_7d)} odczytów / 7 dni</span></div></div>
+        <div class="u-spark" title="Odczyty dziennie w 6 pełnych dniach; razem z dzisiejszymi: ${num(d.odczyty_7d)}">${TF.spark(d.odczyty_dni.slice(0, -1), 88, 30)}<span class="subtle num">${num(d.odczyty_7d)} ${TF.plural(d.odczyty_7d, ['odczyt', 'odczyty', 'odczytów'])} / 7 dni</span></div></div>
     </button>`;
   const OK_VISIBLE = 12;  // sprawne zwinięte: lista ma prowadzić do problemów, nie do 95 zielonych kart
   let showAll = false, last = [];
@@ -98,14 +98,16 @@
   dlg.addEventListener('close', () => { const q = new URLSearchParams(location.search); q.delete('urzadzenie'); history.replaceState(null, '', q.toString() ? `?${q}` : location.pathname); });
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
   const dl = rows => `<dl class="u-dl">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
-  let chart;
+  let chart, openSeq = 0;
   async function open(id) {
+    const my = ++openSeq;  // szybkie kliknięcia A, B: szczegóły A nie nadpisują B
     const h = document.getElementById('u-modal-h'), b = document.getElementById('u-modal-b');
     h.textContent = 'Wczytuję…'; document.getElementById('u-modal-id').textContent = ''; b.innerHTML = '<span class="skel" style="height:220px;display:block"></span>';
     if (!dlg.open) dlg.showModal();
     const q = new URLSearchParams(location.search); q.set('urzadzenie', id); history.replaceState(null, '', `?${q}`);
     try {
       const { urzadzenie: d } = await api(`/api/urzadzenia/${encodeURIComponent(id)}`), u = d.urzadzenie, k = d.kosz;
+      if (my !== openSeq) return;
       h.textContent = k.nazwa;
       document.getElementById('u-modal-id').textContent = `${u.typ} · ${u.numer_seryjny} · ${k.dzielnica || ''}`;
       const RODZAJ = { bin: 'Kosz uliczny', shelter: 'Altana śmietnikowa', container: 'Pojemnik do segregacji' };
@@ -118,7 +120,7 @@
             ['Firmware', `<span class="num">${esc(u.firmware)}</span>`], ['Zainstalowano', date(u.zainstalowano)],
             ['Żywotność baterii', `<span class="num">${num(u.zywotnosc_baterii_dni)} dni</span> <span class="subtle">(założenie demo)</span>`],
             ['Pojemność baterii', `<span class="num">${num(u.pojemnosc_baterii_mah)} mAh</span>`],
-            ['Przewidywana wymiana', `${date(u.przewidywana_wymiana)} <span class="subtle">· za ${num(d.dni_do_wymiany)} dni</span>`],
+            ['Przewidywana wymiana', `${date(u.przewidywana_wymiana)} <span class="subtle">· za ${num(d.dni_do_wymiany)} ${TF.plural(d.dni_do_wymiany, ['dzień', 'dni', 'dni'])}</span>`],
             ['Interwał odczytów', `co ${num(u.interwal_odczytow_min)} min`], ['Ostatni sygnał', `${dt(u.ostatni_sygnal)} <span class="subtle">· ${TF.ago(u.ostatni_sygnal)}</span>`],
             ['Ostatni autotest', `${dt(u.ostatni_autotest)} · ${u.autotest_ok === false ? '<b class="t-bad">nieudany</b>' : 'udany'}`]])}</section>
         </div>
@@ -126,6 +128,7 @@
           <b class="num">${num(d.odczyty_7d)}</b></div><div class="u-chart-b" id="u-chart" role="img" aria-label="Liczba odczytów dziennie: ${d.seria.odczyty.join(', ')}"></div></section>
         <div class="u-actions"><a class="btn btn-sm" href="/panel/${k.id}">${icon('monitor', 'i-sm')}Panel kosza</a>
           <span class="subtle">Dane syntetyczne. Bateria czujnika liczona z wieku i tempa zużycia.</span></div>`;
+      chart?.dispose();  // stary wykres z poprzedniego okna, a nie nowa instancja przy każdym otwarciu
       chart = TF.chart(document.getElementById('u-chart'));
       const C = TF.C, max = Math.max(...d.seria.odczyty);
       chart.setOption({

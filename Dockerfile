@@ -14,4 +14,5 @@ HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import os, urllib.request
 
 # seed pomija import, jeśli baza ma już punkty
 # port z env PORT (domyślnie 8080 — na serwerze 8000 jest zajęty)
-CMD flask seed && gunicorn --bind 0.0.0.0:${PORT} --workers 2 --preload app.wsgi:app
+# gthread: polling co 3 s z wielu kart i wolne zapytania (reset, OSRM) nie zajmują całego workera
+CMD flask seed && gunicorn --bind 0.0.0.0:${PORT} --workers 2 --worker-class gthread --threads 4 --timeout 60 --preload app.wsgi:app

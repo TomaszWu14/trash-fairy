@@ -5,6 +5,7 @@ z flagą approx (panel pisze „przybliżenie w linii prostej”), nigdy błąd.
 """
 import json
 import os
+import threading
 import urllib.request
 from pathlib import Path
 
@@ -53,7 +54,9 @@ def street_path(coords):
         return [list(c) for c in coords], True
     cache[key] = path
     try:
-        CACHE_FILE.write_text(json.dumps(cache), encoding="utf-8")
+        tmp = CACHE_FILE.with_suffix(f".{os.getpid()}.{threading.get_ident()}.tmp")  # dwa workery: bez rozerwanego pliku JSON
+        tmp.write_text(json.dumps(cache), encoding="utf-8")
+        os.replace(tmp, CACHE_FILE)
     except OSError:
         pass  # cache w pamięci wystarczy
     return path, False

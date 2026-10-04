@@ -375,3 +375,19 @@ ECharts z wybranymi wykresami: na telefonie dashboard ma ok. 65, ale to narzędz
 status liczą te same reguły co dotąd (`devices.py`). **Eksport CSV** z filtrami dashboardu (separator „;”, BOM pod polski Excel).
 **Koszt pilotażu i zwrot** na `/metodologia` jako jawne założenia z env, oszczędność na kosz z wariantu ostrożnego skali Krakowa.
 `docker compose up --build` (app + PostgreSQL 16, seed na starcie) sprawdzony od zera; `audit/PRZED-PO.html` zestawia zrzuty przed i po.
+
+## Przegląd kodu całego repozytorium i poprawki (niedz. 4.10, rano)
+
+**Cztery przebiegi przeglądu (backend, frontend, bezpieczeństwo, weryfikacja poprawek), poprawione to, co jury mogło zobaczyć.**
+Najważniejsze: zegar demo stoi, więc wszystkie akcje mają tę samą minutę i drugie przejście scenariusza bez resetu pokazywało nowe
+zgłoszenie od razu jako „Zrealizowane” (status liczymy teraz tylko z `resolved_at`, a „Jadę” znika po opróżnieniu); wersja danych
+do pollingu zawierała czas pobrania pogody, różny w każdym workerze, więc ekrany przeładowywały się co kilka sekund (pogoda została
+tylko w kluczu cache silnika). Reset demo: limit raz na 20 s wspólny dla workerów i auto-resetu (dwa równoległe resety dublowały symulację).
+Limit zgłoszeń na IP podniesiony z 30 do 200 na godzinę: sala HackYeah wychodzi przez jeden NAT, limit per telefon i kosz zostaje.
+Twarde granice wejścia: NaN/inf w położeniu nie omija kontroli 150 m, JSON nie-obiekt, zbyt duże id i daty spoza 2020–2100 dają 4xx zamiast 500,
+bomba dekompresyjna (> 40 MP) i ciało > 10 MB odrzucane, analiza AI nie zostaje „w toku” na zawsze. Retencja z `/prywatnosc` działa co godzinę,
+nie tylko przy starcie. Nagłówki `nosniff`, `frame-ancestors`, `Referrer-Policy`. Gunicorn `gthread` (4 wątki na worker).
+Frontend: polska odmiana liczebników, blokada podwójnej wysyłki także z klawiatury, timeout zapytań, mapa dashboardu nie czeka na ECharts.
+Reset biegnie pod blokadą `pg_try_advisory_lock` (jeden naraz we wszystkich workerach). `seed --force` na PostgreSQL zeruje sekwencję
+id punktów: bez tego kosz demo nr 18 (QR na slajdach, `/panel/18`) znikał i strona startowa dawała 404.
+Odrzuciliśmy zamknięcie resetu hasłem: demo jest bez logowania z decyzji autora, a limit i blokada wystarczą na okno oceny.

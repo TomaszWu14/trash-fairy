@@ -3,6 +3,8 @@ import json
 import random
 from pathlib import Path
 
+from sqlalchemy import text
+
 from . import db
 from .geo import distance_m
 from .models import Pickup, Point, ReportHistory
@@ -57,6 +59,8 @@ def import_points(cache, seed=42):
     rng = random.Random(seed)
     for model in (Pickup, ReportHistory, Point):  # także punkty miasta i ich historia: import_city_points je odtwarza
         db.session.query(model).delete()
+    if db.engine.dialect.name == "postgresql":  # id od 1 jak w SQLite: kosz demo nr 18 (QR na slajdach, /panel/18) musi istnieć
+        db.session.execute(text("SELECT setval(pg_get_serial_sequence('point', 'id'), 1, false)"))
     shelters = select_spaced(cache["shelters"], GRZEGORZKI, SHELTERS, MIN_GAP_M)
     areas = list(BIN_AREAS) + [("Grzegórzki", (s["lat"], s["lon"]), BINS_NEAR_OVERLOADED_SHELTER)
                                for s in shelters[:OVERLOADED_SHELTERS]]

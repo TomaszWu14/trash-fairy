@@ -19,7 +19,7 @@
   const fromUrl = () => {
     const q = new URLSearchParams(location.search);
     const okres = q.get('od') || q.get('do') ? 'zakres' : (q.get('okres') || 'miesiac');
-    form.querySelector(`input[name=okres][value=${okres}]`).checked = true;
+    (form.querySelector(`input[name=okres][value="${CSS.escape(okres)}"]`) || form.querySelector('input[name=okres][value=miesiac]')).checked = true;
     ['od', 'do', 'dzielnica', 'frakcja', 'projekt'].forEach(k => { const el = form.elements[k]; if (el && q.get(k)) el.value = q.get(k); });
   };
   const setFilter = (k, v) => { form.elements[k].value = form.elements[k].value === v ? '' : v; apply(); };
@@ -118,7 +118,7 @@
     const c = chart('dzielnice'), sel = form.elements.dzielnica.value;
     c.setOption({
       animation: TF.anim,
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: v => miara === 'koszt' ? zl(v) : `${num(v)} wywozów` },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: v => miara === 'koszt' ? zl(v) : `${num(v)} ${TF.plural(Math.round(v), ['wywóz', 'wywozy', 'wywozów'])}` },
       legend: {}, xAxis: { type: 'category', data: d.dzielnice, axisLabel: { interval: 0, color: C.ink2, fontWeight: 600 } },
       yAxis: { type: 'value', axisLabel: { formatter: v => miara === 'koszt' ? `${num(v / 1000)} tys.` : num(v) } },
       series: d.serie.map(s => ({ name: s.etykieta, type: 'bar', stack: 'f', barMaxWidth: 44, data: s[miara].map((v, i) => ({ value: v, itemStyle: { opacity: sel && sel !== d.dzielnice[i] ? .3 : 1 } })),
@@ -147,7 +147,7 @@
     const DNI = ['pon.', 'wt.', 'śr.', 'czw.', 'pt.', 'sob.', 'niedz.'];
     chart('heatmapa').setOption({
       animation: TF.anim, grid: { left: 8, right: 8, top: 8, bottom: 40, containLabel: true },
-      tooltip: { formatter: p => `${DNI[p.value[1]]}, ${p.value[0]}:00–${p.value[0] + 1}:00<br><b>${num(p.value[2])} zgłoszeń</b>` },
+      tooltip: { formatter: p => `${DNI[p.value[1]]}, ${p.value[0]}:00–${p.value[0] + 1}:00<br><b>${num(p.value[2])} ${TF.plural(p.value[2], ['zgłoszenie', 'zgłoszenia', 'zgłoszeń'])}</b>` },
       xAxis: { type: 'category', data: [...Array(24).keys()], splitArea: { show: false }, axisLabel: { interval: 2, color: C.ink3 } },
       yAxis: { type: 'category', data: DNI, inverse: true, axisLabel: { color: C.ink2, fontWeight: 600 } },
       visualMap: { min: 0, max, calculable: false, orient: 'horizontal', left: 'center', bottom: 0, itemWidth: 10, itemHeight: 120,
@@ -231,8 +231,12 @@
       const [kpi, ...charts] = await Promise.all([api(`/api/dashboard/kpi${qs}`), ...NAMES.map(n => api(`/api/dashboard/wykresy/${n}${qs}`))]);
       if (my !== seq) return;  // nowszy filtr wygrywa
       renderKpis(kpi);
-      await TF.echarts;
-      charts.forEach((d, i) => RENDER[NAMES[i]](d));
+      rMapa(charts[NAMES.indexOf('mapa')]);  // mapa (Leaflet) nie czeka na ECharts
+      try { await TF.echarts; } catch (_) {
+        TF.echarts = TF.loadEcharts();  // kolejna zmiana danych albo filtr spróbuje wczytać wykresy jeszcze raz
+        throw new Error('Nie udało się wczytać wykresów. Sprawdź połączenie, spróbujemy ponownie.');
+      }
+      charts.forEach((d, i) => NAMES[i] !== 'mapa' && RENDER[NAMES[i]](d));
     } catch (e) {
       TF.toast(e.message, 'err');
     }

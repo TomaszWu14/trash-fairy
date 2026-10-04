@@ -43,6 +43,14 @@ def _gzip(resp):
     return resp
 
 
+def _security_headers(resp):
+    """Nagłówki bezpieczeństwa bez łamania niczego: brak zgadywania typu, bez osadzania na obcych stronach."""
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("Content-Security-Policy", "frame-ancestors 'self'")
+    resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    return resp
+
+
 def create_app(config=None):
     app = Flask(__name__)
     # za reverse proxy (Coolify/Traefik): prawdziwy adres klienta do limitu naciśnięć na IP
@@ -50,6 +58,9 @@ def create_app(config=None):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url()
     # sekret podpisu tokenów QR (api_pl) i hashowania telefonów; na produkcji MUSI być ustawiony w env
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-trash-fairy")
+    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # zdjęcie do 8 MB + pola formularza; większe ciało → 413
+    if not os.environ.get("SECRET_KEY") and not app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
+        app.logger.warning("SECRET_KEY nie jest ustawiony: tokeny QR i urządzeń da się policzyć z kodu. Ustaw go w env.")
     app.config.update(config or {})
     os.makedirs(app.instance_path, exist_ok=True)
     db.init_app(app)
@@ -77,12 +88,19 @@ def create_app(config=None):
             return jsonify(blad="Nie ma takiego zasobu.", kod="nie_znaleziono"), 404
         return render_template("ui/404.html"), 404
 
+    @app.errorhandler(413)
+    def too_large(_e):
+        if request.path.startswith("/api/"):
+            return jsonify(blad="Plik jest za duży (najwyżej 8 MB).", kod="za_duzy_plik"), 413
+        return render_template("ui/404.html", error=True), 413
+
     @app.errorhandler(500)
     def server_error(_e):
         if request.path.startswith("/api/"):
             return jsonify(blad="Coś poszło nie tak po naszej stronie. Spróbuj za chwilę.", kod="blad_serwera"), 500
         return render_template("ui/404.html", error=True), 500
 
+    app.after_request(_security_headers)
     app.after_request(_gzip)
     app.cli.add_command(seed_command)
     app.cli.add_command(cleanup_photos_command)

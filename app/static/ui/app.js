@@ -33,7 +33,7 @@
   TF.api = async (url, opts = {}) => {
     let r;
     try {
-      r = await fetch(url, { headers: { Accept: 'application/json', ...(opts.body && !(opts.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}) }, ...opts,
+      r = await fetch(url, { signal: AbortSignal.timeout?.(15000), headers: { Accept: 'application/json', ...(opts.body && !(opts.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}) }, ...opts,
                              body: opts.body && !(opts.body instanceof FormData) ? JSON.stringify(opts.body) : opts.body });
     } catch (e) {
       throw Object.assign(new Error('Brak połączenia. Sprawdź internet i spróbuj ponownie.'), { kod: 'siec' });
@@ -43,6 +43,13 @@
     if (!r.ok) throw Object.assign(new Error(data.blad || data.message || 'Coś poszło nie tak po naszej stronie. Spróbuj za chwilę.'), { kod: data.kod || r.status, data });
     return data;
   };
+
+  // polska odmiana: 1 zgłoszenie, 2–4 zgłoszenia (bez 12–14), 5+ zgłoszeń
+  TF.plural = (n, [one, few, many]) => n === 1 ? one : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? few : many;
+  // aria-disabled blokuje też Enter i spację (pointer-events: none działa tylko na mysz i dotyk): bez podwójnych wysyłek
+  document.addEventListener('click', e => {
+    if (e.target.closest?.('[aria-disabled="true"]')) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
 
   TF.toast = (msg, kind = 'ok') => {
     const box = document.getElementById('toasts');
@@ -66,11 +73,13 @@
   // polling zmian: jedna funkcja dla wszystkich perspektyw; wywołuje cb, gdy wersja danych się zmieni.
   // onState(ok) dostaje wynik każdej próby: kiosk pokazuje „Stan z HH:MM”, gdy sieci nie ma
   TF.watch = (cb, ms = 3000, onState = null) => {
-    let v = null;
+    let v = null, busy = false;
     const tick = async () => {
-      if (document.hidden) return;
+      if (document.hidden || busy) return;  // wolna sieć: bez nakładania się zapytań co kilka sekund
+      busy = true;
       try { const d = await TF.api('/api/zmiany'); if (v !== null && d.wersja !== v) cb(d); v = d.wersja; onState?.(true); }
       catch (e) { onState?.(false); /* następna próba za chwilę */ }
+      finally { busy = false; }
     };
     tick(); return setInterval(tick, ms);
   };
@@ -96,8 +105,9 @@
   TF.resetDemo = async (btn) => {
     if (btn) btn.setAttribute('aria-disabled', 'true');
     try {
-      await TF.api('/api/demo/reset', { method: 'POST' });
+      await TF.api('/api/demo/reset', { method: 'POST', signal: AbortSignal.timeout?.(90000) });  // reset na Postgresie ~13 s
       sessionStorage.removeItem('tf-scenariusz');
+      try { localStorage.removeItem('tf-pojazd'); } catch (_) { /* tryb prywatny */ }  // śmieciarka wraca do bazy
       TF.toast('Dane demo przywrócone do stanu początkowego.');
       setTimeout(() => location.reload(), 700);
     } catch (e) { TF.toast(e.message, 'err'); if (btn) btn.removeAttribute('aria-disabled'); }

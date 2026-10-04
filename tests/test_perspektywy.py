@@ -143,3 +143,32 @@ def test_pilot_roi_from_careful_variant_and_env(monkeypatch):
 def test_methodology_shows_pilot_and_ai_role(client, demo):
     html = client.get("/metodologia").get_data(as_text=True)
     assert 'id="pilotaz"' in html and "Zweryfikowane AI" in html and "EXIF" in html
+
+
+def test_second_scenario_run_without_reset_starts_as_przyjete(client, demo):
+    """Zegar demo stoi: wszystkie akcje mają tę samą minutę. Drugie zgłoszenie po odbiorze nie może być od razu zrealizowane."""
+    nr1 = _report(client).json["numer"]
+    client.post("/api/odbiory", json={"kosz": 18, "akcja": "jade"})
+    client.post("/api/odbiory", json={"kosz": 18, "akcja": "oprozniono", "poziom": 100})
+    assert client.get(f"/api/zgloszenia/{nr1}").json["status"] == "zrealizowane"
+    nr2 = _report(client, klient="t2").json["numer"]
+    s = client.get(f"/api/zgloszenia/{nr2}").json
+    assert nr2 != nr1 and s["status"] == "przyjete" and not _bin(client)["kierowca_w_drodze"]
+
+
+@pytest.mark.parametrize("bad", [{"lat": "nan"}, {"lat": "inf"}, {"dokladnosc": "nan", "lat": 0, "lon": 0}, {"typ": ["x"]},
+                                 {"komentarz": 5}])
+def test_report_input_cannot_bypass_geofence_or_crash(client, demo, bad):
+    r = _report(client, **bad)
+    assert r.status_code in (400, 403) or (r.status_code == 201 and "komentarz" in bad)
+
+
+def test_non_object_json_and_huge_ids_and_extreme_dates_are_4xx(client, demo):
+    assert client.post("/api/zgloszenia", json=[1]).status_code == 404  # brak kosza, nie 500
+    assert client.post("/api/odbiory", json="x").status_code == 404
+    assert client.post("/api/odbiory", json={"kosz": 18, "akcja": "problem", "problem": ["a"]}).status_code == 400
+    assert client.get("/api/kosze/99999999999999999999").status_code == 404
+    assert client.get("/api/zgloszenia/TF-99999999999999999999").status_code == 404
+    assert client.get("/api/kosze?blisko=inf,0").status_code == 400
+    for q in ("do=0001-01-01", "od=0001-01-01", "do=9999-12-31"):
+        assert client.get(f"/api/dashboard/kpi?{q}").json["kod"] == "nieprawidlowa_data"
