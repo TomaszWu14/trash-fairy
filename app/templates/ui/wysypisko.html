@@ -1,7 +1,7 @@
 {% extends "ui/mieszkaniec_base.html" %}
 {% from "ui/_ui.html" import icon %}
 {% block title %}{{ 'Wysypisko ' ~ nr if nr else 'Zgłoś dzikie wysypisko' }}{% endblock %}
-{% block page %}wysypisko{% endblock %}
+{% block page %}{{ 'wysypisko_status' if nr else 'wysypisko' }}{% endblock %}
 {% block head %}
 {{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
@@ -12,7 +12,7 @@
 <div class="m-who rise" aria-label="Zgłoszenie ekipy MPO">
   <span class="m-avatar" aria-hidden="true">{{ icon('truck', 'i-sm') }}</span>
   <div><b>Ekipa MPO</b><span>Zgłoszenie z trasy · konto demo</span></div>
-  <span class="badge neutral">{{ icon('truck') }}Kierowca</span>
+  <span class="badge neutral" data-help="wysypisko.konto_ekipa" data-help-at="after">{{ icon('truck') }}Kierowca</span>
 </div>
 {% else %}{{ super() }}{% endif %}
 {% endblock %}
@@ -20,12 +20,13 @@
 {% if nr %}
 {# ---------- status zgłoszenia (dane z /api/wysypiska/<nr>, odświeżane co kilka sekund) ---------- #}
 <a class="back" href="{{ url_for('ui.driver') if ekipa else url_for('ui.report_pick') }}">{{ icon('arrow-left', 'i-sm') }}{{ 'Wróć do trasy' if ekipa else 'Twoje zgłoszenia' }}</a>
-<section class="m-card wd-status rise" id="wd-status" data-nr="{{ nr }}" data-ekipa="{{ '1' if ekipa else '' }}" aria-labelledby="wd-st-h">
-  <p class="eyebrow">Dzikie wysypisko</p>
-  <h1 class="m-h1 num" id="wd-st-h">{{ nr }}</h1>
-  <div aria-live="polite">
-    <p class="wd-st-badge" id="wd-st-badge"><span class="skel" style="width:140px;height:26px"></span></p>
-    <p class="wd-lead" id="wd-st-why"></p>
+<section class="m-card wd-status rise" id="wd-status" data-nr="{{ nr }}" data-ekipa="{{ '1' if ekipa else '' }}" aria-labelledby="wd-st-h" data-help="wysypisko_status.status">
+  {# jak status zgłoszenia kosza (J-32): H1 = status z dużą ikoną, numer w nadtytule; aria-live tylko na tytule #}
+  <div class="m-st-head">
+    <span class="m-st-ico" id="wd-st-ico" aria-hidden="true"><span class="skel" style="width:56px;height:56px"></span></span>
+    <div class="m-st-txt"><p class="eyebrow">Dzikie wysypisko <span class="num">{{ nr }}</span></p>
+      <h1 class="m-h1" id="wd-st-h" aria-live="polite"><span class="skel" style="width:150px;height:28px"></span></h1>
+      <p class="m-st-lead" id="wd-st-why"></p></div>
   </div>
   <dl class="wd-facts" id="wd-st-facts"></dl>
   <div id="wd-st-ai"></div>
@@ -41,7 +42,7 @@
 {% else %}
 {# ---------- formularz: położenie jest treścią zgłoszenia (nie ma kosza ani kodu QR) ---------- #}
 <a class="back" href="{{ url_for('ui.driver') if ekipa else url_for('ui.report_pick') }}">{{ icon('arrow-left', 'i-sm') }}{{ 'Wróć do trasy' if ekipa else 'Zgłoś problem' }}</a>
-<form class="m-card m-form wd-form rise" id="wd-form" novalidate data-ekipa="{{ '1' if ekipa else '' }}"
+<form class="m-card m-form wd-form rise" id="wd-form" novalidate data-help="wysypisko.zgloszenie" data-ekipa="{{ '1' if ekipa else '' }}"
       data-krakow="{{ krakow | join(',') }}">
   <div>
     <h1 class="m-h1">Zgłoś dzikie wysypisko</h1>
@@ -49,7 +50,7 @@
   </div>
 
   <fieldset class="wd-f">
-    <legend class="m-legend">Gdzie leżą odpady?</legend>
+    <legend class="m-legend"><span class="m-step-n" aria-hidden="true">1</span>Gdzie leżą odpady?</legend>
     <div class="wd-map" id="wd-map" role="region" aria-label="Mapa: dotknij miejsca albo przesuń mapę i użyj środka mapy. Strzałki przesuwają mapę."></div>
     <div class="wd-loc">
       <button class="btn" type="button" id="wd-gps">{{ icon('locate-fixed') }}Użyj mojego położenia</button>
@@ -57,11 +58,11 @@
     </div>
     <button class="btn btn-ghost btn-sm wd-demo" type="button" id="wd-demo"
             data-lat="50.06446" data-lon="19.96446" data-label="okolice ROD „Grzegórzki”, ul. Nullo">{{ icon('sparkles') }}Demo: ustaw przykładowe miejsce</button>
-    <p class="wd-where" id="wd-where" aria-live="polite">{{ icon('map-pin', 'i-sm') }}<span>Nie wybrano jeszcze miejsca.</span></p>
+    <p class="wd-where" id="wd-where" aria-live="polite">{{ icon('map-pin', 'i-sm') }}<span data-help="wysypisko.miejsce" data-help-at="after">Nie wybrano jeszcze miejsca.</span></p>
   </fieldset>
 
   <fieldset class="wd-f">
-    <legend class="m-legend">Co leży? <span class="subtle">(możesz wybrać kilka)</span></legend>
+    <legend class="m-legend"><span class="m-step-n" aria-hidden="true">2</span>Co leży? <span class="subtle" data-help="wysypisko.rodzaj" data-help-at="after">(możesz wybrać kilka)</span></legend>
     <div class="wd-chips">
       {% for k, label in kinds.items() %}
       <label class="wd-chip"><input type="checkbox" name="rodzaj" value="{{ k }}"><span>{{ icon('check', 'i-sm wd-chip-ok') }}{{ label }}</span></label>
@@ -70,7 +71,7 @@
   </fieldset>
 
   <fieldset class="wd-f">
-    <legend class="m-legend" id="wd-qty-l">Ile mniej więcej worków lub sztuk?</legend>
+    <legend class="m-legend" id="wd-qty-l"><span class="m-step-n" aria-hidden="true">3</span>Ile worków lub sztuk?</legend>
     <div class="wd-step">
       <button class="btn" type="button" data-step="-1" aria-label="Mniej o jeden">−</button>
       <input class="input num" id="wd-qty" name="ilosc" type="number" inputmode="numeric" min="1" max="100" value="5" aria-labelledby="wd-qty-l">
@@ -80,17 +81,17 @@
   </fieldset>
 
   <details class="m-more">
-    <summary>{{ icon('camera', 'i-sm') }}<span>Dodaj zdjęcie i komentarz <span class="subtle">(zdjęcie potrzebne do punktów)</span></span>{{ icon('chevron-down', 'i-sm m-more-chev') }}</summary>
+    <summary>{{ icon('camera', 'i-sm') }}<span class="m-more-t"><span>Zdjęcie i komentarz</span><small>{{ 'opcjonalnie' if ekipa else 'zdjęcie potrzebne do punktów' }}</small></span>{{ icon('chevron-down', 'i-sm m-more-chev') }}</summary>
     <div class="m-more-b">
-      <label class="m-photo">
+      <label class="m-photo" data-help="wysypisko.zdjecie" data-help-at="corner">
         <input type="file" name="zdjecie" accept="image/jpeg,image/png,image/webp" capture="environment" class="sr-only" id="wd-zdjecie">
         {{ icon('camera') }}<span id="wd-photo-txt">Dodaj zdjęcie</span>
       </label>
-      <div class="field">
+      <div class="field" data-help="wysypisko.komentarz">
         <label for="wd-komentarz">Komentarz</label>
         <textarea class="textarea" id="wd-komentarz" name="komentarz" maxlength="280" placeholder="Np. ok. 20 worków ze skoszoną trawą przy bramie ogródków"></textarea>
       </div>
-      <p class="hint">Nie fotografuj osób ani tablic rejestracyjnych. Usuwamy z pliku lokalizację i dane aparatu. AI tylko opisuje zdjęcie; status nadaje reguła.</p>
+      <p class="hint">Nie fotografuj osób ani tablic rejestracyjnych. AI tylko opisuje zdjęcie, status nadaje reguła.</p>
     </div>
   </details>
 
@@ -99,18 +100,20 @@
     <button class="btn btn-primary btn-xl" type="submit" id="wd-send" aria-describedby="wd-why">{{ icon('check') }}Wyślij zgłoszenie</button>
     <p class="m-why" id="wd-why">{{ icon('info', 'i-sm') }}<span>Zaznacz miejsce na mapie</span></p>
   </div>
-  <p class="hint">Zapisujemy miejsce, czas i treść zgłoszenia. Położenie telefonu odczytujemy tylko po dotknięciu „Użyj mojego położenia”.</p>
+  <p class="m-privacy">{{ icon('shield-check', 'i-sm') }}<span>Do zgłoszenia nie potrzeba imienia ani numeru telefonu, a konto służy tylko do punktów. Położenie telefonu odczytujemy tylko po dotknięciu „Użyj mojego położenia”. Ze zdjęcia usuwamy dane aparatu (EXIF), adres IP kasujemy po 24 h.</span></p>
 </form>
 
-<section class="m-card m-success" id="wd-ok" hidden aria-live="polite">
+<section class="m-card m-success" id="wd-ok" hidden aria-live="polite" data-help="wysypisko.przyjete">
   <img src="{{ url_for('static', filename='ui/ill/sukces.svg') }}" alt="" width="200" height="160">
-  <h1 tabindex="-1">Zgłoszenie przyjęte</h1>
-  <p>Numer zgłoszenia</p>
-  <p class="m-nr num" id="wd-nr">WD-00000</p>
+  <h1 tabindex="-1">Dziękujemy!</h1>
+  <p class="m-success-nr">Zgłoszenie <b class="num" id="wd-nr">WD-00000</b> przyjęte</p>
   <p id="wd-ok-badge"></p>
-  <p class="muted" id="wd-ok-txt"></p>
-  <a class="btn btn-primary btn-xl" id="wd-link" href="#">{{ icon('clock') }}Śledź status</a>
-  <a class="link" href="{{ url_for('ui.driver') if ekipa else url_for('ui.report_pick') }}">{{ 'Wróć do trasy' if ekipa else 'Twoje zgłoszenia i punkty' }}</a>
+  <p class="m-success-txt" id="wd-ok-txt"></p>
+  <div class="m-success-act">
+    <a class="btn btn-primary btn-xl" id="wd-link" href="#">{{ icon('clock') }}Śledź status</a>
+    <a class="btn btn-xl" id="wd-back" href="{{ url_for('ui.driver') if ekipa else url_for('ui.report_pick') }}">{{ icon('arrow-left') }}{{ 'Wróć do trasy' if ekipa else 'Wróć na stronę mieszkańca' }}</a>
+  </div>
+  <a class="link m-success-home" href="{{ url_for('ui.start') }}">{{ icon('house', 'i-sm') }}Strona główna</a>
 </section>
 {% endif %}
 {% endblock %}

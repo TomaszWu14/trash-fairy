@@ -13,11 +13,10 @@
 {% if not device %}<div class="panel-sim" id="panel-sim"><div class="panel-dev">{% endif %}
 <div class="panel-screen" id="panel-screen">
 <div class="kiosk" id="kiosk" data-id="{{ bin.id }}" data-qr="{{ qr_url }}" data-qr-left="{{ qr_left_s }}">
-  <a class="kiosk-corner" href="{{ url_for('ui.start') }}" aria-label="Wróć do przeglądu perspektyw">{{ icon('layout-dashboard', 'i-sm') }}Perspektywy</a>
+  <a class="kiosk-corner" href="{{ url_for('ui.start') }}" aria-label="Wróć do przeglądu perspektyw">{{ icon('house', 'i-sm') }}Przegląd</a>
   <header class="kiosk-head">
     <span class="kiosk-brand">{{ logo() }}<span>Trash <b>Fairy</b> · MPO Kraków</span></span>
     <span class="kiosk-off" id="k-off" role="status" hidden>{{ icon('wifi-off') }}<span id="k-off-t">Brak połączenia</span></span>
-    <span class="kiosk-id num">Kosz nr {{ bin.id }}</span>
   </header>
 
   <div class="kiosk-left">
@@ -29,7 +28,7 @@
       <g clip-path="url(#kclip)"><rect class="kg-fill" id="k-fill" x="0" y="30" width="120" height="120"/>
         <path class="kg-wave" d="M0 30 Q15 24 30 30 T60 30 T90 30 T120 30 V40 H0z"/></g>
     </svg>
-    <div class="kiosk-pct">
+    <div class="kiosk-pct" data-help="panel.zapelnienie">
       <p class="kiosk-num num"><span id="k-pct">{{ bin.poziom }}</span><small>%</small></p>
       <p class="kiosk-est">zapełnienia · szacunek z prognozy</p>
       <p class="kiosk-state" id="k-state"></p>
@@ -38,7 +37,7 @@
   </section>
   {% if panel_token %}
   {# Fizyczne przyciski panelu: naciśnięcie = obecność przy koszu, więc bez kodu QR i bez telefonu. #}
-  <section class="kiosk-report" id="k-report" aria-labelledby="k-report-h" data-token="{{ panel_token }}">
+  <section class="kiosk-report" id="k-report" aria-labelledby="k-report-h" data-token="{{ panel_token }}" data-help="panel.przyciski">
     <h2 class="kiosk-report-h" id="k-report-h">Zgłoś na miejscu</h2>
     <div class="kiosk-btns">
       <button class="kbtn kbtn-main" type="button" data-typ="przepelniony">{{ icon('trash-2') }}Przepełniony</button>
@@ -65,9 +64,9 @@
       <p><span class="ks ks-yes">{{ icon('check') }}Wrzucaj</span>{{ tak }}</p>
       <p><span class="ks ks-no">{{ icon('ban') }}Nie wrzucaj</span>{{ nie }}</p>
     </div>
-    <div class="kiosk-next">{{ icon('clock', 'i-lg') }}<div><span>Najbliższy odbiór</span><b id="k-next">–</b></div></div>
+    <div class="kiosk-next" data-help="panel.odbior">{{ icon('clock', 'i-lg') }}<div><span id="k-next-l">Najbliższy odbiór</span><b id="k-next">–</b></div></div>
     <div class="kiosk-msg" id="k-msg" role="status"><span class="skel" style="height:24px;width:70%"></span></div>
-    <div class="kiosk-qr">
+    <div class="kiosk-qr" data-help="panel.kod_qr">
       <div class="kiosk-qr-code" id="k-qr" aria-label="Kod QR do zgłoszenia problemu z tym koszem" role="img"></div>
       <div><b>Pełny albo zepsuty?</b><span>Zeskanuj kod telefonem i wybierz problem.</span>
         <small>Kod zmienia się codziennie: zdjęcie kodu nie pozwoli zgłaszać jutro.</small></div>
@@ -78,7 +77,7 @@
 </div>
 {% if not device %}<p class="panel-plate" aria-hidden="true">MPO Kraków · Trash Fairy</p></div>
   <p class="panel-cap">Symulacja panelu 10,1″ · ok. 21,7 × 13,6 cm · 1280 × 800 px
-    <a class="link" href="{{ url_for('ui.kiosk', point_id=bin.id, urzadzenie=1) }}">{{ icon('monitor', 'i-sm') }}Pełny ekran (jak na urządzeniu)</a></p>
+    <a class="link" href="{{ url_for('ui.kiosk', point_id=bin.id, urzadzenie=1) }}" data-help="panel.symulacja">{{ icon('monitor', 'i-sm') }}Pełny ekran (jak na urządzeniu)</a></p>
 </div>{% endif %}
 {% endblock %}
 {% block scripts %}

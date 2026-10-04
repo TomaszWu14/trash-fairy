@@ -128,12 +128,12 @@ def test_people_or_plates_hide_photo():
 # --- #7: powód priorytetu ---
 
 @pytest.mark.parametrize("k, text", [
-    ({"zgloszenia_liczba": 2, "poziom": 113, "prognoza": ""}, "2 zgłoszenia · 113%"),
-    ({"zgloszenia_liczba": 1, "poziom": 60, "prognoza": ""}, "1 zgłoszenie · 60%"),
-    ({"zgloszenia_liczba": 5, "poziom": 90, "prognoza": ""}, "5 zgłoszeń · 90%"),
-    ({"zgloszenia_liczba": 0, "poziom": 96, "prognoza": "Przewidywane 85% ok. 15:10"}, "Pełny 96%"),
-    ({"zgloszenia_liczba": 0, "poziom": 70, "prognoza": "Przewidywane 85% ok. 15:10"}, "Prognoza 85% ok. 15:10"),
-    ({"zgloszenia_liczba": 0, "poziom": 30, "prognoza": "Bez przepełnienia w ciągu 24 h"}, "Według planu kursu · 30%"),
+    ({"zgloszenia_liczba": 2, "poziom": 113, "prognoza": ""}, "2 zgłoszenia"),
+    ({"zgloszenia_liczba": 1, "poziom": 60, "prognoza": ""}, "1 zgłoszenie"),
+    ({"zgloszenia_liczba": 5, "poziom": 90, "prognoza": ""}, "5 zgłoszeń"),
+    ({"zgloszenia_liczba": 0, "poziom": 96, "prognoza": "Do opróżnienia ok. 15:10"}, "Pełny"),
+    ({"zgloszenia_liczba": 0, "poziom": 70, "prognoza": "Do opróżnienia ok. 15:10"}, "Do opróżnienia ok. 15:10"),  # J-30
+    ({"zgloszenia_liczba": 0, "poziom": 30, "prognoza": "Bez przepełnienia w ciągu 24 h"}, "Według planu kursu"),
 ])
 def test_powod(k, text):
     assert powod(k) == text

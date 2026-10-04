@@ -1,0 +1,17 @@
+{
+  "name": "Trash Fairy",
+  "short_name": "Trash Fairy",
+  "description": "Kosze w Krakowie opróżniane wtedy, gdy trzeba: zgłoszenia mieszkańców, panele na koszach, trasy kierowców i dashboard dla miasta.",
+  "lang": "pl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0B0F1A",
+  "theme_color": "#0B0F1A",
+  "icons": [
+    { "src": "/static/ui/icon-any-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/static/ui/icon-any-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/static/ui/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/static/ui/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

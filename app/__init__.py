@@ -82,6 +82,8 @@ def create_app(config=None):
     app.register_blueprint(devices_bp)
     from .wysypiska_api import bp as wysypiska_bp
     app.register_blueprint(wysypiska_bp)  # dzikie wysypiska + punkty mieszkańca
+    from .dyspozytor_api import bp as dyspozytor_bp
+    app.register_blueprint(dyspozytor_bp)  # panel dyspozytora: pilne kosze, trasy, „Dodaj do kursu”
 
     @app.errorhandler(404)
     def not_found(_e):

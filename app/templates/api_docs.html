@@ -1,24 +1,40 @@
 {% extends "ui/base.html" %}
 {% block title %}Otwarte API{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">
-<style>.doc .c-doc-post { background: var(--brand-soft); color: var(--brand-ink); border-radius: 6px; padding: 2px 8px; font-size: var(--fs-xs); font-weight: 800; }</style>{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">{% endblock %}
 {% block content %}
 <div class="shell page"><article class="doc">
-  {% set ns = namespace(o311=none, data=none) %}
-  {% for path in spec.paths %}{% if 'open311/requests' in path %}{% set ns.o311 = loop.index %}{% elif 'open-data/' in path and ns.data is none %}{% set ns.data = loop.index %}{% endif %}{% endfor %}
+  {# endpointy grupujemy po pierwszym tagu, w kolejności pierwszego wystąpienia; kotwice ep-<nr ścieżki>-<metoda> bez zmian #}
+  {% set ns = namespace(o311=none, data=none, eps=[], tags=[]) %}
+  {% for path, ops in spec.paths.items() %}{% set i = loop.index %}
+    {% if 'open311/requests' in path %}{% set ns.o311 = i %}{% elif 'open-data/' in path and ns.data is none %}{% set ns.data = i %}{% endif %}
+    {% for method, op in ops.items() %}{% set tag = (op.tags or ['Inne'])[0] %}
+      {% if tag not in ns.tags %}{% set ns.tags = ns.tags + [tag] %}{% endif %}
+      {% set ns.eps = ns.eps + [{'tag': tag, 'path': path, 'method': method, 'op': op, 'i': i}] %}
+    {% endfor %}
+  {% endfor %}
   <h1>Otwarte API</h1>
+  <p class="lead">{{ spec.info.summary }}</p>
   <p class="c-doc-note"><strong>Dla miasta:</strong> zgłoszenia w standardzie
     {% if ns.o311 %}<a href="#ep-{{ ns.o311 }}-get">Open311 GeoReport v2</a>{% else %}Open311 GeoReport v2{% endif %}
     i {% if ns.data %}<a href="#ep-{{ ns.data }}-get">miesięczne otwarte dane CSV/JSON</a>{% else %}miesięczne otwarte dane CSV/JSON{% endif %}, bez klucza.</p>
-  <p>{{ spec.info.summary }}</p>
-  <p class="c-doc-note"><strong>Dane syntetyczne.</strong> {{ spec.info.description }}</p>
-  <p>Kontrakt OpenAPI 3.1: <a href="{{ url_for('static', filename='openapi.json') }}">openapi.json</a></p>
+  <p class="c-doc-small"><strong>Dane syntetyczne.</strong> {{ spec.info.description }}
+    Kontrakt OpenAPI 3.1: <a href="{{ url_for('static', filename='openapi.json') }}">openapi.json</a>.
+    Każdy błąd ma postać <code>{"blad": "…", "kod": "…"}</code>.</p>
+  <nav class="toc" aria-label="Grupy endpointów"><span>Grupy:</span>
+    {% for tag in ns.tags %}<a href="#grupa-{{ loop.index }}">{{ tag }}<small><span class="sr-only">, endpointów: </span>{{ ns.eps|selectattr('tag', 'equalto', tag)|list|length }}</small></a>{% endfor %}</nav>
 
-  {% for path, ops in spec.paths.items() %}{% set outer = loop %}{% for method, op in ops.items() %}
+  {% for tag in ns.tags %}
+  <h2 id="grupa-{{ loop.index }}">{{ tag }}</h2>
+  {% if tag == 'Otwarte API v1' %}
+  <p class="c-doc-note" id="ep-rules"><strong>Czego otwarte API v1 nie zwraca:</strong> wiarygodności przycisków, powodów nadużyć, danych mieszkańców
+    ani zgłoszeń kierowców. To dane operacyjne MPO, a nie dane publiczne. Decyzje (stan, trasa) liczą jawne reguły opisane
+    w <a href="/metodologia">Metodologii</a>.</p>
+  {% endif %}
+  {% for e in ns.eps if e.tag == tag %}{% set path, method, op = e.path, e.method, e.op %}
   {% set example = path.replace('{id}', '18').replace('eksport/{nazwa}', 'eksport/odbiory').replace('{nazwa}', 'koszty') %}
-  <section class="c-doc-ep" aria-labelledby="ep-{{ outer.index }}-{{ method }}">
-    <h2 id="ep-{{ outer.index }}-{{ method }}"><span class="{{ 'c-doc-get' if method == 'get' else 'c-doc-post' }}">{{ method|upper }}</span> <code>{{ path }}</code></h2>
-    <p>{% if op.tags %}<span class="c-doc-small">{{ op.tags[0] }} · </span>{% endif %}{{ op.summary }}</p>
+  <section class="c-doc-ep" aria-labelledby="ep-{{ e.i }}-{{ method }}">
+    <h3 id="ep-{{ e.i }}-{{ method }}"><span class="{{ 'c-doc-get' if method == 'get' else 'c-doc-post' }}">{{ method|upper }}</span> <code>{{ path }}</code></h3>
+    <p>{{ op.summary }}</p>
     {% if op.parameters %}<p class="c-doc-small">Parametry: {% for prm in op.parameters %}<code>{{ prm.name }}</code> ({{ prm['in'] }}, {{ prm.schema.type }}){{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
     {% if method == 'get' %}
     <pre tabindex="0"><code>curl {{ request.host_url.rstrip('/') }}{{ example }}</code></pre>
@@ -30,14 +46,9 @@
     {% set form = ((body.get('multipart/form-data') or {}).get('schema') or {}).get('properties', {}) %}
     <pre tabindex="0"><code>curl -X {{ method|upper }} {{ request.host_url.rstrip('/') }}{{ example }}{% if json_ex is not none %} -H "Content-Type: application/json" -d '{{ json_ex|tojson }}'{% else %}{% for name in form %} -F "{{ name }}=…"{% endfor %}{% endif %}</code></pre>
     {% endif %}
-    {% if op.responses %}<p class="c-doc-small">Odpowiedzi: {% for code, r in op.responses.items() %}<code>{{ code }}</code> {{ r.description }}{{ ', ' if not loop.last }}{% endfor %}. Błędy: <code>{"blad": "…", "kod": "…"}</code>.</p>{% endif %}
+    {% if op.responses %}<p class="c-doc-small">Odpowiedzi: {% for code, r in op.responses.items() %}<code>{{ code }}</code> {{ r.description }}{{ ', ' if not loop.last }}{% endfor %}.</p>{% endif %}
   </section>
-  {% endfor %}{% endfor %}
-
-  <section class="c-doc-ep" aria-labelledby="ep-rules">
-    <h2 id="ep-rules">Czego otwarte API v1 nie zwraca</h2>
-    <p>Wiarygodności przycisków, powodów nadużyć, danych mieszkańców ani zgłoszeń kierowców. To dane operacyjne MPO,
-      a nie dane publiczne. Decyzje (stan, trasa) liczą jawne reguły opisane w <a href="/metodologia">Metodologii</a>.</p>
-  </section>
+  {% endfor %}
+  {% endfor %}
 </article></div>
 {% endblock %}

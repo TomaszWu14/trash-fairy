@@ -547,7 +547,8 @@
               "type": "string"
             }
           }
-        ]
+        ],
+        "description": "Pola dowod (null do realizacji; potem {etykieta: „Zrealizowane, potwierdzone zdjęciem ekipy” | „Zrealizowane, bez zdjęcia ekipy” | „Zdjęcie ekipy w weryfikacji”, potwierdzone, zdjecie: URL /api/odbiory/zdjecie/{id} albo null}) i punkty ({za_trafne, przyznane}: punkty programu mieszkańców za trafne zgłoszenie i czy konto demo je dostało)."
       }
     },
     "/api/trasa": {
@@ -575,20 +576,39 @@
         "tags": [
           "Aplikacja"
         ],
-        "summary": "Kierowca oznacza kosz jako opróżniony albo zgłasza problem",
+        "summary": "Kierowca: „Jadę”, „Opróżniono” (z opcjonalnym zdjęciem kosza jako dowodem odbioru) albo problem",
         "responses": {
           "201": {
-            "description": "OK",
+            "description": "Zapisane; przy zdjęciu pole zdjecie: {status: w_toku | potwierdzone | do_weryfikacji, etykieta, id}",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object"
+                },
+                "example": {
+                  "ok": true,
+                  "komunikat": "Opróżniono: Kosz Rynek 18. Zdjęcie kosza zapisane.",
+                  "zdjecie": {
+                    "status": "w_toku",
+                    "etykieta": "Sprawdzamy zdjęcie",
+                    "id": 7
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Złe dane",
+            "description": "Złe dane, złe zdjęcie albo brak wymaganego zdjęcia (pilotaż)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nie ma takiego kosza",
             "content": {
               "application/json": {
                 "schema": {
@@ -602,11 +622,137 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object"
+                "type": "object",
+                "required": [
+                  "kosz",
+                  "akcja"
+                ],
+                "properties": {
+                  "kosz": {
+                    "type": "integer"
+                  },
+                  "akcja": {
+                    "type": "string",
+                    "enum": [
+                      "jade",
+                      "oprozniono",
+                      "problem"
+                    ]
+                  },
+                  "poziom": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      25,
+                      50,
+                      75,
+                      100
+                    ]
+                  },
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lon": {
+                    "type": "number"
+                  },
+                  "problem": {
+                    "type": "string",
+                    "enum": [
+                      "no_access",
+                      "blocked",
+                      "damaged",
+                      "overflow",
+                      "need_bin"
+                    ]
+                  },
+                  "notatka": {
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                }
               },
               "example": {
                 "kosz": 18,
-                "akcja": "oproznione"
+                "akcja": "problem",
+                "problem": "need_bin",
+                "lat": 50.0617,
+                "lon": 19.9373
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "kosz",
+                  "akcja",
+                  "poziom"
+                ],
+                "properties": {
+                  "kosz": {
+                    "type": "integer"
+                  },
+                  "akcja": {
+                    "type": "string",
+                    "enum": [
+                      "oprozniono"
+                    ]
+                  },
+                  "poziom": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      25,
+                      50,
+                      75,
+                      100
+                    ]
+                  },
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lon": {
+                    "type": "number"
+                  },
+                  "zdjecie": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Zdjęcie kosza: bez ludzi i tablic rejestracyjnych"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "akcja: jade | oprozniono | problem. Przy oprozniono pole poziom (0, 25, 50, 75, 100), lat i lon pojazdu (anomalia > 150 m) oraz opcjonalne zdjecie (multipart, JPEG/PNG/WebP do 8 MB, EXIF usuwany). Zmienna środowiskowa REQUIRE_CREW_PHOTO=1 (pilotaż): bez zdjęcia 400 „W pilotażu odbiór wymaga zdjęcia kosza.”. Potwierdzenie zdjęciem liczy reguła (crew_points.confirmed_photo), AI tylko opisuje. problem: no_access | blocked | damaged | overflow | need_bin („Tu przydałby się kosz”)."
+      }
+    },
+    "/api/odbiory/zdjecie/{id}": {
+      "get": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Zdjęcie kosza od ekipy (dowód odbioru): tylko potwierdzone regułą i bez osób i tablic rejestracyjnych",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Obraz JPEG, PNG albo WebP"
+          },
+          "404": {
+            "description": "Brak publicznego zdjęcia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }

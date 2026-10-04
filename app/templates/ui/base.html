@@ -10,6 +10,8 @@
   <script>(() => { let t = 'dark'; try { t = localStorage.getItem('tf-motyw') === 'light' ? 'light' : 'dark'; } catch (e) { /* tryb prywatny */ }
     document.documentElement.dataset.theme = t; if (t === 'light') document.querySelector('meta[name=theme-color]').content = '#FFFFFF'; })();</script>
   <link rel="icon" href="{{ url_for('static', filename='ui/logo.svg') }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='ui/apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='ui/manifest.webmanifest') }}">
   <link rel="preload" href="{{ url_for('static', filename='fonts/ibm-plex-sans-latin-wght.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{{ url_for('static', filename='fonts/space-grotesk-latin-wght.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', filename='ui/tokens.css') }}">
@@ -24,21 +26,24 @@
   <div class="shell topbar-in">
     <a class="brand" href="{{ url_for('ui.start') }}" aria-label="Trash Fairy: przegląd">{{ logo() }}<span>Trash <b>Fairy</b></span></a>
     {% set p = perspective | default("") %}
-    <nav class="switcher" aria-label="Perspektywy" data-help="base.przelacznik" data-help-at="after">
-      {% for key, href, ico, label in [
-        ('start', url_for('ui.start'), 'house', 'Przegląd'),
-        ('panel', url_for('ui.kiosk', point_id=demo_bin_id), 'monitor', 'Panel kosza'),
-        ('mieszkaniec', url_for('ui.report_pick'), 'smartphone', 'Mieszkaniec'),
-        ('kierowca', url_for('ui.driver'), 'truck', 'Kierowca'),
-        ('dashboard', url_for('ui.dashboard'), 'layout-dashboard', 'Dashboard')] %}
-      <a href="{{ href }}"{% if p == key %} aria-current="page"{% endif %} title="{{ label }}">{{ icon(ico) }}<span>{{ label }}</span></a>
+    <nav class="switcher" aria-label="Perspektywy">
+      {% for key, href, ico, label, short in [
+        ('start', url_for('ui.start'), 'house', 'Przegląd', 'Przegląd'),
+        ('panel', url_for('ui.kiosk', point_id=demo_bin_id), 'monitor', 'Panel kosza', 'Panel'),
+        ('mieszkaniec', url_for('ui.report_pick'), 'smartphone', 'Mieszkaniec', 'Mieszkaniec'),
+        ('kierowca', url_for('ui.driver'), 'truck', 'Kierowca', 'Kierowca'),
+        ('dyspozytor', url_for('ui.dispatcher'), 'radar', 'Dyspozytor', 'Dyspoz.'),
+        ('dashboard', url_for('ui.dashboard'), 'layout-dashboard', 'Dashboard', 'Dashboard')] %}
+      {# telefon: ikona + krótki podpis pod nią (small), pełna nazwa dla czytnika w span #}
+      <a href="{{ href }}"{% if p == key %} aria-current="page"{% endif %} title="{{ label }}">{{ icon(ico) }}<span>{{ label }}</span><small aria-hidden="true">{{ short }}</small></a>
       {% endfor %}
     </nav>
     <div class="topbar-end">
+      <button class="help-welcome" type="button" aria-label="Powitanie: przewodnik po całej aplikacji" title="Powitanie: przewodnik po całej aplikacji" hidden>{{ icon('sparkles') }}<span class="help-welcome-lbl" aria-hidden="true">Powitanie</span></button>
       <button class="theme-toggle" type="button" aria-pressed="true" title="Przełącz motyw jasny / ciemny">{{ icon('moon') }}<span class="theme-lbl">Motyw ciemny</span></button>
-      <button class="help-toggle" type="button" aria-pressed="true" data-help="base.podpowiedzi" hidden><span class="help-ico">{{ icon('circle-help') }}</span><span class="help-lbl">Podpowiedzi: <b>wł.</b></span></button>
-      <button class="help-tour" type="button" title="Przewodnik po tej stronie" data-help="base.przewodnik" hidden>{{ icon('map') }}<span class="help-lbl">Przewodnik po tej stronie</span></button>
-      <a class="demo-tag" data-help="base.dane_demo" href="{{ url_for('ui.methodology') }}" title="Dane operacyjne są syntetyczne. Zobacz, jak liczymy.">{{ icon('sparkles') }}<span>Dane demonstracyjne</span></a>
+      <button class="help-toggle" type="button" aria-pressed="true" hidden><span class="help-ico">{{ icon('circle-help') }}</span><span class="help-lbl">Podpowiedzi: <b>wł.</b></span></button>
+      <button class="help-tour" type="button" title="Przewodnik po tej stronie" hidden>{{ icon('map') }}<span class="help-lbl">Przewodnik po tej stronie</span></button>
+      <a class="demo-tag" href="{{ url_for('ui.methodology') }}" title="Dane operacyjne są syntetyczne. Zobacz, jak liczymy.">{{ icon('info') }}<span class="demo-full">Dane demonstracyjne</span><span class="demo-short"><span class="demo-dane">Dane </span>demo</span></a>
     </div>
   </div>
 </header>

@@ -1,0 +1,48 @@
+/* Pinezki map wariantu A (mapa.js): kształt stanu + znak, numer kolejności w pierścieniu, dymek zgłoszenia, altana z podwójną
+   obwódką, klaster. Kolor stanu = currentColor z klasy .si-* (app.css), więc wyłącznie tokeny. Nie ruszać transform na .tf-pin:
+   Leaflet nim pozycjonuje marker. */
+.tf-pin { background: none; border: 0; filter: var(--shadow-pin); }
+.tf-pin > * { position: absolute; }
+.tf-pin .pin-shape { inset: 0; width: 100%; height: 100%; }
+.tf-pin.is-alt:not(.is-num) .pin-shape { inset: 18%; width: 64%; height: 64%; }
+.tf-pin .pin-out { inset: 0; width: 100%; height: 100%; fill: var(--surface); stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
+
+/* numer na trasie i klaster: pierścień w kolorze stanu, liczba w kolorze tekstu, kształt stanu w prawym górnym rogu */
+.tf-pin .pin-ring { inset: 0; display: grid; place-items: center; border-radius: 50%; background: var(--surface); border: 3px solid currentColor; }
+.tf-pin .pin-ring b { color: var(--ink); font: 700 15px/1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.tf-pin.is-alt .pin-ring { inset: 3px; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px currentColor; }
+.tf-pin .pin-st { top: -5px; right: -7px; width: 17px; height: 17px; }
+.tf-cluster .pin-ring { background: var(--surface); box-shadow: 0 0 0 5px var(--glass); }
+.tf-cluster .pin-ring b { font-size: var(--fs-md); }
+.tf-cluster .pin-st { top: -4px; right: -4px; width: 18px; height: 18px; }
+
+/* zgłoszenie mieszkańca: dymek … w lewym górnym rogu */
+.tf-pin .pin-rep { top: -7px; left: -8px; width: 18px; height: 18px; }
+.tf-pin.is-sm .pin-rep { top: -5px; left: -5px; width: 11px; height: 11px; }
+/* małe pinezki (dalsze pozycje trasy): tło za numerami, bez cienia i przygaszone; pełna widoczność przy najechaniu i fokusie */
+.tf-pin.is-sm { filter: none; opacity: .75; }
+.tf-pin.is-sm:hover, .tf-pin.is-sm:focus-visible { opacity: 1; }
+
+/* fokus z klawiatury (Leaflet daje markerom tabindex) */
+.tf-pin:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 50%; }
+
+/* gorące obszary, dzikie wysypiska, podrzucanie i legenda map (dawniej dashboard.css; teraz panel dyspozytora) */
+path.mk-hot { stroke: var(--fill-full); }  /* obrys przerywany (dashArray w JS): plama widoczna też na ciemnych kafelkach */
+path.mk-drop { stroke: var(--spark); fill: var(--spark); }
+path.mk-focus { stroke: var(--brand); stroke-dasharray: 6 5; animation: mk-spin 6s linear infinite; }
+@keyframes mk-spin { to { stroke-dashoffset: -110; } }
+@media (prefers-reduced-motion: reduce) { path.mk-focus { animation: none; } }
+.tf-cluster .pin-st { top: -8px; right: -8px; }  /* znak stanu obok liczby, nie na niej */
+.lg-cl { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--fill-warn); background: var(--surface);
+         font: 700 var(--fs-xs)/1 var(--font-display); font-style: normal; color: var(--ink); }
+.lg-dump { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--spark); }
+.lg-dump .i { width: 11px; height: 11px; transform: rotate(45deg); color: var(--on-warn); stroke-width: 2.25; }
+.lg-hot { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px dashed var(--fill-full); background: color-mix(in srgb, var(--fill-full) 25%, transparent); }
+.lg-line { display: inline-block; width: 22px; height: 0; border-top: 4px solid var(--route-bin); border-radius: 2px; }
+.lg-line.lg-dash { border-top-style: dashed; border-top-color: var(--route-shelter); }
+.tf-dump { background: none; border: 0; filter: var(--shadow-pin); }
+.tf-dump > span { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+                  background: var(--spark); border: 2px solid var(--surface); }
+.tf-dump .i { width: 15px; height: 15px; transform: rotate(45deg); color: var(--on-warn); stroke-width: 2.25; }
+.tf-dump.is-done > span { background: var(--surface-2); border-color: var(--line-strong); } .tf-dump.is-done .i { color: var(--ink-2); }
+.tf-dump:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 50%; }

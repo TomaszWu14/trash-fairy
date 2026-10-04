@@ -1,23 +1,10 @@
 {% extends "ui/base.html" %}
 {% block title %}Prywatność{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">
-<style>
-  /* Tabela jako karty na telefonie (tylko układ; kolory z tokenów motywu). */
-  @media (max-width: 720px) {
-    .doc table.stack { display: block; overflow: visible; }
-    .doc table.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-    .doc table.stack tbody, .doc table.stack tr { display: block; }
-    .doc table.stack tr { padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }
-    .doc table.stack tr:last-child { border-bottom: 0; }
-    .doc table.stack td { display: block; border: 0; padding: 2px 0; }
-    .doc table.stack td:first-child { font-weight: 700; color: var(--ink); }
-    .doc table.stack td[data-label]::before { content: attr(data-label); display: block; font-size: var(--fs-xs); color: var(--ink-3); font-weight: 600; }
-  }
-</style>{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">{% endblock %}
 {% block content %}
 <div class="shell page"><article class="doc">
   <h1>Prywatność: jak używamy danych</h1>
-  <p>Trash Fairy to prototyp z HackYeah 2026 dla MPO Kraków. Dane operacyjne (zapełnienie, odbiory, koszty, projekty) są syntetyczne.
+  <p class="lead">Trash Fairy to prototyp z HackYeah 2026 dla MPO Kraków. Dane operacyjne (zapełnienie, odbiory, koszty, projekty) są syntetyczne.
      Konta mieszkanki i kierowcy w demo są przykładowe. Nie pytamy o imię, e-mail ani telefon.
      Danymi osobowymi mogą być tylko adres IP (kasowany po 24 h) i zdjęcie, jeśli ktoś na nim jest (7 dni).</p>
 
@@ -25,7 +12,7 @@
   <p>Problem zgłaszasz tylko przy koszu: przyciskiem „Przepełniony” albo „Inny problem” na panelu kosza albo skanem kodu QR z tego panelu.
      Kod QR zmienia się codziennie dla każdego kosza, więc zdjęcie kodu nie pozwoli zgłaszać jutro ani z innego kosza.
      Dlatego nie potrzebujemy Twojego położenia.</p>
-  <table class="stack" tabindex="0">
+  <table class="stack">
     <thead><tr><th scope="col">Co</th><th scope="col">Po co</th><th scope="col">Jak długo</th></tr></thead>
     <tbody>
       <tr><td>Zgłoszenie: kosz, rodzaj problemu, godzina, komentarz</td><td data-label="Po co">status zgłoszenia, trasa kierowcy, statystyki miasta</td><td data-label="Jak długo">jak historia odbiorów</td></tr>
@@ -40,10 +27,32 @@
   <p>Jeśli analiza zdjęcia wykryje osobę albo tablicę rejestracyjną, zdjęcie nie jest pokazywane publicznie.
      W pilotażu administratorem danych byłoby MPO Kraków (do ustalenia w umowie).</p>
 
-  <h2>Dowód wykonania usługi i zdjęcia miejsc podrzucania</h2>
-  <p>Dowód dotyczy kosza, nie osoby. Przy odbiorze zapisujemy kosz, czas i odległość śmieciarki od kosza w chwili oznaczenia „Opróżniono”
-     (samo położenie pojazdu służy tylko do tego porównania), a w pilotażu także zdjęcie kosza. Zdjęcia miejsc, w których ktoś zostawia odpady obok kosza,
+  <h2>Dzikie wysypisko (odpady poza koszem)</h2>
+  <p>Tu kosza nie ma, więc treścią zgłoszenia jest miejsce. Zapisujemy współrzędne miejsca z odpadami, a nie telefonu: pinezkę
+     ustawiasz na mapie. Przycisk „Użyj mojego położenia” jednorazowo odczytuje GPS tylko po to, żeby postawić pinezkę; możesz ją potem przesunąć.</p>
+  <table class="stack">
+    <thead><tr><th scope="col">Co</th><th scope="col">Po co</th><th scope="col">Jak długo</th></tr></thead>
+    <tbody>
+      <tr><td>Miejsce odpadów (współrzędne pinezki)</td><td data-label="Po co">dojazd ekipy MPO, mapa wysypisk, łączenie zgłoszeń z tego samego miejsca</td><td data-label="Jak długo">jak historia zgłoszeń</td></tr>
+      <tr><td>Rodzaje odpadów, liczba worków, komentarz</td><td data-label="Po co">przygotowanie ekipy i sprzętu</td><td data-label="Jak długo">jak historia zgłoszeń</td></tr>
+      <tr><td>Zdjęcie (opcjonalne)</td><td data-label="Po co">opis przez model AI (Anthropic): czy widać odpady, ile worków, jakie rodzaje; zapisujemy bez metadanych EXIF</td><td data-label="Jak długo"><b>7 dni</b>, potem usuwane automatycznie</td></tr>
+      <tr><td>Zdjęcie na mapie publicznej</td><td data-label="Po co">tylko zdjęcie zweryfikowane (AI widzi odpady z wysoką pewnością) i bez osób oraz tablic rejestracyjnych; pozostałych zdjęć aplikacja nie pokazuje</td><td data-label="Jak długo">do usunięcia zdjęcia po 7 dniach</td></tr>
+      <tr><td>Skrót identyfikatora telefonu</td><td data-label="Po co">drugie zgłoszenie tego samego miejsca z innego telefonu liczymy jako potwierdzenie; zapisujemy tylko skrót (HMAC), nie sam identyfikator</td><td data-label="Jak długo">jak historia zgłoszeń</td></tr>
+      <tr><td>Adres IP zgłoszenia</td><td data-label="Po co">limit: najwyżej 20 zgłoszeń wysypisk na godzinę z jednej sieci</td><td data-label="Jak długo"><b>ok. 24 godziny</b>, potem licznik jest usuwany</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Dowód wykonania usługi</h2>
+  <p>Dowód dotyczy kosza, nie osoby. Przy oznaczeniu „Opróżniono” zapisujemy kosz, czas i odległość śmieciarki od kosza.
+     Ekipa może dodać zdjęcie kosza: w demo jest opcjonalne, w pilotażu MPO może je wymagać. Zdjęcia miejsc, w których ktoś zostawia odpady obok kosza,
      dokumentują miejsce i czas, nie ludzi.</p>
+  <table class="stack">
+    <thead><tr><th scope="col">Co</th><th scope="col">Po co</th><th scope="col">Jak długo</th></tr></thead>
+    <tbody>
+      <tr><td>Odległość śmieciarki od kosza przy „Opróżniono”</td><td data-label="Po co">potwierdzenie, że odbiór był przy koszu; położenie pojazdu służy tylko do tego porównania</td><td data-label="Jak długo">jak historia odbiorów</td></tr>
+      <tr><td>Zdjęcie kosza od ekipy (w demo opcjonalne)</td><td data-label="Po co">dowód odbioru; AI opisuje poziom zapełnienia, a reguła porównuje go z wyborem ekipy; bez metadanych EXIF</td><td data-label="Jak długo"><b>7 dni</b>, potem usuwane automatycznie</td></tr>
+    </tbody>
+  </table>
   <ul>
     <li><b>Nie fotografujemy celowo ludzi</b>: w kadrze ma być kosz. Metadane EXIF usuwamy przed zapisem. Zdjęcie, na którym analiza
         wykryje osobę albo tablicę rejestracyjną, nie jest pokazywane publicznie i, jak każde zdjęcie, znika po 7 dniach.</li>

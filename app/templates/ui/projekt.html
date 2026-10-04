@@ -2,6 +2,7 @@
 {% from "ui/_ui.html" import icon %}
 {% set perspective = "dashboard" %}
 {% block title %}Projekt{% endblock %}
+{% block page %}projekt{% endblock %}
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/dashboard.css') }}">{% endblock %}
 {% block content %}
 <div class="shell dash" id="proj" data-slug="{{ slug }}">
@@ -9,10 +10,12 @@
   <header class="proj-h rise" id="p-head"><span class="skel" style="width:56px;height:56px"></span><span class="skel" style="flex:1;height:48px"></span></header>
   <section class="proj-facts" id="p-facts">{% for _ in range(4) %}<article class="card kpi"><span class="skel" style="height:56px"></span></article>{% endfor %}</section>
   <div class="pgrid-2">
-    {% for id, t, s in [('koszt', 'Koszt odbioru', 'zł miesięcznie'), ('wywozy', 'Liczba wywozów', 'miesięcznie'),
+    <section class="card chart p-key" data-help="projekt.wykres_kluczowy"><header class="chart-h"><div><h2 id="pk-h">Kluczowy efekt</h2><p id="pk-s">przed i po starcie projektu</p></div></header>
+      <div class="chart-body" id="pc-kluczowy"></div></section>
+    {% for id, t, s in [('koszt', 'Koszt odbioru', 'zł miesięcznie, z opłatą za tonę odpadów'), ('wywozy', 'Liczba odbiorów', 'miesięcznie'),
                          ('zapelnienie', 'Zapełnienie przy odbiorze', 'średnio, %'), ('czas_reakcji', 'Czas reakcji na zgłoszenie', 'średnio, godziny')] %}
-    <section class="card chart"><header class="chart-h"><div><h2>{{ t }}</h2><p>{{ s }} · przed i po starcie projektu</p></div></header>
-      <div class="chart-body" id="pc-{{ id }}"></div></section>
+    <section class="card chart" data-help="projekt.wykres_{{ id }}"><header class="chart-h"><div><h2>{{ t }}</h2><p>{{ s }} · przed i po starcie projektu</p></div></header>
+      <div class="chart-body" id="pc-{{ id }}"></div>{% if id == 'koszt' %}<p class="chart-note" id="pc-koszt-note" hidden></p>{% endif %}</section>
     {% endfor %}
   </div>
   <section class="card empty" id="p-missing" hidden><img src="{{ url_for('static', filename='ui/ill/pusto.svg') }}" alt="">

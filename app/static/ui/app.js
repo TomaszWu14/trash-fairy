@@ -60,8 +60,32 @@
     t.className = `toast ${kind === 'err' ? 'err' : ''}`;
     t.innerHTML = `${TF.stateIcon(kind === 'err' ? 'full' : 'ok')}<span>${TF.esc(msg)}</span>`;
     box.append(t);
-    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3600);
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, kind === 'err' ? 10000 : 6000);  // błąd dłużej: trzeba go przeczytać
   };
+
+  // okienko strony (<dialog>: fokus w środku, Esc zamyka) zamiast window.confirm; zwraca element do wypełnienia
+  TF.dialog = (id, html) => {
+    let d = document.getElementById(id);
+    if (!d) {
+      d = Object.assign(document.createElement('dialog'), { id, className: 'modal' });
+      d.setAttribute('aria-labelledby', `${id}-h`);
+      document.body.append(d);
+      d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });  // klik w tło też zamyka
+    }
+    d.innerHTML = html;
+    return d;
+  };
+  TF.confirm = ({ title, text, ok, icon = 'check' }) => new Promise(done => {
+    const d = TF.dialog('tf-confirm', `<div class="modal-h"><h2 id="tf-confirm-h">${TF.esc(title)}</h2>
+      <button class="btn btn-ghost btn-sm" type="button" data-close aria-label="Zamknij">${TF.icon('x')}</button></div>
+      <div class="modal-b"><p class="muted">${TF.esc(text)}</p></div>
+      <div class="modal-f"><button class="btn" type="button" data-close>Anuluj</button>
+        <button class="btn btn-primary" type="button" data-ok>${TF.icon(icon)}${TF.esc(ok)}</button></div>`);
+    let yes = false;
+    d.querySelector('[data-ok]').onclick = () => { yes = true; d.close(); };
+    d.addEventListener('close', () => done(yes), { once: true });
+    d.showModal(); d.querySelector('[data-ok]').focus();
+  });
 
   // licznik KPI przy wejściu: cyfry tabularne, blok o stałej wysokości, więc liczenie nie przesuwa układu
   TF.countUp = (el, to, fmt = v => TF.num(v)) => {
@@ -105,42 +129,81 @@
   TF.effect = p => p.efekt_wartosc == null && p.start ? `Start ${p.start.slice(5, 7)}.${p.start.slice(0, 4)}` : (p.efekt_etykieta || '–');
 
   TF.resetDemo = async (btn) => {
-    if (btn) btn.setAttribute('aria-disabled', 'true');
+    const ok = await TF.confirm({ title: 'Przywrócić dane demo?', icon: 'rotate-ccw', ok: 'Przywróć dane',
+      text: 'Zgłoszenia i odbiory z ostatnich minut znikną dla wszystkich oglądających. Przywracanie trwa do 15 sekund.' });
+    if (!ok) return;
+    const label = btn?.innerHTML;
+    if (btn) { btn.setAttribute('aria-disabled', 'true'); btn.innerHTML = `${TF.icon('loader-circle', 'spin')}Przywracam dane… (do 15 s)`; }
     try {
       await TF.api('/api/demo/reset', { method: 'POST', signal: AbortSignal.timeout?.(90000) });  // reset na Postgresie ~13 s
       sessionStorage.removeItem('tf-scenariusz');
       try { localStorage.removeItem('tf-pojazd'); localStorage.removeItem('tf-moje'); } catch (_) { /* tryb prywatny */ }  // śmieciarka wraca do bazy, zgłoszenia z pokazu znikają
       TF.toast('Dane demo przywrócone do stanu początkowego.');
-      setTimeout(() => location.reload(), 700);
-    } catch (e) { TF.toast(e.message, 'err'); if (btn) btn.removeAttribute('aria-disabled'); }
+      setTimeout(() => location.reload(), 1200);
+    } catch (e) { TF.toast(e.message, 'err'); if (btn) { btn.removeAttribute('aria-disabled'); btn.innerHTML = label; } }
   };
 
-  // ---------- scenariusz demo: 6 kroków jednej historii ----------
-  const bin = () => TF.demoBin;
-  TF.SCENARIO = [
-    { url: () => `/zglos/${bin()}?qr=${TF.demoQr}`, t: 'Mieszkaniec zgłasza przepełnienie', d: 'Kod QR z panelu kosza jest zeskanowany. Wybierz „Przepełniony” i wyślij.' },
-    { url: () => `/panel/${bin()}`, t: 'Panel kosza pokazuje zgłoszenie', d: 'Ekran przy koszu potwierdza: zgłoszone, kierowca dostał informację.' },
-    { url: () => '/kierowca', t: 'Kosz trafia na trasę kierowcy', d: 'Jest na górze listy, bo ma zgłoszenie mieszkańca. Kliknij go.' },
-    { url: () => `/kierowca/kosz/${bin()}`, t: 'Kierowca opróżnia kosz', d: 'Najpierw „Jadę”, na miejscu „Opróżniono”.' },
-    { url: () => { const s = TF.scenario(); return s.nr ? `/zgloszenie/${s.nr}` : `/panel/${bin()}`; }, t: 'Mieszkaniec widzi, że zrobione', d: 'Oś czasu zgłoszenia: przyjęte, w realizacji, zrealizowane.' },
-    { url: () => '/dashboard', t: 'Miasto widzi efekt', d: 'Zgłoszenie i odbiór są już w liczbach dashboardu.' },
-  ];
+  // ---------- scenariusz demo: trzy warianty, losowane w okienku na stronie startowej ----------
+  // stan w sessionStorage: { on, step, v: 'A'|'B'|'C', bin, binName, miejsce: {nazwa, lat, lon}, qr (adres z kodu panelu), nr (TF-…), wd (WD-…) }
   TF.scenario = () => { try { return JSON.parse(sessionStorage.getItem('tf-scenariusz')) || {}; } catch (e) { return {}; } };
   TF.setScenario = s => { try { sessionStorage.setItem('tf-scenariusz', JSON.stringify(s)); } catch (e) { /* tryb prywatny */ } };
-  TF.startScenario = () => { TF.setScenario({ step: 0, on: true }); location.href = TF.SCENARIO[0].url(); };
-  TF.goStep = i => { const s = { ...TF.scenario(), step: i, on: true }; TF.setScenario(s); location.href = TF.SCENARIO[i].url(); };
+  const S = () => TF.scenario(), bin = () => S().bin || TF.demoBin, binName = () => S().binName || `Kosz nr ${bin()}`;
+  const panel = () => `/panel/${bin()}`, driverList = () => '/kierowca', card = () => `/kierowca/kosz/${bin()}`, dash = () => '/dashboard';
+  const ON_LIST = { url: driverList, t: 'Kosz trafia na trasę kierowcy',
+    d: () => `Kosze ze zgłoszeniem mieszkańca idą na górę listy, od najpełniejszego. ${binName()} jest podświetlony. Kliknij go albo „Dalej”.` };
+  const EMPTY = { url: card, t: 'Kierowca opróżnia kosz', d: 'Najpierw „Jadę”, na miejscu „Opróżniono”. Zdjęcie kosza jest opcjonalne.', act: true };
+  const CITY = { url: dash, t: 'Miasto widzi efekt', d: 'Zgłoszenie i odbiór są już w liczbach dashboardu.' };
+  const DISPATCH = { url: () => '/dyspozytor?zakladka=zgloszenia', t: 'Dyspozytor widzi zgłoszenie',
+    d: () => `Zakładka „Zgłoszenia” odświeża się sama: ${binName()} jest podświetlony i zaznaczony na mapie. „Dodaj do kursu” to decyzja człowieka.` };
+  // act: krok czeka na akcję (wysłanie, przycisk, „Opróżniono”), więc „Dalej” jest drugorzędne, dopóki strona nie wywoła TF.scenarioNudge()
+  TF.SCENARIOS = {
+    A: { nazwa: 'Przepełniony kosz: kod QR', ikona: 'qr-code', kroki: [
+      { url: panel, t: 'Mieszkaniec stoi przy koszu', d: 'Kliknij kod QR na panelu: w demo zastępuje aparat telefonu.', act: true },
+      { url: () => S().qr || `/zglos/${bin()}`, t: 'Mieszkaniec zgłasza przepełnienie', d: 'Wybierz „Przepełniony” i wyślij. Bez logowania i bez sprawdzania położenia.', act: true },
+      { url: panel, t: 'Panel kosza pokazuje zgłoszenie', d: 'Ekran przy koszu potwierdza: zgłoszone, kosz jest na liście kierowcy.' },
+      DISPATCH, ON_LIST, EMPTY,
+      { url: () => S().nr ? `/zgloszenie/${S().nr}` : '/zglos', t: 'Mieszkaniec widzi, że zrobione', d: 'Status: zrealizowane. Trafne zgłoszenie daje punkty w „Twoich punktach”.' },
+      CITY] },
+    B: { nazwa: 'Przepełniony kosz: przycisk na panelu', ikona: 'monitor', kroki: [
+      { url: panel, t: 'Mieszkaniec naciska przycisk przy koszu', d: 'Naciśnij czerwony „Przepełniony”. Przycisk nie wymaga telefonu, a panel od razu pokaże zgłoszenie.', act: true },
+      DISPATCH, ON_LIST, EMPTY,
+      { url: panel, t: 'Panel pokazuje „Opróżniono”', d: 'Ekran przy koszu mówi przechodniom, że kosz jest pusty i od kiedy.' },
+      CITY] },
+    C: { nazwa: 'Dzikie wysypisko', ikona: 'map-pin', kroki: [
+      { url: () => '/wysypisko', t: 'Mieszkaniec zgłasza dzikie wysypisko',
+        d: () => `Formularz wypełniliśmy przykładem: ${S().miejsce?.nazwa || 'miejsce w Krakowie'}. Dołącz przykładowe zdjęcie i wyślij.`, act: true },
+      { url: () => S().wd ? `/wysypisko/${S().wd}` : '/wysypisko', t: 'Zgłoszenie ma numer i status', d: 'AI tylko opisuje zdjęcie. Status nadaje reguła w kodzie.' },
+      { url: () => '/dyspozytor?zakladka=zgloszenia', t: 'Dyspozytor widzi wysypisko', d: 'Pinezka na mapie i wpis w „Zgłoszeniach” są podświetlone. Status nadaje reguła w kodzie, AI tylko opisuje zdjęcie.' },
+      { url: () => S().wd ? `/wysypisko/${S().wd}?ekipa=1` : '/wysypisko?ekipa=1', t: 'Ekipa MPO sprząta', d: 'Kliknij „Oznacz jako uprzątnięte”. To telefon ekipy, nie zgłaszającego.', act: true },
+      { url: () => '/zglos', t: 'Mieszkaniec dostaje punkty', d: 'Karta „Twoje punkty”: punkty za uprzątnięte wysypisko ze zdjęciem.' }] },
+  };
+  const steps = () => TF.SCENARIOS[S().v]?.kroki || TF.SCENARIOS.A.kroki;
+  TF.goStep = i => { TF.setScenario({ ...S(), step: i, on: true }); location.href = steps()[i].url(); };
+  TF.startScenario = pick => { TF.setScenario({ ...pick, step: 0, on: true }); location.href = steps()[0].url(); };
+  // po udanej akcji na stronie (wysłane, „Opróżniono”, „Uprzątnięte”): „Dalej” staje się przyciskiem głównym
+  TF.scenarioNudge = () => document.querySelector('[data-sc="next"]')?.classList.add('btn-primary', 'nudge');
 
+  // adres porównywany z krokiem: ścieżka + tryb ekipy (status wysypiska ma dwa kroki na tej samej ścieżce)
+  const key = u => { const x = new URL(u, location.href); return x.pathname + (x.searchParams.get('ekipa') === '1' ? '?ekipa=1' : ''); };
   function renderScenario() {
-    const s = TF.scenario(), slot = document.getElementById('scenario-slot');
+    const s = S(), slot = document.getElementById('scenario-slot');
     if (!s.on || !slot) return;
-    const i = s.step || 0, st = TF.SCENARIO[i], last = i === TF.SCENARIO.length - 1;
+    if (s.bin) document.querySelector('.switcher a[href^="/panel/"]')?.setAttribute('href', panel());  // „Panel kosza” w nagłówku = kosz scenariusza
+    const all = steps(), here = key(location.href);
+    let i = Math.min(s.step || 0, all.length - 1);
+    // kliknięcie w samej aplikacji (kosz na liście, przełącznik perspektyw) też przesuwa scenariusz: najpierw kolejne kroki, potem wcześniejsze
+    if (key(all[i].url()) !== here) {
+      const j = [...all.keys()].slice(i + 1).concat([...all.keys()].slice(0, i).reverse()).find(j => key(all[j].url()) === here);
+      if (j !== undefined) { i = j; TF.setScenario({ ...s, step: i }); }
+    }
+    const st = all[i], last = i === all.length - 1, txt = typeof st.d === 'function' ? st.d() : st.d;
     slot.innerHTML = `<div class="scenario" role="region" aria-label="Scenariusz demo">
-      <span class="scenario-step">Krok ${i + 1} z ${TF.SCENARIO.length}</span>
-      <div class="scenario-text"><b>${st.t}</b>${st.d}</div>
-      <div class="scenario-dots" aria-hidden="true">${TF.SCENARIO.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>
+      <span class="scenario-step">Krok ${i + 1} z ${all.length}</span>
+      <div class="scenario-text"><b>${TF.esc(st.t)}</b>${TF.esc(txt)}</div>
+      <div class="scenario-dots" aria-hidden="true">${all.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>
       ${i > 0 ? `<button class="btn btn-ghost btn-sm" data-sc="prev">${TF.icon('arrow-left')}Wstecz</button>` : ''}
       ${last ? `<button class="btn btn-primary btn-sm" data-sc="end">${TF.icon('check')}Zakończ</button>`
-             : `<button class="btn btn-primary btn-sm" data-sc="next">Dalej${TF.icon('arrow-right')}</button>`}
+             : `<button class="btn btn-sm${st.act ? '' : ' btn-primary'}" data-sc="next">Dalej${TF.icon('arrow-right')}</button>`}
       <button class="btn btn-ghost btn-sm" data-sc="close" aria-label="Zamknij scenariusz">${TF.icon('x')}</button></div>`;
     // pasek jest fixed na dole: rezerwujemy pod treścią tyle miejsca, ile zajmuje, żeby nic pod nim nie znikało
     const bar = slot.firstElementChild, pad = () => document.body.style.setProperty('--scenario-h', `${bar.offsetHeight}px`);
@@ -152,6 +215,47 @@
       if (a === 'end' || a === 'close') { TF.setScenario({ ...s, on: false }); slot.innerHTML = ''; document.body.classList.remove('has-scenario'); if (a === 'end') location.href = '/'; }
     };
   }
+
+  // ---------- okienko „Zacznij scenariusz demo”: losuje wariant i kosz uliczny (A, B) albo miejsce wysypiska (C) ----------
+  // preset z adresu (/?scenariusz=A&kosz=18, /?scenariusz=C&miejsce=0) daje ten sam przebieg w testach i w nagraniu
+  const rand = a => a[Math.floor(Math.random() * a.length)];
+  const json = id => { try { return JSON.parse(document.getElementById(id)?.textContent || '[]'); } catch (e) { return []; } };
+  function openPicker(preset = {}) {
+    const places = json('sc-miejsca');  // brak listy: tylko A i B
+    // kosze z serwera (ui.scenario_bins): losujemy tylko te, które po zgłoszeniu na pewno trafią na trasę kierowcy
+    const bins = json('sc-kosze'), pool = bins.filter(b => b.losuj);
+    if (!pool.length) pool.push({ id: TF.demoBin, nazwa: `Kosz nr ${TF.demoBin}` });
+    const vs = Object.keys(TF.SCENARIOS).filter(v => v !== 'C' || places.length);
+    let fixedBin = bins.find(b => b.id === +preset.kosz), fixedPlace = preset.miejsce != null ? places[+preset.miejsce] : null;
+    let pick = {};
+    const target = v => v === 'C' ? { miejsce: fixedPlace || rand(places) }
+      : (b => ({ bin: b.id, binName: b.nazwa }))(fixedBin || (pick.bin && pick.v !== 'C' ? { id: pick.bin, nazwa: pick.binName } : rand(pool)));
+    const d = TF.dialog('sc-pick', `<div class="modal-h"><h2 id="sc-pick-h">Scenariusz demo</h2>
+        <button class="btn btn-ghost btn-sm" type="button" data-close aria-label="Zamknij">${TF.icon('x')}</button></div>
+      <div class="modal-b sc-b">
+        <div class="sc-res" aria-live="polite"><span class="eyebrow">Wylosowano</span><b class="sc-res-t"></b><span class="sc-res-w"></span></div>
+        <fieldset class="sc-vars"><legend class="label">Albo wybierz wariant</legend>
+          ${vs.map(v => { const x = TF.SCENARIOS[v], n = x.kroki.length;
+            return `<label class="sc-var"><input type="radio" name="sc-v" value="${v}"><span class="sc-var-ico">${TF.icon(x.ikona)}</span>
+              <span class="sc-var-t"><b>${v}. ${TF.esc(x.nazwa)}</b><small>${n} ${TF.plural(n, ['krok', 'kroki', 'kroków'])}</small></span></label>`; }).join('')}
+        </fieldset>
+      </div>
+      <div class="modal-f"><button class="btn" type="button" data-roll>${TF.icon('refresh-cw')}Losuj ponownie</button>
+        <button class="btn btn-primary" type="button" data-go>${TF.icon('play')}Zacznij</button></div>`);
+    const show = () => {
+      d.querySelector(`input[value="${pick.v}"]`).checked = true;
+      d.querySelector('.sc-res-t').textContent = `${pick.v}. ${TF.SCENARIOS[pick.v].nazwa}`;
+      d.querySelector('.sc-res-w').innerHTML = pick.v === 'C' ? `${TF.icon('map-pin', 'i-sm')}${TF.esc(pick.miejsce.nazwa)}`
+        : `${TF.icon('trash-2', 'i-sm')}${TF.esc(pick.binName)}`;
+    };
+    const set = v => { pick = { v, ...target(v) }; show(); };
+    set(vs.includes(preset.v) ? preset.v : rand(vs));
+    d.querySelector('.sc-vars').onchange = e => set(e.target.value);
+    d.querySelector('[data-roll]').onclick = () => { pick = {}; fixedBin = fixedPlace = null; set(rand(vs)); };  // nowy wariant i nowy kosz albo miejsce (bez presetu z adresu)
+    d.querySelector('[data-go]').onclick = () => TF.startScenario(pick);
+    d.showModal(); d.querySelector('[data-go]').focus();
+  }
+  TF.openScenarioPicker = openPicker;
 
   // motyw: ciemny (domyślny) / jasny; base.html ustawia go przed CSS, tu przełącznik, zapis i zdarzenie 'tf-motyw' (wykresy)
   const syncThemeBtn = () => document.querySelectorAll('.theme-toggle').forEach(b => {
@@ -178,6 +282,10 @@
       TF.setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light')));
     renderScenario();
     document.querySelectorAll('[data-reset-demo]').forEach(b => b.addEventListener('click', () => TF.resetDemo(b)));
-    document.querySelectorAll('[data-start-scenario]').forEach(b => b.addEventListener('click', TF.startScenario));
+    document.querySelectorAll('[data-start-scenario]').forEach(b => b.addEventListener('click', () => openPicker()));
+    const q = new URLSearchParams(location.search);
+    if (q.get('scenariusz') && document.querySelector('[data-start-scenario]')) {
+      openPicker({ v: q.get('scenariusz').toUpperCase(), kosz: q.get('kosz'), miejsce: q.get('miejsce') });
+    }
   });
 })();

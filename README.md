@@ -74,10 +74,10 @@ Sygnały wchodzą przez blueprinty, ale każdą decyzję (stan, priorytet, progn
 | Co | Stały harmonogram | Trash Fairy |
 |---|---|---|
 | Błąd prognozy (MAE, ostatni tydzień, bez przecieku) | 7,1 p.p. (stała średnia) | **2,4 p.p.** |
-| Wizyty przy koszach (4 tygodnie) | 3 360 | **2 543 (−24%)** |
+| Odbiory koszy (4 tygodnie) | 3 360 | **2 543 (−24%)** |
 | Puste przyjazdy do koszy (< 50%) | 57% | **27%** |
 | Godziny przepełnienia altan (4 tygodnie) | 338 h | **0 h** |
-| Na miesiąc (5 zł/km, 4 zł za wizytę) | — | **−866 wizyt, ok. 2 976 zł mniej, +97 km** |
+| Na miesiąc (12 zł za odbiór, 5 zł/km) | — | **−866 odbiorów, ok. 9 902 zł mniej [z produkcji], +97 km** |
 
 Kilometry altan rosną (+163 km w 4 tygodniach), bo śmieciarka jeździ wtedy, gdy trzeba, a nie co 3 dni. Pokazujemy to wprost;
 założenia i wzory są na stronie `/metodologia`, wyliczone ze stałych w kodzie.
@@ -108,14 +108,15 @@ Każdy ekran z danymi syntetycznymi ma plakietkę **„Dane demonstracyjne”** 
 
 | Adres | Perspektywa | Co robi |
 |---|---|---|
-| [`/`](https://trashfairy.twapp.pl/) | Przegląd | cztery perspektywy, liczby z kodu, **scenariusz demo w 6 krokach** i reset danych demo |
+| [`/`](https://trashfairy.twapp.pl/) | Przegląd | pięć perspektyw, liczby z kodu, **losowany scenariusz demo** (A: kod QR z panelu kosza, B: przycisk „Przepełniony” na panelu, C: dzikie wysypisko; stały przebieg: `/?scenariusz=A&kosz=18`) i reset danych demo |
 | [`/panel/18`](https://trashfairy.twapp.pl/panel/18) | Panel kosza | kiosk 1280×800: zapełnienie z daleka, termin odbioru, status zgłoszeń, kod QR do zgłoszenia |
-| [`/zglos`](https://trashfairy.twapp.pl/zglos) → `/zglos/<id>` → `/zgloszenie/<nr>` | Mieszkaniec | skan QR, mapa i najbliższe kosze, zgłoszenie w 3 krokach (tylko z kodem QR kosza i do 150 m), oś czasu statusu |
-| [`/kierowca`](https://trashfairy.twapp.pl/kierowca) → `/kierowca/kosz/<id>` | Kierowca | trasa po priorytecie z postępem, „Jadę” z nawigacją w aplikacji, „Opróżniono”, „Problem” |
+| [`/zglos`](https://trashfairy.twapp.pl/zglos) → `/zglos/<id>` → `/zgloszenie/<nr>` | Mieszkaniec | skan kodu QR z Panelu kosza (bez mapy i listy koszy; kod zmienia się codziennie), zgłoszenie na jednym ekranie, oś czasu statusu, punkty; dzikie wysypisko poza koszem: [`/wysypisko`](https://trashfairy.twapp.pl/wysypisko) |
+| [`/kierowca`](https://trashfairy.twapp.pl/kierowca) → `/kierowca/kosz/<id>` | Kierowca | trasa po priorytecie z postępem, „Jadę” z nawigacją w aplikacji, „Opróżniono” z opcjonalnym zdjęciem kosza (dowód odbioru: położenie śmieciarki i zdjęcie), „Problem” |
+| [`/dyspozytor`](https://trashfairy.twapp.pl/dyspozytor) | Dyspozytor | mapa koszy na żywo z ikonami stanów, gorące obszary zgłoszeń, dzikie wysypiska; Pilne („Dodaj do kursu” to decyzja człowieka), Ekipy i trasy, Zgłoszenia na żywo |
 | [`/dashboard`](https://trashfairy.twapp.pl/dashboard) → `/dashboard/projekty/<slug>` | Dashboard miasta | KPI ze zmianą i trendem, koszty vs plan, frakcje, dzielnice, zgłoszenia, heatmapa, mapa, projekty; filtry i drill-down |
 | [`/metodologia`](https://trashfairy.twapp.pl/metodologia) | wszyscy | założenia, wzory i liczby wprost z kodu |
 
-Stare adresy (`/telefony`, `/dyspozytor`, `/epapier/<id>`, kody QR z naklejek) przekierowują do nowych ekranów.
+Stare adresy (`/telefony`, `/epapier/<id>`, kody QR z naklejek) przekierowują do nowych ekranów.
 Pomocniczo: [`/dashboard/urzadzenia`](https://trashfairy.twapp.pl/dashboard/urzadzenia) (bateria, odczyty i status paneli oraz czujników).
 Audyt i przebudowa: `audit/AUDYT-UX.md`, zrzuty rund w `audit/iteracje/`, przed i po: [`audit/PRZED-PO.html`](audit/PRZED-PO.html), jak poprowadzić pokaz: [`DEMO.md`](DEMO.md).
 
@@ -212,10 +213,10 @@ plans routes and recommends where a sensor, a compactor or a bigger bin pays off
 **All decisions are made by explicit rules in code. AI only describes and recognises.**
 
 **Results (simulation, 60 bins and 12 shelters, 4 weeks vs the fixed schedule):** forecast MAE 2.4 p.p. vs 7.1 for a naive mean;
-bins −24% visits and empty trips down from 57% to 27%; shelter overflow hours 338 → 0; per month −866 visits, ≈ PLN 2,976 saved, +97 km.
+bins −24% pickups and empty trips down from 57% to 27%; shelter overflow hours 338 → 0; per month −866 pickups, ≈ PLN 9,902 saved [from production] at PLN 12 per pickup, +97 km.
 
-**Screens (no login):** `/` overview with a 6-step demo script, `/panel/18` bin kiosk (fill level visible from afar, pickup time, QR code),
-`/zglos` resident PWA (scan the bin's QR code, report in 3 steps), `/kierowca` driver PWA (route by priority, in-app navigation, Emptied / Problem),
+**Screens (no login):** `/` overview with a randomly drawn demo scenario (QR on the bin panel, panel button, illegal dumping), `/panel/18` bin kiosk (fill level visible from afar, pickup time, QR code),
+`/zglos` resident PWA (scan the bin panel's daily QR code, one-screen report; `/wysypisko` for illegal dumping), `/kierowca` driver PWA (route by priority, in-app navigation, Emptied with an optional bin photo / Problem), `/dyspozytor` dispatcher (live map, urgent bins, crews and routes),
 `/dashboard` city dashboard (costs vs plan, fractions, districts, projects), `/dashboard/urzadzenia` devices (battery, heartbeat, status),
 `/metodologia` assumptions straight from code. **Demo:** https://trashfairy.twapp.pl · **Run locally:** `docker compose up --build` → http://localhost:8080 (app + PostgreSQL 16).
 

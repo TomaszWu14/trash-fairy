@@ -1,11 +1,12 @@
 {% extends "ui/mieszkaniec_base.html" %}
 {% from "ui/_ui.html" import icon %}
 {% block title %}Zgłoś: {{ bin.nazwa }}{% endblock %}
+{% block page %}zglos_kosz{% endblock %}
 {% block m_content %}
 <a class="back" href="{{ url_for('ui.report_pick') }}">{{ icon('arrow-left', 'i-sm') }}Zgłoś problem</a>
 
 {# Jeden ekran: kosz z kodu QR → problem → Wyślij. Tylko TEN kosz, bez poziomu zapełnienia i bez sąsiednich koszy. #}
-<form class="m-card m-form rise" id="m-form" novalidate data-bin="{{ bin.id }}" data-name="{{ bin.nazwa }}" data-qr="{{ qr }}"
+<form class="m-card m-form rise" id="m-form" novalidate data-help="zglos_kosz.zgloszenie" data-bin="{{ bin.id }}" data-name="{{ bin.nazwa }}" data-qr="{{ qr }}"
       data-qr-ok="{{ '1' if qr_state == 'ok' else '' }}">
   <div class="m-bin">
     <span class="m-bin-i" aria-hidden="true">{{ icon('trash-2', 'i-lg') }}</span>
@@ -37,8 +38,8 @@
   </fieldset>
 
   <details class="m-more">
-    <summary>{{ icon('message-square-text', 'i-sm') }}<span>Dodaj komentarz lub zdjęcie <span class="subtle">(opcjonalnie)</span></span>{{ icon('chevron-down', 'i-sm m-more-chev') }}</summary>
-    <div class="m-more-b">
+    <summary>{{ icon('message-square-text', 'i-sm') }}<span class="m-more-t"><span>Komentarz lub zdjęcie</span><small>opcjonalnie</small></span>{{ icon('chevron-down', 'i-sm m-more-chev') }}</summary>
+    <div class="m-more-b" data-help="zglos_kosz.komentarz_zdjecie">
       <div class="field">
         <label for="m-komentarz">Komentarz</label>
         <textarea class="textarea" id="m-komentarz" name="komentarz" maxlength="280" placeholder="Np. worki z domowymi śmieciami obok kosza"></textarea>
@@ -47,7 +48,7 @@
         <input type="file" name="zdjecie" accept="image/jpeg,image/png,image/webp" capture="environment" class="sr-only" id="m-zdjecie">
         {{ icon('camera') }}<span id="m-photo-txt">Dodaj zdjęcie</span>
       </label>
-      <p class="hint">Nie fotografuj osób ani tablic rejestracyjnych. Usuwamy z pliku lokalizację i dane aparatu.</p>
+      <p class="hint">Nie fotografuj osób ani tablic rejestracyjnych.</p>
     </div>
   </details>
 
@@ -56,16 +57,21 @@
     <button class="btn btn-primary btn-xl" type="submit" id="m-send" aria-describedby="m-why">{{ icon('check') }}Wyślij zgłoszenie</button>
     <p class="m-why" id="m-why">{{ icon('info', 'i-sm') }}<span>{{ 'Wybierz, co jest nie tak' if qr_state == 'ok' else 'Zeskanuj kod QR z panelu tego kosza' }}</span></p>
   </div>
-  <p class="hint">Zapisujemy czas, kosz i treść zgłoszenia. Nie pytamy o położenie telefonu.</p>
+  <p class="m-privacy">{{ icon('shield-check', 'i-sm') }}<span>Do zgłoszenia nie potrzeba imienia, numeru telefonu ani położenia. Konto służy tylko do punktów. Ze zdjęcia usuwamy dane aparatu (EXIF), adres IP kasujemy po 24 h.</span></p>
 </form>
 
-<section class="m-card m-success" id="m-success" hidden aria-live="polite">
+<section class="m-card m-success" id="m-success" hidden aria-live="polite" data-help="zglos_kosz.przyjete">
   <img src="{{ url_for('static', filename='ui/ill/sukces.svg') }}" alt="" width="200" height="160">
-  <h1 tabindex="-1">Zgłoszenie przyjęte</h1>
-  <p>Numer zgłoszenia</p>
-  <p class="m-nr num" id="m-nr">TF-00000</p>
-  <p class="muted" id="m-success-txt">Kosz trafia na listę kierowcy MPO. Status zobaczysz na osi czasu.</p>
-  <a class="btn btn-primary btn-xl" id="m-status-link" href="#">{{ icon('clock') }}Śledź status</a>
-  <a class="link" href="{{ url_for('ui.report_pick') }}">Twoje zgłoszenia</a>
+  <h1 tabindex="-1">Dziękujemy!</h1>
+  <p class="m-success-nr">Zgłoszenie <b class="num" id="m-nr">TF-00000</b> przyjęte</p>
+  <p class="m-success-txt" id="m-success-txt">Status zobaczysz na osi czasu.</p>
+  <p class="m-pts-chip" id="m-success-pts" hidden></p>
+  <div class="m-success-act">
+    <a class="btn btn-primary btn-xl" id="m-status-link" href="#">{{ icon('clock') }}Śledź status</a>
+    {# zgłoszenie z kodu QR panelu: powrót do panelu tego kosza; bez skanu: na stronę mieszkańca #}
+    {% if qr_state == 'ok' %}<a class="btn btn-xl" id="m-back" href="{{ url_for('ui.kiosk', point_id=bin.id) }}">{{ icon('monitor') }}Wróć do panelu kosza</a>
+    {% else %}<a class="btn btn-xl" id="m-back" href="{{ url_for('ui.report_pick') }}">{{ icon('arrow-left') }}Wróć na stronę mieszkańca</a>{% endif %}
+  </div>
+  <a class="link m-success-home" href="{{ url_for('ui.start') }}">{{ icon('house', 'i-sm') }}Strona główna</a>
 </section>
 {% endblock %}

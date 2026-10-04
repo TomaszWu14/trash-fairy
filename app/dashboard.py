@@ -301,8 +301,9 @@ def _pct_change(after, before):
     return 100 * (after - before) / before if before else None
 
 
-def _signed_pct(v):
-    return f"{'−' if v < 0 else '+'}{pl_num(abs(v), 1)}%"
+def _moved(v, up="wzrósł", down="spadł", same="nie zmienił się"):
+    """Zmiana w % słowem, bez znaku: „spadł o 6%”, „wzrósł o 2,1%”."""
+    return f"{down if v < 0 else up} o {pl_num(abs(v), 1)}%" if round(abs(v), 1) else same
 
 
 def cost_explanation(before, after, a, days):
@@ -319,10 +320,10 @@ def cost_explanation(before, after, a, days):
     cost = _pct_change(rate(after, "koszt", d_a), rate(before, "koszt", d_b))
     mass = _pct_change(rate(after, "masa", d_a), rate(before, "masa", d_b))
     share = 100 * pa["tony_zl"] / float(after["koszt"])
-    text = (f"Odbiorów {'mniej' if visits < 0 else 'więcej'} o {pl_num(abs(visits), 1)}% (średnio na dzień), a dzienny "
-            f"koszt zmienił się o {_signed_pct(cost)}: {pl_num(share)}% kosztu to opłata za tony odpadów, na którą liczba "
-            f"odbiorów nie wpływa (masa odpadów na dzień {_signed_pct(mass)}), a koszt wizyt przy koszach i przejazdów "
-            f"zmienił się o {'−' if service < 0 else '+'}{pl_num(abs(service))} zł miesięcznie (na 30 dni).")
+    text = (f"Odbiorów {'mniej' if visits < 0 else 'więcej'} o {pl_num(abs(visits), 1)}% na dzień, a dzienny koszt "
+            f"{_moved(cost)}. {pl_num(share)}% kosztu to opłata za tony odpadów, na którą liczba odbiorów nie wpływa "
+            f"(masa odpadów na dzień {_moved(mass, 'wzrosła', 'spadła', 'bez zmian')}); wizyty przy koszach i przejazdy "
+            f"kosztują o {pl_num(abs(service))} zł {'mniej' if service < 0 else 'więcej'} miesięcznie.")
     rnd = lambda p: {k: round(v, 2) for k, v in p.items()}
     return {"zdanie": text, "przed": rnd(pb), "po": rnd(pa), "dni": {"przed": round(d_b, 2), "po": round(d_a, 2)},
             "odbiory_pct": round(visits, 1), "koszt_pct": round(cost, 1), "masa_pct": round(mass, 1),

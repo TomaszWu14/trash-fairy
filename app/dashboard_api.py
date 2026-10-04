@@ -132,20 +132,22 @@ def _change(cur, prev):
 
 
 def _kpi_values(t, p, a):
-    zl, visits, km = savings(t, p, a)
+    zl, _, km = savings(t, p, a)
     return {"koszt": _num(t["koszt"]), "wywozy": int(t["wywozy"]), "zapelnienie": _num(t["zapelnienie"], 1),
             "zgloszenia": int(t["zgloszenia"]), "czas_reakcji": _num(t["czas_reakcji"], 1),
-            "oszczednosci": _num(zl), "co2": _num(km * a["co2_per_km"], 1), "kursy": round(visits),
+            "oszczednosci": _num(zl), "co2": _num(km * a["co2_per_km"], 1),
             "sla_2h": _num(sla_pct(t), 1), "anomalie": int(t["anomalie"]), "anomalie_pct": _num(anomaly_pct(t), 1)}
 
 
 # Odbiór = opróżnienie kosza (odbiory mniej to pominięte kosze), kurs = przejazd śmieciarki. Id KPI bez zmian (front, testy).
-KPI = [("koszt", "Koszt odbiorów", "zł", "mniej"), ("wywozy", "Odbiory", "szt.", "mniej"),
-       ("zapelnienie", "Średnie zapełnienie przy odbiorze", "%", "wiecej"), ("zgloszenia", "Zgłoszenia", "szt.", "mniej"),
-       ("czas_reakcji", "Średni czas reakcji", "h", "mniej"), ("sla_2h", f"Obsłużone w ≤ {SLA_H} h", "%", "wiecej"),
-       ("oszczednosci", "Oszczędności wobec planu", "zł", "wiecej"), ("co2", "CO₂ mniej niż w planie", "kg", "wiecej"),
-       ("anomalie", "Anomalie ekipy", "szt.", "mniej")]
-KPI_OPIS = {"sla_2h": f"Norma MPO dla interwencji: {SLA_H} h od zgłoszenia. Liczone ze zgłoszeń zamkniętych albo otwartych "
+# Kolejność = układ kafli: rząd 1 efekty (oszczędności na 2 kolumny, CO₂, odbiory, anomalie), rząd 2 obsługa.
+KPI = [("oszczednosci", "Oszczędności wobec planu", "zł", "wiecej"), ("co2", "CO₂ mniej niż w planie", "kg", "wiecej"),
+       ("wywozy", "Odbiory", "szt.", "mniej"), ("anomalie", "Anomalie ekipy", "szt.", "mniej"),
+       ("koszt", "Koszt odbiorów", "zł", "mniej"), ("zapelnienie", "Zapełnienie przy odbiorze", "%", "wiecej"),
+       ("zgloszenia", "Zgłoszenia", "szt.", "mniej"), ("czas_reakcji", "Średni czas reakcji", "h", "mniej"),
+       ("sla_2h", f"Obsłużone w ≤ {SLA_H} h", "%", "wiecej")]
+KPI_OPIS = {"zapelnienie": "Średnie zapełnienie kosza w chwili odbioru: im wyższe, tym mniej pustych przejazdów.",
+            "sla_2h": f"Norma MPO dla interwencji: {SLA_H} h od zgłoszenia. Liczone ze zgłoszeń zamkniętych albo otwartych "
                       f"dłużej niż {SLA_H} h.",
             "anomalie": f"Odbiory potwierdzone w aplikacji kierowcy dalej niż {ANOMALY_M} m od kosza."}
 BEFORE_KPI = ("zapelnienie", "sla_2h", "czas_reakcji")  # kafle z wartością „przed wdrożeniem” (_before_rollout)
@@ -238,7 +240,6 @@ def kpi():
                 "zmiana_pct": _change(cur[kid], prev[kid]) if prev else None, "lepiej_gdy": better,
                 "trend": [trends[m][kid] for m in months]}
         if kid == "oszczednosci":
-            item["kursy"] = cur["kursy"]  # ponytail: stare pole dla obecnego frontu; usunąć razem z nim (= odbiory_mniej)
             item.update(_savings_detail(f, now, t, pl, a))
         if kid in KPI_OPIS:
             item["opis"] = KPI_OPIS[kid]

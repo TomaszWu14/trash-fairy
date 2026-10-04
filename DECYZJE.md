@@ -464,3 +464,18 @@ nie kliknięcia). O premii decyduje regulamin MPO, system daje dowód. Odrzucili
 
 **„Panel kosza” jako symulacja urządzenia 10,1″.** Nagłówek aplikacji zostaje, ekran 1280×800 w ramce skalowany do okna;
 `?urzadzenie=1` = tryb sprzętu. Odrzuciliśmy pełnoekranowy kiosk w aplikacji (gubił nawigację i pasek scenariusza go zasłaniał).
+
+## Etap 2b i checkpoint 2c: ekrany po akceptacji, dyspozytor, podpowiedzi (niedz. 4.10, ok. 10:00)
+
+**Ekrany wariantu A po akceptacji autora w pięciu pakietach z recenzją wizualną.** Kierowca (pinezki kształtów stanów w `mapa.js`
+wspólne dla wszystkich map, opcjonalne zdjęcie kosza przy „Opróżniono” jako dowód usługi, flaga `REQUIRE_CREW_PHOTO` na pilotaż,
+„Tu przydałby się kosz”), dashboard (oszczędności dzień/miesiąc/rok po 12 zł, rekomendacje z danych pod KPI), mieszkaniec (status
+z H1 = stan, dowód odbioru i punkty), wspólne (losowy scenariusz A/B/C tylko z koszy, które regułą trafią na trasę; panel kosza bez
+ramki na telefonie), dokumenty (tabele, prywatność wysypisk). Odrzuciliśmy jeden duży przebieg bez recenzji: każdy pakiet przeszedł
+zrzuty w obu motywach, recenzję i poprawki.
+
+**Dyspozytor jako szósta perspektywa zamiast mapy w dashboardzie.** Mapa na żywo, pilne kosze i „Dodaj do kursu” to praca operacyjna,
+a dashboard służy miastu do liczb; „Dodaj do kursu” jest decyzją człowieka, a reguła tylko podpowiada kolejność. Podpowiedzi: treści
+w `podpowiedzi.json` (95 wpisów, przewodniki 13 stron), powitanie i propozycja przewodnika nie pokazują się automatom
+(`navigator.webdriver`), żeby testy i zrzuty działały bez zmian. Checkpoint commitujemy przy zielonym pytest (448 testów), resztę
+etapu 2c (pokrycie podpowiedziami, poprawki recenzji, materiały z lektorem) dowozimy drugim PR przed 19:00.

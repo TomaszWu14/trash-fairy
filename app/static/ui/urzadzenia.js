@@ -10,9 +10,18 @@
   const date = iso => new Date(iso).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' });
   const dt = iso => iso ? new Date(iso).toLocaleString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '–';
   const badge = d => { const [c, i] = ST[d.status] || ST.ok; return `<span class="badge ${c}">${icon(i)}${esc(d.status_etykieta)}</span>`; };
-  const battery = d => `<div class="batt-row"><span class="batt lvl-${d.bateria_poziom}" role="img" aria-label="Bateria ${d.bateria_pct}%, ${BATT[d.bateria_poziom].toLowerCase()}">
-      <i style="--p:${(d.bateria_pct / 100).toFixed(3)}"></i></span><b class="num">${d.bateria_pct}%</b>${d.bateria_poziom === 'ok' ? '' : `<span class="batt-l lvl-${d.bateria_poziom}">${BATT[d.bateria_poziom]}</span>`}</div>`;
-  const left = d => d.dni_do_wymiany === 0 ? 'Wymiana baterii teraz' : `Wymiana za <b class="num">${num(d.dni_do_wymiany)}</b> ${d.dni_do_wymiany === 1 ? 'dzień' : 'dni'}`;
+  // brak sygnału: poziom to ostatni znany odczyt, nie stan na teraz (szary + podpis + aria-label z datą)
+  // ikona baterii z 5 segmentami (nie pasek: pasek to zapełnienie kosza); wypełnione = round(p/20), min. 1 gdy p > 0
+  const battery = d => { const old = d.status === 'brak_sygnalu' && d.ostatni_odczyt?.czas, p = d.bateria_pct, lvl = d.bateria_poziom;
+    const n = p > 0 ? Math.max(1, Math.round(p / 20)) : 0, segs = [0, 1, 2, 3, 4].map(k => `<i${k < n ? ' class="on"' : ''}></i>`).join('');
+    return `<div class="batt-row lvl-${lvl}${old ? ' is-old' : ''}"><span class="batt-k" aria-hidden="true">Bateria</span>
+      <span class="batt" role="img" aria-label="Bateria ${p}%, ${BATT[lvl].toLowerCase()}${old ? `, odczyt z ${date(old)}` : ''}">${segs}</span>
+      <b class="num" aria-hidden="true">${p}%</b>${lvl === 'ok' || d.status === 'bateria_krytyczna' ? '' : `<span class="batt-l" aria-hidden="true">${BATT[lvl]}</span>`}
+      ${old ? `<small class="subtle batt-old">Stan z ostatniego sygnału, ${date(old)}</small>` : ''}</div>`; };
+  // krytyczna bateria (< 15%): wymiana teraz, data z wieku baterii to tylko „rozładuje się ok.” (tak liczy KPI w devices_api)
+  const left = d => d.bateria_poziom === 'full' ? 'Wymień przy najbliższym kursie'
+    : d.dni_do_wymiany === 0 ? 'Wymiana baterii teraz' : `Wymiana za <b class="num">${num(d.dni_do_wymiany)}</b> ${d.dni_do_wymiany === 1 ? 'dzień' : 'dni'}`;
+  const leftDate = d => d.bateria_poziom === 'full' ? `rozładuje się ok. ${date(d.wymiana_data)}` : date(d.wymiana_data);
 
   // ---------- filtry ----------
   const params = () => { const f = new FormData(form), p = new URLSearchParams(); ['typ', 'dzielnica', 'status'].forEach(k => f.get(k) && p.set(k, f.get(k))); return p; };
@@ -49,27 +58,27 @@
   // ---------- KPI ----------
   function renderKpis(k) {
     const tiles = [
-      ['signal', 'Urządzenia aktywne', `${num(k.aktywne)}<small>/ ${num(k.lacznie)}</small>`, `${num(k.wg_typu.panel || 0)} paneli · ${num(k.wg_typu.czujnik || 0)} czujników`, ''],
-      ['battery-low', 'Baterie do wymiany w 30 dni', num(k.do_wymiany_30_dni), k.do_wymiany_30_dni ? 'zaplanuj wymianę z trasą kierowcy' : 'żadna bateria nie kończy się w miesiącu', k.do_wymiany_30_dni ? 'warn' : ''],
-      ['wifi-off', 'Bez sygnału > 48 h', num(k.bez_sygnalu), k.bez_sygnalu ? 'sprawdź na miejscu: zasilanie lub antena' : 'wszystkie urządzenia się zgłaszają', k.bez_sygnalu ? 'full' : ''],
-      ['activity', 'Odczyty w ostatniej dobie', num(k.odczyty_24h), 'sygnały życia, pomiary i naciśnięcia', ''],
-      ['battery-full', 'Średnia bateria', k.srednia_bateria == null ? '–' : `${num(k.srednia_bateria)}<small>%</small>`, 'wszystkie urządzenia w filtrze', ''],
+      ['aktywne', 'signal', 'Urządzenia aktywne', `${num(k.aktywne)}<small>/ ${num(k.lacznie)}</small>`, `${num(k.wg_typu.panel || 0)} paneli · ${num(k.wg_typu.czujnik || 0)} czujników`, ''],
+      ['baterie', 'battery-low', 'Baterie do wymiany', num(k.do_wymiany_30_dni), k.do_wymiany_30_dni ? 'krytyczne i kończące się w 30 dni' : 'żadna bateria nie kończy się w miesiącu', k.do_wymiany_30_dni ? 'warn' : ''],
+      ['bez_sygnalu', 'wifi-off', 'Bez sygnału > 48 h', num(k.bez_sygnalu), k.bez_sygnalu ? 'sprawdź na miejscu: zasilanie lub antena' : 'wszystkie urządzenia się zgłaszają', k.bez_sygnalu ? 'full' : ''],
+      ['odczyty', 'activity', 'Odczyty w ostatniej dobie', num(k.odczyty_24h), 'sygnały życia, pomiary i naciśnięcia', ''],
+      ['srednia_bateria', 'battery-full', 'Średnia bateria', k.srednia_bateria == null ? '–' : `${num(k.srednia_bateria)}<small>%</small>`, 'wszystkie urządzenia w filtrze', ''],
     ];
-    document.getElementById('u-kpis').innerHTML = tiles.map(([i, h, v, sub, tone]) => `<article class="card kpi rise${tone ? ` kpi-${tone}` : ''}">
+    document.getElementById('u-kpis').innerHTML = tiles.map(([key, i, h, v, sub, tone]) => `<article class="card kpi rise${tone ? ` kpi-${tone}` : ''}" data-help="urzadzenia.kpi_${key}">
       <header class="kpi-h">${icon(i)}${h}</header><p class="kpi-v num">${v}</p><p class="kpi-sub">${sub}</p></article>`).join('');
   }
 
   // ---------- karty ----------
-  const card = d => `<button type="button" class="card card-hover u-card rise" data-id="${d.id}" data-st="${d.status}" aria-label="${esc(d.kosz.nazwa)}: ${esc(d.status_etykieta)}, bateria ${d.bateria_pct}%. Pokaż masterdane">
+  const card = d => `<button type="button" class="card card-hover u-card rise" data-id="${d.id}" data-st="${d.status}" aria-label="${esc(d.kosz.nazwa)}: ${esc(d.status_etykieta)}, bateria ${d.bateria_pct}%${d.bateria_poziom !== 'ok' ? `, ${BATT[d.bateria_poziom].toLowerCase()}` : ''}${d.status === 'brak_sygnalu' ? ' z ostatniego sygnału' : ''}. Pokaż masterdane">
       <div class="u-top"><span class="u-ico t-${d.typ}">${icon(d.ikona)}</span>
-        <div class="u-name"><b>${esc(d.kosz.nazwa)}</b><span>${d.typ === 'panel' ? 'Panel e-papier' : 'Czujnik zapełnienia'} · ${esc(d.kosz.adres || d.kosz.dzielnica || '')}</span></div></div>
+        <div class="u-name" title="${esc(d.kosz.nazwa)} · ${esc(d.kosz.adres || d.kosz.dzielnica || '')}"><b>${esc(d.kosz.nazwa)}</b><span>${d.typ === 'panel' ? 'Panel e-papier' : 'Czujnik zapełnienia'} · ${esc(d.kosz.adres || d.kosz.dzielnica || '')}</span></div></div>
       <div class="u-status">${badge(d)}</div>
       ${battery(d)}
-      <p class="u-left">${icon('calendar', 'i-sm')}<span>${left(d)} · ${date(d.wymiana_data)}</span></p>
+      <p class="u-left">${icon('calendar', 'i-sm')}<span>${left(d)} · ${leftDate(d)}</span></p>
       <div class="u-foot"><div><span class="subtle">Ostatni odczyt</span><b>${esc(d.ostatni_odczyt.opis)}</b><span class="subtle">${TF.ago(d.ostatni_odczyt.czas)}</span></div>
         <div class="u-spark" title="Odczyty dziennie w 6 pełnych dniach; razem z dzisiejszymi: ${num(d.odczyty_7d)}">${TF.spark(d.odczyty_dni.slice(0, -1), 88, 30)}<span class="subtle num">${num(d.odczyty_7d)} ${TF.plural(d.odczyty_7d, ['odczyt', 'odczyty', 'odczytów'])} / 7 dni</span></div></div>
     </button>`;
-  const OK_VISIBLE = 12;  // sprawne zwinięte: lista ma prowadzić do problemów, nie do 95 zielonych kart
+  const OK_VISIBLE = 4;  // sprawne zwinięte: lista ma prowadzić do problemów, nie do 95 zielonych kart
   let showAll = false, last = [];
   function renderList(items) {
     last = items;
@@ -79,11 +88,11 @@
       return;
     }
     const alert = items.filter(d => d.status !== 'ok'), ok = items.filter(d => d.status === 'ok');
-    const group = (title, sub, arr) => arr.length ? `<section class="u-group"><div class="section-head"><div><h2>${title} <span class="u-count num">${num(arr.length)}</span></h2><p>${sub}</p></div></div>
+    const group = (title, sub, arr, n = arr.length) => arr.length ? `<section class="u-group"><div class="section-head"><div><h2>${title} <span class="u-count num">${num(n)}</span></h2><p>${sub}</p></div></div>
       <div class="u-grid">${arr.map(card).join('')}</div></section>` : '';
     const more = ok.length - OK_VISIBLE;
     list.innerHTML = group('Wymaga uwagi', 'Najpilniejsze na górze: brak sygnału, krytyczna bateria, autotest, wymiana w 30 dni', alert)
-      + group('Sprawne', 'Od najbliższej wymiany baterii', showAll || more <= 0 ? ok : ok.slice(0, OK_VISIBLE))
+      + group('Sprawne', 'Od najbliższej wymiany baterii', showAll || more <= 0 ? ok : ok.slice(0, OK_VISIBLE), ok.length)
       + (!showAll && more > 0 ? `<button class="btn u-more" type="button" data-more>${icon('chevron-down', 'i-sm')}Pokaż pozostałe sprawne (${num(more)})</button>` : '');
   }
   list.addEventListener('click', e => {
@@ -120,7 +129,8 @@
             ['Firmware', `<span class="num">${esc(u.firmware)}</span>`], ['Zainstalowano', date(u.zainstalowano)],
             ['Żywotność baterii', `<span class="num">${num(u.zywotnosc_baterii_dni)} dni</span> <span class="subtle">(założenie demo)</span>`],
             ['Pojemność baterii', `<span class="num">${num(u.pojemnosc_baterii_mah)} mAh</span>`],
-            ['Przewidywana wymiana', `${date(u.przewidywana_wymiana)} <span class="subtle">· za ${num(d.dni_do_wymiany)} ${TF.plural(d.dni_do_wymiany, ['dzień', 'dni', 'dni'])}</span>`],
+            ['Przewidywana wymiana', d.bateria_poziom === 'full' ? `Wymień przy najbliższym kursie <span class="subtle">· rozładuje się ok. ${date(u.przewidywana_wymiana)}</span>`
+              : `${date(u.przewidywana_wymiana)} <span class="subtle">· za ${num(d.dni_do_wymiany)} ${TF.plural(d.dni_do_wymiany, ['dzień', 'dni', 'dni'])}</span>`],
             ['Interwał odczytów', `co ${num(u.interwal_odczytow_min)} min`], ['Ostatni sygnał', `${dt(u.ostatni_sygnal)} <span class="subtle">· ${TF.ago(u.ostatni_sygnal)}</span>`],
             ['Ostatni autotest', `${dt(u.ostatni_autotest)} · ${u.autotest_ok === false ? '<b class="t-bad">nieudany</b>' : 'udany'}`]])}</section>
         </div>

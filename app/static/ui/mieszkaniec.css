@@ -9,24 +9,87 @@
 .m-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--shadow-1); padding: var(--s5); }
 .m-intro h1, .m-h1 { font-size: var(--fs-2xl); }
 .m-intro p { color: var(--ink-2); font-size: var(--fs-sm); margin-top: var(--s2); }
-.m-scan { width: 100%; margin-top: var(--s5); }
-.m-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin-bottom: var(--s3); }
-.m-head h2, .m-h2 { font-size: var(--fs-xl); }
+.m-scan { width: 100%; margin-top: var(--s4); }
+.m-h2 { font-size: var(--fs-xl); }
+/* ikona w kafelku: ta sama miara na całym ekranie mieszkańca */
+.m-tile { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r-md); background: var(--brand-soft); color: var(--brand-ink); flex: none; }
+.m-tile-lg { width: 48px; height: 48px; }
+
+/* /zglos: dwa sposoby zgłoszenia przy koszu */
+.m-ways { list-style: none; padding: 0; margin: var(--s4) 0 0; display: grid; gap: var(--s3); }
+.m-ways li { display: flex; align-items: center; gap: var(--s3); }  /* informacja, nie przycisk: bez ramki */
+.m-ways li > span:last-child { display: grid; gap: 2px; min-width: 0; }
+.m-ways b { font-size: var(--fs-sm); }
+.m-ways li > span:last-child > span { font-size: var(--fs-xs); color: var(--ink-3); }
+
+/* karta-odnośnik (dzikie wysypisko): cała karta jest celem dotyku */
+.m-link { display: flex; align-items: center; gap: var(--s4); color: inherit; text-decoration: none;
+          transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease); }
+.m-link:hover { border-color: var(--brand-line); box-shadow: var(--shadow-2); }
+.m-link:focus-visible { outline: none; box-shadow: var(--ring); }
+.m-link-txt { flex: 1; min-width: 0; display: grid; gap: var(--s1); }
+.m-link-txt h2 { font-size: var(--fs-lg); }
+.m-link-txt p { font-size: var(--fs-sm); color: var(--ink-2); }
+.m-link-chev { flex: none; color: var(--ink-3); transition: transform var(--t-fast) var(--ease); }
+.m-link:hover .m-link-chev { transform: translateX(2px); color: var(--brand-ink); }
+
+/* listy (Twoje zgłoszenia, punkty): pełne teksty, zawijanie zamiast wielokropka */
 .m-list { list-style: none; padding: 0; margin: var(--s2) 0 0; display: grid; }
 .m-list:empty { display: none; }
-.m-row { display: flex; align-items: center; gap: var(--s3); padding: var(--s3) 0; border-top: 1px solid var(--line); }
-.m-row:first-child { border-top: 0; }
-.m-row a { display: flex; align-items: center; gap: var(--s3); flex: 1; color: inherit; text-decoration: none; min-width: 0; }
-.m-row a { min-height: 44px; }
-.m-row-txt { flex: 1; min-width: 0; display: grid; }
-.m-row-txt b { font-size: var(--fs-sm); } .m-row-txt span { font-size: var(--fs-xs); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.m-row-st { flex: none; }
-.m-row > a > .i { color: var(--ink-3); }
-#m-mine-empty { margin-top: var(--s2); }
+.m-list > li + li { border-top: 1px solid var(--line); }
+.m-row { display: flex; align-items: center; gap: var(--s3); min-height: 44px; padding: var(--s3) 0; color: inherit; text-decoration: none; }
+a.m-row:hover b { color: var(--brand-ink); }
+a.m-row:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-sm); }
+.m-row-txt { flex: 1; min-width: 0; display: grid; gap: var(--s1); }
+.m-row-txt b { font-size: var(--fs-sm); }
+.m-row-txt > span { font-size: var(--fs-xs); color: var(--ink-3); }
+.m-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); }
+.m-row-st:empty { display: none; }
+.m-row-chev { flex: none; color: var(--ink-3); }
+.m-row-pts { flex: none; font-size: var(--fs-sm); color: var(--fill-ok-ink); }
+.m-row-pts.off { color: var(--ink-3); }
+.m-empty { display: flex; align-items: center; gap: var(--s3); margin-top: var(--s3); padding: var(--s3); border: 1px dashed var(--line-strong); border-radius: var(--r-lg); }
+.m-empty p { font-size: var(--fs-sm); color: var(--ink-2); }
+.m-empty .m-tile { background: var(--surface-2); color: var(--ink-2); }
+
+/* Twoje punkty: suma, zasady z API, katalog nagród jako propozycja (pasek + słowa, nie sam pasek) */
+.m-pts-sum { display: flex; align-items: baseline; gap: var(--s2); margin-top: var(--s3); }
+.m-pts-sum b { font: 700 var(--fs-3xl)/1 var(--font-display); }
+.m-pts-sum span { color: var(--ink-2); font-size: var(--fs-sm); }
+.m-pts-empty { margin-top: var(--s2); font-size: var(--fs-sm); color: var(--ink-2); }
+.m-pts-badges { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s3); }
+.m-pts-badges:empty { display: none; }
+.m-sub { margin: var(--s5) 0 var(--s3); padding-top: var(--s4); border-top: 1px solid var(--line); }
+.m-sub-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.m-rules { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s3); }
+.m-rules li { display: flex; align-items: baseline; gap: var(--s3); font-size: var(--fs-sm); color: var(--ink-2); }
+.m-rule-n { flex: none; min-width: 48px; padding: 2px var(--s2); border-radius: var(--r-pill); background: var(--brand-soft); color: var(--brand-ink);
+            font-size: var(--fs-sm); text-align: center; }
+.m-rewards { display: grid; gap: var(--s2); }
+.m-reward { display: grid; gap: var(--s2); padding: var(--s3) var(--s4); border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-2); }
+.m-reward-h { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); }
+.m-reward-h b { font-size: var(--fs-sm); }
+.m-reward-h span { flex: none; font-size: var(--fs-sm); font-weight: 700; color: var(--ink-2); }
+.m-rewards progress { appearance: none; display: block; width: 100%; height: 6px; border: 0; border-radius: var(--r-pill); background: var(--line-strong); overflow: hidden; }
+.m-rewards progress::-webkit-progress-bar { background: var(--line-strong); border-radius: var(--r-pill); }
+.m-rewards progress::-webkit-progress-value { background: var(--brand); border-radius: var(--r-pill); }
+.m-rewards progress::-moz-progress-bar { background: var(--brand); border-radius: var(--r-pill); }
+.m-reward-left { display: inline-flex; align-items: center; gap: var(--s1); font-size: var(--fs-xs); color: var(--ink-3); }
+.m-rewards-all { margin-top: var(--s3); }
+.m-rewards-all .m-list { margin: 0; }
+.m-reward-p { flex: none; font-size: var(--fs-sm); color: var(--ink-2); }
+#m-pts-note { margin-top: var(--s3); }
+
+/* prywatność pod „Wyślij” (J-55) */
+.m-privacy { display: flex; align-items: flex-start; gap: var(--s2); font-size: var(--fs-xs); line-height: 1.45; color: var(--ink-3); }
+.m-privacy .i { flex: none; margin-top: 1px; color: var(--fill-ok-ink); }
 
 /* skaner */
 .m-scan-b { display: grid; gap: var(--s3); justify-items: center; text-align: center; }
 .m-scan-b p { color: var(--ink-2); font-size: var(--fs-sm); }
+/* symulowany skan (demo) oddzielony od instrukcji prawdziwego skanu */
+.m-sim { display: grid; justify-items: center; gap: var(--s3); width: 100%; margin-top: var(--s1); padding-top: var(--s4); border-top: 1px solid var(--line); }
+.m-sim .btn-primary { width: 100%; }
 .m-viewfinder { position: relative; display: grid; place-items: center; width: 180px; height: 180px; border-radius: var(--r-lg);
                 background: var(--ink); color: var(--bg); overflow: hidden; }  /* wizjer aparatu: odwrócone kolory motywu */
 .m-viewfinder span { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--brand) 55%, transparent) 50%, transparent 60%);
@@ -72,9 +135,11 @@
 .m-photo:hover { border-color: var(--brand); color: var(--ink); }
 .m-photo:has(input:focus-visible) { box-shadow: var(--ring); }
 .m-more { border: 1px solid var(--line); border-radius: var(--r-md); }
-.m-more summary { display: flex; align-items: center; gap: var(--s2); min-height: 48px; padding: 0 var(--s4); cursor: pointer; list-style: none;
+.m-more summary { display: flex; align-items: center; gap: var(--s3); min-height: 56px; padding: var(--s2) var(--s4); cursor: pointer; list-style: none;
                   font-size: var(--fs-sm); font-weight: 650; color: var(--ink-2); border-radius: var(--r-md); }
 .m-more summary::-webkit-details-marker { display: none; }
+.m-more-t { display: grid; min-width: 0; line-height: 1.3; }
+.m-more-t small { font-size: var(--fs-xs); font-weight: 500; color: var(--ink-3); }
 .m-more summary:focus-visible { outline: none; box-shadow: var(--ring); }
 .m-more-chev { margin-left: auto; transition: transform var(--t) var(--ease); }
 .m-more[open] .m-more-chev { transform: rotate(180deg); }
@@ -86,10 +151,17 @@
 /* sukces */
 .m-success { display: grid; justify-items: center; text-align: center; gap: var(--s2); padding: var(--s8) var(--s5); }
 .m-success img { width: 160px; height: auto; animation: pop 420ms var(--ease) both; }
-.m-success h1 { font-size: var(--fs-2xl); }
-.m-success > p:first-of-type { color: var(--ink-3); font-size: var(--fs-sm); margin-top: var(--s2); }
-.m-nr { font-size: var(--fs-3xl); font-weight: 700; letter-spacing: -.02em; color: var(--brand); }
-.m-success .btn-xl { width: 100%; margin-top: var(--s4); }
+/* „Dziękujemy!” jest głównym komunikatem; numer w zdaniu pod nim, potem co dalej i dwa przyciski (status, powrót) */
+.m-success h1 { font-size: var(--fs-3xl); line-height: 1.05; letter-spacing: -.02em; }
+.m-success h1:focus { outline: none; }
+.m-success h1:focus-visible { box-shadow: var(--ring); border-radius: var(--r-sm); }
+.m-success-nr { font-size: var(--fs-md); color: var(--ink-2); }
+.m-success-nr b { color: var(--brand-ink); font-weight: 700; white-space: nowrap; }
+.m-success-txt { max-width: 36ch; font-size: var(--fs-sm); color: var(--ink-2); }
+.m-success .m-pts-chip { margin-top: var(--s1); }
+.m-success-act { display: grid; gap: var(--s3); width: 100%; margin-top: var(--s4); }
+.m-success-act .btn-xl { width: 100%; }
+.m-success-home { margin-top: var(--s2); min-height: 44px; font-size: var(--fs-sm); color: var(--ink-2); }
 @keyframes pop { from { opacity: 0; transform: scale(.85); } 70% { transform: scale(1.03); } }
 
 /* oś czasu statusu */
@@ -108,5 +180,25 @@
 .timeline b { font-size: var(--fs-md); } .timeline li > div > span { font-size: var(--fs-sm); color: var(--ink-3); }
 .timeline li:not(.done):not(.now) b { color: var(--ink-3); }
 .m-check .btn { flex: none; }
+.timeline .m-proof { display: flex; align-items: center; gap: 6px; margin-top: var(--s2); font-size: var(--fs-sm); font-weight: 600; color: var(--fill-ok-ink); }
+.timeline .m-proof.off { font-weight: 500; color: var(--ink-3); }
+.m-proof-img { display: block; width: 96px; margin-top: var(--s2); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--line); }
+.m-proof-img img { display: block; width: 100%; height: 72px; object-fit: cover; }
+
+/* status zgłoszenia: H1 = status z dużym kształtem stanu, numer w nadtytule (J-32) */
+.m-st-head { display: flex; align-items: center; gap: var(--s4); margin-bottom: var(--s4); }
+.m-st-ico { display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--r-lg); flex: none; background: var(--surface-2); overflow: hidden; }
+.m-st-ico.report { background: var(--st-report-soft); }
+.m-st-ico.progress { background: var(--st-progress-soft); color: var(--st-progress); }
+.m-st-ico.ok { background: var(--fill-ok-soft); color: var(--fill-ok-ink); }
+.m-st-ico.brand { background: var(--brand-soft); color: var(--brand-ink); }  /* dzikie wysypisko: potwierdzone, w toku */
+.m-st-ico.neutral { color: var(--ink-2); }
+.m-st-txt { display: grid; gap: 2px; min-width: 0; }
+.m-st-lead { font-size: var(--fs-sm); color: var(--ink-2); }
+.m-bin-now { display: grid; justify-items: end; flex: none; }
+.m-bin-now > span { font-size: var(--fs-xs); color: var(--ink-3); }
+.m-pts-chip { display: flex; width: fit-content; align-items: center; gap: 6px; margin-top: var(--s4); padding: 6px var(--s3); border-radius: var(--r-pill);
+              background: var(--brand-soft); color: var(--brand-ink); font-size: var(--fs-sm); font-weight: 700; }
+#st-note { margin-top: var(--s3); }
 .m-ai { padding: var(--s3) var(--s4); border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--line); }
 .m-ai > b { display: block; font-size: var(--fs-sm); }

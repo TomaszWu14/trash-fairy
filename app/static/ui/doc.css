@@ -1,34 +1,103 @@
-/* Strony tekstowe: metodologia, dostępność, prywatność, otwarte API. */
-.doc { max-width: 880px; margin-inline: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl);
-       box-shadow: var(--shadow-1); padding: var(--s10) var(--s10) var(--s12); }
-.doc h1 { font-size: var(--fs-2xl); font-weight: 800; margin-bottom: var(--s2); }
-.doc h2 { font-size: var(--fs-xl); font-weight: 750; margin: var(--s10) 0 var(--s3); }
-.doc h3 { font-size: var(--fs-lg); font-weight: 700; margin: var(--s6) 0 var(--s2); }
+/* Strony tekstowe: metodologia, dostępność, prywatność, otwarte API. Kolory wyłącznie z tokenów (oba motywy).
+   Układ: tekst w kolumnie do czytania (--measure), tabele, kafelki i karty endpointów na całą szerokość karty. */
+.doc { --measure: 46rem; max-width: 1040px; margin-inline: auto; background: var(--surface); border: 1px solid var(--line);
+       border-radius: var(--r-xl); box-shadow: var(--shadow-1); padding: var(--s10) clamp(var(--s8), 4vw, var(--s12)) var(--s12); }
+.doc:not(:has(table, .c-doc-ep, .kpis)) { max-width: calc(var(--measure) + 2 * var(--s12)); }  /* sam tekst: karta na szerokość kolumny */
+.doc :is(h1, h2, h3, p, ul, ol) { max-width: var(--measure); }
+.doc > * + * { margin-top: var(--s4); }
+.doc h1 { font-size: var(--fs-2xl); font-weight: 700; line-height: var(--lh-tight); letter-spacing: -.01em; }
+.doc h2 { font-size: var(--fs-xl); font-weight: 700; line-height: 1.3; margin: var(--s12) 0 0; scroll-margin-top: var(--s16); }
+.doc h3 { font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; margin: var(--s8) 0 0; }
+.doc :is(h1, h2, h3) + * { margin-top: var(--s3); }
 .doc p, .doc li { color: var(--ink-2); line-height: 1.65; }
-.doc p + p, .doc p + ul, .doc ul + p, .doc table + p, .doc table + table { margin-top: var(--s3); }
-.doc ul, .doc ol { padding-left: var(--s5); display: grid; gap: var(--s1); }
+.doc .lead { font-size: var(--fs-lg); line-height: 1.55; }
+.doc ul, .doc ol { padding-left: var(--s5); display: grid; gap: var(--s2); }
 .doc b, .doc strong { color: var(--ink); }
-.doc code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .88em; background: var(--surface-2);
-            border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
-.doc table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-sm); margin-top: var(--s3);
-             border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
-.doc th, .doc td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.doc tr:last-child td { border-bottom: 0; }
-.doc th { background: var(--surface-2); color: var(--ink); font-weight: 700; }
-.doc td.num, .doc th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.doc .note, .doc .c-doc-note { background: var(--brand-soft); color: var(--brand-ink); border-radius: var(--r-md); padding: var(--s4); font-size: var(--fs-sm); margin-top: var(--s4); }
-.doc .note b, .doc .c-doc-note b { color: inherit; }
-.doc .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--s3); }
-.doc .kpi { border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s4); background: var(--surface-2); }
-.doc .kpi b { display: block; font: 700 var(--fs-xl)/1.3 var(--font-display); letter-spacing: -.01em; }
-.doc .kpi small { color: var(--ink-3); font-size: var(--fs-xs); }
 .doc .tf-muted, .doc .c-doc-small { color: var(--ink-3); }
-.doc .c-doc-ep { border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s5); margin-top: var(--s4); }
-.doc .c-doc-ep h2 { font-size: var(--fs-md); margin: 0 0 var(--s2); display: flex; align-items: center; gap: var(--s2); }
-.doc .c-doc-get { background: var(--fill-ok-soft); color: var(--fill-ok-ink); border-radius: 6px; padding: 2px 8px; font-size: var(--fs-xs); font-weight: 800; }
-.doc pre { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s3) var(--s4); overflow-x: auto; font-size: 13px; margin-top: var(--s3); }
-.doc pre code { background: none; border: 0; padding: 0; color: inherit; }
-@media (max-width: 720px) {
-  .doc { padding: var(--s6) var(--s5) var(--s8); border-radius: var(--r-lg); }
-  .doc table { display: block; overflow-x: auto; }
+.doc code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .86em; background: var(--surface-2);
+            border: 1px solid var(--line); border-radius: var(--r-sm); padding: 1px 6px; overflow-wrap: anywhere; }
+
+/* spis treści jako pigułki */
+.doc .toc { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); max-width: none; }
+.doc .toc > span { color: var(--ink-3); font-size: var(--fs-sm); margin-right: var(--s1); }
+.doc .toc a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 var(--s3); border: 1px solid var(--line);
+              border-radius: var(--r-pill); color: var(--ink-2); font-size: var(--fs-sm); text-decoration: none;
+              transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease); }
+.doc .toc a:hover { border-color: var(--brand-line); color: var(--brand-ink); }
+.doc .toc a small { margin-left: var(--s2); color: var(--ink-3); font: 600 var(--fs-xs)/1 var(--font-display); font-variant-numeric: tabular-nums; }
+
+/* tabele: nagłówek na tle, linie między wierszami, liczby do prawej i równej szerokości */
+.doc table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-sm); background: var(--surface);
+             border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.doc table + table { margin-top: var(--s5); }
+.doc th, .doc td { text-align: left; padding: var(--s3) var(--s5); border-bottom: 1px solid var(--line); vertical-align: top; line-height: var(--lh); }
+.doc th { background: var(--surface-2); color: var(--ink); font-weight: 700; vertical-align: bottom; border-bottom-color: var(--line-strong); }
+.doc tbody:last-child tr:last-child td { border-bottom: 0; }
+.doc tbody tr:hover td { background: var(--hover); }
+/* grupa wierszy (np. flota w porównaniu): lżejszy podtytuł zamiast kolumny z pustymi komórkami */
+.doc th[scope="rowgroup"] { background: var(--surface-2); color: var(--ink-2); border-bottom-color: var(--line);
+                            font: 700 var(--fs-xs)/1.4 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+.doc th.num { text-align: right; }
+@media (min-width: 761px) { .doc th.num { width: 10rem; } }  /* liczby blisko siebie zamiast na dwóch końcach karty */
+.doc td.num { text-align: right; font-family: var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.doc td.wrap { white-space: normal; }
+
+/* objaśnienia i założenia: spokojna ramka z akcentem po lewej */
+.doc .note, .doc .c-doc-note { max-width: none; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line);
+  border-left: 3px solid var(--brand); border-radius: var(--r-md); padding: var(--s4) var(--s5); font-size: var(--fs-sm); line-height: 1.6; }
+.doc .note :is(b, strong), .doc .c-doc-note :is(b, strong) { color: var(--ink); }
+
+/* kafelki wyników */
+.doc .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s4); }
+.doc .kpi { display: grid; gap: var(--s2); align-content: start; border: 1px solid var(--line); border-radius: var(--r-lg);
+            padding: var(--s5); background: var(--surface-2); }
+.doc .kpi b { font: 700 var(--fs-2xl)/1.15 var(--font-display); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.doc .kpi small { color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.45; }
+
+/* sekcje zwinięte (reguły, dla deweloperów) */
+.doc details { border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-2); }
+.doc details + details { margin-top: var(--s3); }
+.doc summary { display: flex; align-items: center; gap: var(--s3); min-height: 56px; padding: var(--s3) var(--s5);
+               cursor: pointer; list-style: none; border-radius: inherit; font: 700 var(--fs-md)/1.3 var(--font-display); color: var(--ink); }
+.doc summary::-webkit-details-marker { display: none; }
+.doc summary:hover { background: var(--hover); }
+.doc summary > span { display: grid; gap: 2px; }
+.doc summary small { font: 400 var(--fs-sm)/1.4 var(--font); color: var(--ink-3); }
+.doc summary .i { flex: none; width: 20px; height: 20px; margin-left: auto; color: var(--ink-3); transition: transform var(--t) var(--ease); }
+.doc details[open] summary .i { transform: rotate(180deg); }
+.doc details > :not(summary) { margin: 0 var(--s5) var(--s5); }
+.doc details > table { width: calc(100% - 2 * var(--s5)); }
+
+/* otwarte API: grupy i karty endpointów */
+.doc .c-doc-ep { border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--s5) var(--s6); background: var(--surface); }
+.doc .c-doc-ep + .c-doc-ep { margin-top: var(--s3); }
+.doc .c-doc-ep > * + * { margin-top: var(--s3); }
+.doc .c-doc-ep h3 { margin: 0; max-width: none; font-size: var(--fs-md); display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); }
+.doc .c-doc-ep h3 code { font-size: var(--fs-sm); color: var(--ink); min-width: 0; }
+.doc :is(.c-doc-get, .c-doc-post) { flex: none; border-radius: var(--r-sm); padding: 2px var(--s2); font: 700 var(--fs-xs)/1.5 var(--font-display); letter-spacing: .04em; }
+.doc .c-doc-get { background: var(--fill-ok-soft); color: var(--fill-ok-ink); }
+.doc .c-doc-post { background: var(--brand-soft); color: var(--brand-ink); }
+.doc pre { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s3) var(--s4);
+           font-size: var(--fs-xs); line-height: 1.6; overflow-x: auto; }  /* przewijany w bok: dlatego <pre tabindex="0"> */
+.doc pre code { background: none; border: 0; padding: 0; color: inherit; font-size: inherit; }
+
+/* telefon i wąskie okna (do 760 px, bo 721–760 px dawało poziomy scroll): bez ramki karty, szersze tabele,
+   tabele .stack jako karty (nagłówek ukryty wizualnie, etykieta z data-label przy każdej wartości) */
+@media (max-width: 760px) {
+  .doc { background: none; border: 0; box-shadow: none; border-radius: 0; padding: 0 0 var(--s8); }
+  .doc h2 { margin-top: var(--s10); }
+  .doc .lead { font-size: var(--fs-md); }
+  .doc th, .doc td { padding: var(--s2) var(--s3); }
+  .doc td.num { white-space: normal; }
+  .doc .kpi b { font-size: var(--fs-xl); }
+  .doc .c-doc-ep { padding: var(--s4); }
+  .doc table.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .doc table.stack, .doc table.stack tbody, .doc table.stack tr { display: block; }
+  .doc table.stack tr { padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }
+  .doc table.stack tr:last-child { border-bottom: 0; }
+  .doc table.stack td { display: block; border: 0; padding: var(--s1) 0; background: none; }
+  .doc table.stack td:first-child { font-weight: 700; color: var(--ink); padding-bottom: var(--s2); }
+  .doc table.stack td[data-label]::before { content: attr(data-label); display: block; font-size: var(--fs-xs); color: var(--ink-3); font-weight: 600; }
+  .doc table.stack td.num { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s4); text-align: right; }
+  .doc table.stack td.num::before { display: inline; text-align: left; font: 400 var(--fs-sm)/1.4 var(--font); color: var(--ink-2); }
 }

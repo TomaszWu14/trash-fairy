@@ -12,19 +12,27 @@
   <ul>
     <li>Mapy (OpenStreetMap) to obrazy bez opisu tekstowego. U kierowcy te same kosze są na liście przystanków obok mapy, z nazwą, adresem i zapełnieniem;
         dane z mapy w dashboardzie są też w eksporcie CSV i w otwartym API.</li>
-    <li>Wykresy w dashboardzie są obrazami; dokładne wartości są w tooltipach, w tabelach pod przyciskiem „Szczegóły” (nie każdy wykres go ma)
-        i w eksporcie CSV odbiorów i zgłoszeń.</li>
+    <li>Zgłoszenie dzikiego wysypiska wymaga wskazania miejsca: pinezką na mapie albo przyciskiem „Użyj mojego położenia” (GPS telefonu).</li>
+    <li>Wykresy w dashboardzie są obrazami; dokładne wartości są w podpowiedziach po najechaniu, w tabelach pod przyciskiem „Szczegóły”
+        i w eksporcie CSV, poza dwoma wykresami zgłoszeń, których dane są tylko w eksporcie CSV.</li>
     <li>Skan kodu QR wymaga aparatu. Bez aparatu zgłosisz problem przyciskami „Przepełniony” albo „Inny problem” na panelu kosza.</li>
   </ul>
   <h2>Co działa</h2>
   <ul>
-    <li>Zapełnienie zawsze jako kolor, ikona i słowo („W porządku”, „Zapełnia się”, „Pełny”), nigdy sam kolor.</li>
-    <li>Kontrast tekstu co najmniej 4,5:1; cele dotykowe kierowcy od 56 px; obsługa klawiaturą z widocznym fokusem.</li>
+    <li>Stan kosza zawsze jako kolor, kształt ze znakiem i słowo („W porządku”, „Zapełnia się”, „Pełny”), nigdy sam kolor.</li>
+    <li>Panel kosza: duże przyciski „Przepełniony” i „Inny problem” z ikoną i podpisem; zmiana stanu jest ogłaszana czytnikom ekranu.</li>
+    <li>Dwa motywy: ciemny (domyślny) i jasny. Przełącznik jest w nagłówku, a wybór zostaje w przeglądarce. Kolory obu motywów
+        dobraliśmy pod kontrast tekstu co najmniej 4,5:1.</li>
+    <li>Podpowiedzi: ikonka „i” przy elementach ekranu otwiera krótki opis, także z klawiatury; klawisz Esc ją zamyka.
+        Podpowiedzi można wyłączyć przełącznikiem w nagłówku.</li>
+    <li>Obsługa klawiaturą z widocznym fokusem i odnośnikiem „Przejdź do treści”; cele dotykowe kierowcy od 56 px.</li>
     <li>Komunikaty o zmianach (<code>aria-live</code>) i ograniczenie animacji przy ustawieniu „prefers-reduced-motion”.</li>
   </ul>
   <h2>Przygotowanie deklaracji</h2>
-  <p>Deklarację sporządzono na podstawie samooceny: Lighthouse i przeglądu zrzutów z Playwright w rozdzielczościach 1920×1080, 1366×768, 1280×800 i 390×844
-     (<code>audit/</code> w repozytorium).</p>
+  <p>Deklarację sporządzono na podstawie samooceny. Sonda automatyczna z 4.10.2026 (axe WCAG 2.1 A i AA, Playwright) objęła 16 ekranów
+     w widokach 1366×768, 390×844 i 1280×800: 0 błędów JavaScript, brak przewijania w bok także przy powiększeniu 200% i jedno naruszenie axe
+     (przewijany przykład kodu na stronie API bez dostępu z klawiatury), które poprawiliśmy. Sondę wykonano przed wprowadzeniem obecnego wyglądu z dwoma motywami;
+     oba motywy sprawdzamy na zrzutach ekranu (<code>audit/</code> w repozytorium).</p>
   <h2>Informacje zwrotne</h2>
   <p>W pilotażu kontakt zapewni MPO Kraków. Każdy ma prawo zażądać zapewnienia dostępności aplikacji lub jej elementu albo dostępu alternatywnego.
      Odpowiedź w ciągu 7 dni; w razie odmowy przysługuje skarga, a następnie wniosek do Rzecznika Praw Obywatelskich.</p>

@@ -49,8 +49,9 @@ SCHEMA = {
         "damage": {"type": "boolean"},
         "confidence": {"type": "number", "minimum": 0, "maximum": 1},
         "note": {"type": "string", "maxLength": 500},
+        "people_or_plates": {"type": "boolean"},
     },
-    "required": ["fill_level", "overflow_outside", "misuse", "damage", "confidence", "note"],
+    "required": ["fill_level", "overflow_outside", "misuse", "damage", "confidence", "note"],  # bez people_or_plates = niepubliczne
     "additionalProperties": False,
 }
 
@@ -60,6 +61,7 @@ SYSTEM = (
     "rodzaj niewłaściwych odpadów (worki z domowymi śmieciami, ubrania, gabaryty, gruz) i widoczne uszkodzenia. "
     "Nie opisuj osób, twarzy, tablic rejestracyjnych ani niczego, co pozwala kogoś zidentyfikować — nawet jeśli są na zdjęciu. "
     "Nie oceniaj ludzi ani ich zachowania. Pole note: jedno lub dwa krótkie zdania po polsku. "
+    "people_or_plates = true, jeśli na zdjęciu da się rozpoznać osobę (twarz, sylwetkę) albo tablicę rejestracyjną. "
     "Jeśli zdjęcie nie przedstawia kosza ani altany, ustaw confidence poniżej 0.3 i napisz to w note."
 )
 
@@ -212,6 +214,7 @@ def analyze(analysis_id):
         pa.fill_level, pa.overflow_outside = result["fill_level"], result["overflow_outside"]
         pa.misuse = [m for m in result["misuse"] if m != "none"]
         pa.damage, pa.confidence, pa.note = result["damage"], float(result["confidence"]), result["note"][:500]
+        pa.people = result.get("people_or_plates")  # brak pola = nie wiemy, więc zdjęcie nie jest publiczne
     db.session.commit()
     return pa
 

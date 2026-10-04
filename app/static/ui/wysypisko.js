@@ -1,5 +1,5 @@
-// Dzikie wysypisko: miejsce (GPS, dotknięcie mapy, środek mapy, demo) → rodzaj → liczba → zdjęcie → Wyślij; status zgłoszenia;
-// na /zglos karta „Twoje punkty”. Mapa pokazuje tylko pinezkę zgłaszającego: bez koszy i bez cudzych zgłoszeń.
+// Dzikie wysypisko: miejsce (GPS, dotknięcie mapy, środek mapy, demo) → rodzaj → liczba → zdjęcie → Wyślij; status zgłoszenia
+// („Twoje punkty” na /zglos rysuje mieszkaniec.js). Mapa pokazuje tylko pinezkę zgłaszającego: bez koszy i bez cudzych zgłoszeń.
 (() => {
   const { api, esc, icon, stateIcon } = window.TF;
   const fmt = v => v.toFixed(5).replace('.', ',');
@@ -7,11 +7,17 @@
   // status: klasa plakietki + ikona; etykieta zawsze tekstem (kolor nie jest jedynym nośnikiem)
   const ST = { uprzatniete: ['ok', stateIcon('ok')], zweryfikowane: ['ok', icon('shield-check')], potwierdzone: ['brand', icon('users')],
                w_toku: ['brand', icon('loader-circle')], do_weryfikacji: ['neutral', icon('circle-help')] };
+  const BIG = { uprzatniete: stateIcon('ok', 'i-xl'), zweryfikowane: icon('shield-check', 'i-xl'), potwierdzone: icon('users', 'i-xl'),
+                w_toku: icon('loader-circle', 'i-xl'), do_weryfikacji: icon('circle-help', 'i-xl') };  // ikona 56 px przy H1 statusu
   const badge = d => { const [cls, ico] = ST[d.status] || ST.do_weryfikacji; return `<span class="badge ${cls}">${ico}${esc(d.etykieta)}</span>`; };
-  const clientId = () => {  // ten sam identyfikator telefonu co zgłoszenia koszy (mieszkaniec.js): limit po telefonie, nie po IP sali
-    try { let id = localStorage.getItem('tf-klient'); if (!id) { id = crypto.randomUUID(); localStorage.setItem('tf-klient', id); } return id; }
-    catch (e) { return ''; }
+  // ten sam identyfikator telefonu co zgłoszenia koszy (mieszkaniec.js): limit po telefonie, nie po IP sali. Ekipa MPO ma osobny
+  // (tf-ekipa): w demo to ta sama przeglądarka, a uprzątnięcie z telefonu zgłaszającego nie daje punktów (samopotwierdzenie)
+  const clientId = (crew = false) => {
+    const k = crew ? 'tf-ekipa' : 'tf-klient';
+    try { let id = localStorage.getItem(k); if (!id) { id = crypto.randomUUID(); localStorage.setItem(k, id); } return id; }
+    catch (e) { return crew ? 'ekipa-demo' : ''; }
   };
+  const sc = window.TF.scenario(), inScenario = sc.on && sc.v === 'C';
 
   // ---------- formularz ----------
   const form = document.getElementById('wd-form');
@@ -41,6 +47,9 @@
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       { maxZoom: 19, className: 'tiles-soft', attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
     const pinIcon = L.divIcon({ className: 'wd-pin', html: icon('map-pin'), iconSize: [36, 36], iconAnchor: [18, 34] });
+    // celownik środka mapy znika, gdy pinezka stoi na środku (inaczej dwa znaczniki jeden pod drugim)
+    const centered = () => map.getContainer().classList.toggle('has-pin',
+      !!pin && map.latLngToContainerPoint(pin.getLatLng()).distanceTo(map.getSize().divideBy(2)) < 24);
     const setPin = (lat, lon, how, zoom) => {
       pos = { lat, lon };
       if (!pin) {
@@ -48,10 +57,12 @@
         pin.on('dragend', () => { const ll = pin.getLatLng(); setPin(ll.lat, ll.lng, 'pinezka przesunięta na mapie'); });
       } else pin.setLatLng([lat, lon]);
       if (zoom) map.setView([lat, lon], zoom);
+      centered();
       where.innerHTML = `Wybrane miejsce: <b class="num">${fmt(lat)}, ${fmt(lon)}</b> · ${esc(how)}${inKrakow(pos) ? '' : '. To miejsce jest poza Krakowem.'}`;
       sync();
     };
     map.on('click', e => setPin(e.latlng.lat, e.latlng.lng, 'pinezka na mapie'));
+    map.on('move', centered);
     document.getElementById('wd-center').addEventListener('click', () => { const c = map.getCenter(); setPin(c.lat, c.lng, 'środek mapy'); });
     const demo = document.getElementById('wd-demo');
     demo.addEventListener('click', () => setPin(+demo.dataset.lat, +demo.dataset.lon, `${demo.dataset.label} (przykład demo)`, 17));
@@ -82,6 +93,29 @@
     });
     sync();
 
+    // scenariusz demo C: formularz wypełniony przykładem (miejsce z losowania, bio + tworzywa, ok. 20 worków) i przykładowe zdjęcie na życzenie
+    if (inScenario && !crew) {
+      const m = sc.miejsce;
+      if (m) setPin(m.lat, m.lon, `${m.nazwa} (scenariusz demo)`, 17);
+      ['bio', 'tworzywa'].forEach(v => { const c = form.querySelector(`input[name=rodzaj][value="${v}"]`); if (c) c.checked = true; });
+      qty.value = 20;
+      const more = form.querySelector('.m-more'), photo = form.querySelector('.m-photo');
+      if (more && photo) {
+        more.open = true;
+        photo.insertAdjacentHTML('afterend', `<button class="btn btn-sm wd-demo-photo" type="button">${icon('camera')}Dołącz przykładowe zdjęcie (demo)</button>`);
+        const b = more.querySelector('.wd-demo-photo');
+        b.addEventListener('click', async () => {
+          try {  // rysunek worków z repo (app/static/ui/demo), opisany jako przykład; trafia do formularza jak zdjęcie z aparatu
+            const blob = await (await fetch(window.TF.icons.replace('icons.svg', 'demo/wysypisko-przyklad.jpg'))).blob();
+            const dt = new DataTransfer(); dt.items.add(new File([blob], 'przyklad-demo-wysypisko.jpg', { type: 'image/jpeg' }));
+            form.zdjecie.files = dt.files; form.zdjecie.dispatchEvent(new Event('change'));
+            b.innerHTML = `${icon('check')}Dołączono przykładowe zdjęcie`; b.setAttribute('aria-disabled', 'true');
+          } catch (x) { window.TF.toast('Nie udało się dołączyć przykładowego zdjęcia.', 'err'); }
+        });
+      }
+      sync();
+    }
+
     form.addEventListener('submit', async e => {
       e.preventDefault();
       if (reason() || send.getAttribute('aria-disabled') === 'true') return;  // Enter w polu: bez wysyłki, powód widać obok
@@ -107,11 +141,12 @@
         document.getElementById('wd-nr').textContent = d.numer;
         document.getElementById('wd-ok-badge').innerHTML = badge(d);
         document.getElementById('wd-ok-txt').textContent = [
-          d.dolaczone ? 'Ktoś już zgłosił to miejsce. Twoje zgłoszenie dołączyło do niego jako potwierdzenie.' : '',
-          crew ? 'Wysypisko trafia do dyspozytora MPO.' : 'Punkty dostaniesz po weryfikacji (wymagane zdjęcie).',
-          !crew && !d.zdjecie ? 'To zgłoszenie jest bez zdjęcia, więc nie da punktów.' : ''].filter(Boolean).join(' ');
+          d.dolaczone ? 'Ktoś już zgłosił to miejsce, Twoje zgłoszenie je potwierdza.' : '',
+          crew ? 'Wysypisko trafia do dyspozytora MPO.' : d.zdjecie ? 'Punkty dostaniesz po weryfikacji zdjęcia.'
+            : 'Ekipa MPO sprawdzi miejsce. Bez zdjęcia zgłoszenie nie daje punktów.'].filter(Boolean).join(' ');
         document.getElementById('wd-link').href = `/wysypisko/${d.numer}${crew ? '?ekipa=1' : ''}`;
         ok.hidden = false; ok.querySelector('h1').focus?.();
+        if (inScenario && !crew) { window.TF.setScenario({ ...window.TF.scenario(), wd: d.numer }); window.TF.scenarioNudge?.(); }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (x) {
         err.innerHTML = `${icon('circle-alert')}<span>${esc(x.message)}</span>`; err.hidden = false;
@@ -124,8 +159,13 @@
   if (st) {
     const clear = document.getElementById('wd-clear');
     const fact = (t, v) => v ? `<dt>${t}</dt><dd>${v}</dd>` : '';
+    const title = document.getElementById('wd-st-h'), ico = document.getElementById('wd-st-ico');
     const render = w => {
-      document.getElementById('wd-st-badge').innerHTML = badge(w);
+      if (title.dataset.status !== w.status) {  // podmiana tylko przy zmianie: czytnik ogłasza nowy status, nie każde odświeżenie
+        const [cls] = ST[w.status] || ST.do_weryfikacji;
+        ico.className = `m-st-ico ${cls}`; ico.innerHTML = BIG[w.status] || BIG.do_weryfikacji;
+        title.textContent = w.etykieta; title.dataset.status = w.status;
+      }
       document.getElementById('wd-st-why').textContent = w.uzasadnienie;
       const s = w.miejsce;
       document.getElementById('wd-st-facts').innerHTML = [
@@ -133,7 +173,7 @@
         fact('Ile', w.ilosc ? `ok. ${w.ilosc} worków lub sztuk` : 'nie wiadomo'),
         fact('Miejsce', `<span class="num">${fmt(w.lat)}, ${fmt(w.lon)}</span>`),
         fact('Zgłoszono', esc(when(w.zgloszono))),
-        fact('Zgłoszenia', w.zgloszen > 1 ? `${w.zgloszen}, z różnych telefonów: ${w.potwierdzenia}` : ''),
+        fact('Zgłoszenia', w.zgloszen > 1 ? `${w.zgloszen}, niezależnych (inne telefony i konta): ${w.potwierdzenia}` : ''),
         fact('Uprzątnięto', esc(when(w.uprzatnieto))),
         fact('To miejsce', s?.poziom ? `${esc(s.etykieta)}. ${esc(s.powod)}` : ''),
         fact('Komentarz', esc(w.komentarz || '')),
@@ -159,25 +199,14 @@
       }
     };
     clear?.addEventListener('click', async () => {
-      try { const d = await api(`/api/wysypiska/${encodeURIComponent(st.dataset.nr)}/uprzatnieto`, { method: 'POST', body: { klient: clientId() } }); window.TF.toast(d.komunikat); }
+      try {
+        const d = await api(`/api/wysypiska/${encodeURIComponent(st.dataset.nr)}/uprzatnieto`, { method: 'POST', body: { klient: clientId(st.dataset.ekipa === '1') } });
+        window.TF.toast(d.komunikat);
+        if (inScenario) window.TF.scenarioNudge?.();
+      }
       catch (e) { window.TF.toast(e.message, 'err'); }
       load();
     });
     load(); timer = setInterval(() => { if (!document.hidden) load(); }, 5000);
-  }
-
-  // ---------- /zglos: „Twoje punkty” ----------
-  const pts = document.getElementById('wd-points');
-  if (pts) {
-    api('/api/mieszkaniec/punkty').then(p => {
-      document.getElementById('wd-pts-sum').innerHTML = `<b class="num">${p.punkty}</b><span>${window.TF.plural(p.punkty, ['punkt', 'punkty', 'punktów'])}</span>`;
-      document.getElementById('wd-pts-badges').innerHTML = p.odznaki.map(b => `<span class="badge brand" title="${esc(b.opis)}">${icon('sparkles')}${esc(b.nazwa)}</span>`).join('');
-      document.getElementById('wd-pts-list').innerHTML = p.ostatnie.map(x => `<li class="m-row"><span class="m-row-txt"><b>${esc(x.powod)}</b>
-        <span>${x.numer ? `${esc(x.numer)} · ` : ''}${esc(when(x.o))}</span></span><span class="wd-row-pts num">${x.punkty ? `+${x.punkty} pkt` : '0 pkt'}</span></li>`).join('');
-      document.getElementById('wd-pts-empty').hidden = p.ostatnie.length > 0;
-      document.getElementById('wd-pts-rewards').innerHTML = p.nagrody.map(n => `<li><b>${esc(n.nazwa)}</b>
-        <span class="num">Próg ${n.prog} pkt · ${n.brakuje ? `brakuje ${n.brakuje} pkt` : 'próg osiągnięty'}</span></li>`).join('');
-      document.getElementById('wd-pts-note').textContent = p.uwaga;
-    }).catch(() => { document.getElementById('wd-pts-sum').textContent = 'Nie udało się wczytać punktów. Spróbuj za chwilę.'; });
   }
 })();

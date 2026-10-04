@@ -20,7 +20,7 @@ OUT = ROOT / "audit" / "jury" / RND
 VP = {"laptop": (1366, 768), "telefon": (390, 844), "kiosk": (1280, 800)}
 PAGES = {
     "przeglad": "/", "panel-18": "/panel/18", "zglos-wybor": "/zglos", "zglos-18": "/kosz/18/zglos",
-    "kierowca": "/kierowca", "kierowca-kosz-18": "/kierowca/kosz/18", "dashboard": "/dashboard",
+    "kierowca": "/kierowca", "kierowca-kosz-18": "/kierowca/kosz/18", "dyspozytor": "/dyspozytor", "dashboard": "/dashboard",
     "projekt": "/dashboard/projekty/odbiory-na-zadanie-stare-miasto", "urzadzenia": "/dashboard/urzadzenia",
     "metodologia": "/metodologia", "api-docs": "/api/docs", "dostepnosc": "/dostepnosc", "prywatnosc": "/prywatnosc",
     "404": "/nie-ma-takiej-strony",
@@ -178,7 +178,7 @@ def flows(b, vp):
         r = out[-1]
         print(f"{vp:<8} {name:<58} {r['klikniecia']}/{budget} {'OK' if r['w_budzecie'] else 'PONAD' if r['ok'] else 'BŁĄD'} {r['uwagi'][:80]}")
 
-    for label in ("Panel kosza", "Mieszkaniec", "Kierowca", "Dashboard"):
+    for label in ("Panel kosza", "Mieszkaniec", "Kierowca", "Dyspozytor", "Dashboard"):
         run(f"Wejść w perspektywę: {label}", 1, lambda f, l=label: (f.go("/"), f.click(f'.switcher a[title="{l}"]', l))[-1])
 
     nr = {}
@@ -213,8 +213,8 @@ def flows(b, vp):
         f.go("/")
         f.click('.switcher a[title="Mieszkaniec"]', "Mieszkaniec")
         f.click(f'#m-mine a[href="/zgloszenie/{mine}"]', "moje zgłoszenie na liście „Twoje zgłoszenia”")
-        f.pg.locator("#st-badge.badge").wait_for(state="visible", timeout=8000)
-        return f"status: {f.pg.locator('#st-badge').inner_text().strip()}"
+        f.pg.locator("#st-title[data-status]").wait_for(state="visible", timeout=8000)
+        return f"status: {f.pg.locator('#st-title').inner_text().strip()}"
     run("Mieszkaniec: sprawdzić status swojego zgłoszenia", 2, status)
 
     def empty(f):
@@ -229,6 +229,17 @@ def flows(b, vp):
             f.pg.locator("#k-doneok").wait_for(state="visible", timeout=8000)
             return "„Opróżniono” wymaga najpierw wybrania poziomu"
     run("Kierowca: oznaczyć kosz jako opróżniony", 2, empty)
+
+    def dispatch(f):
+        f.go("/")
+        f.click('.switcher a[title="Dyspozytor"]', "Dyspozytor")
+        f.pg.locator(".dp-item .btn-add").first.wait_for(state="visible", timeout=10000)
+        f.click(".dp-item .btn-add", "„Dodaj do kursu” przy pierwszym pilnym koszu")
+        f.pg.locator(".dp-added").first.wait_for(state="visible", timeout=8000)
+        note = f.pg.locator(".dp-added").first.inner_text().strip()
+        f.pg.click("[data-undo]")  # sprzątanie po sondzie (bez liczenia): decyzja cofnięta, trasa jak przed
+        return note
+    run("Dyspozytor: dodać pilny kosz do najbliższego kursu", 2, dispatch)
 
     def dash_filter(f):
         f.go("/")
@@ -250,6 +261,10 @@ def flows(b, vp):
     def scenario(f):
         f.go("/")
         f.click("[data-start-scenario]", "Zacznij scenariusz demo")
+        f.click('#sc-pick .sc-var:has(input[value="A"])', "Wariant A (kod QR)")  # losowanie wybiera wariant; ścieżka mierzy A
+        f.click("#sc-pick [data-go]", "Zacznij")
+        f.pg.wait_for_url("**/panel/**", timeout=8000)
+        f.click("a.kiosk-qr-code", "Kod QR na panelu (zamiast aparatu)")
         f.pg.wait_for_url("**/zglos/**", timeout=8000)
         f.click('label.m-type:has(input[value="przepelniony"])', "Przepełniony")
         f.click("#m-send", "Wyślij")
@@ -264,8 +279,8 @@ def flows(b, vp):
         f.click('[data-sc="next"]', "Scenariusz: Dalej")
         f.click('[data-sc="next"]', "Scenariusz: Dalej")
         f.click('[data-sc="end"]', "Zakończ")
-        return "6 kroków"
-    run("Scenariusz demo do końca", 1 + 6, scenario)
+        return "wariant A, 7 kroków"
+    run("Scenariusz demo do końca (wariant A)", 3 + 7, scenario)
 
     def switch_any(f):
         bad = []

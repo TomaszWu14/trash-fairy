@@ -58,7 +58,7 @@ def test_history_cost_uses_current_assumptions_not_stored_column(monkeypatch):
 def test_savings_tile_fields_and_consistency(client, data):
     kpi = {k["id"]: k for k in client.get("/api/dashboard/kpi").json["kpi"]}
     s, a = kpi["oszczednosci"], methodology.money_assumptions()
-    assert s["odbiory_mniej"] == s["kursy"] == 15 and s["km_mniej"] == pytest.approx(15, abs=0.1)
+    assert s["odbiory_mniej"] == 15 and "kursy" not in s and s["km_mniej"] == pytest.approx(15, abs=0.1)
     assert s["plan"]["odbiory"] == 60 and s["faktycznie"] == {"odbiory": 45, "km": 45.0}
     assert s["stawki"]["odbior_zl"] == a["cost_per_visit"] and s["stawki"]["km_zl"] == a["cost_per_km"]
     assert s["wartosc"] == pytest.approx(15 * a["cost_per_visit"] + 15 * a["cost_per_km"], abs=0.01)

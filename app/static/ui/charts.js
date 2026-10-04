@@ -16,7 +16,12 @@
   window.TF.loadEcharts = () => (window.echarts ? Promise.resolve() : afterLoad().then(() => new Promise((ok, fail) => {
     const s = Object.assign(document.createElement('script'), { src: document.documentElement.dataset.echarts, onload: ok, onerror: () => { s.remove(); fail(); } });
     document.head.append(s);
-  }))).then(() => echarts.registerTheme('tf', theme));
+  }))).then(() => { echarts.registerTheme('tf', theme); echarts.registerLocale('PL', PL); });
+  // opis wykresu dla czytnika ekranu (aria) po polsku
+  const PL = { aria: { general: { withTitle: 'Wykres „{title}”.', withoutTitle: 'Wykres.' },
+    series: { single: { prefix: '', withName: ' Seria {seriesName}.', withoutName: '' },
+              multiple: { prefix: ' Serii: {seriesCount}.', withName: ' {seriesName},', withoutName: '', separator: { middle: '', end: '' } } },
+    data: { allData: ' Dane: ', partialData: ' Pierwsze {displayCnt}: ', withName: '{name}: {value}', withoutName: '{value}', separator: { middle: ', ', end: '. ' } } } };
   window.TF.echarts = window.TF.loadEcharts();
   const theme = {
     color: C.series, backgroundColor: 'transparent', aria: { enabled: true },  // opis wykresu dla czytników ekranu
@@ -30,9 +35,16 @@
   // motyw ECharts czytany z tokenów przy starcie: po zmianie motywu najprościej przeładować stronę z wykresami
   document.addEventListener('tf-motyw', () => location.reload());
   window.TF.chart = el => {
-    const c = echarts.getInstanceByDom(el) || echarts.init(el, 'tf', { renderer: 'svg' });
+    const c = echarts.getInstanceByDom(el) || echarts.init(el, 'tf', { renderer: 'svg', locale: 'PL' });
     new ResizeObserver(() => c.resize()).observe(el);
     return c;
+  };
+  // bieżący miesiąc demo jest niepełny: serie miesięczne (te same długości co d.miesiace) tniemy do pełnych miesięcy
+  window.TF.fullMonths = d => {
+    const now = new Date(window.TF.clock || Date.now()), cur = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const all = d.miesiace || [], n = all[all.length - 1] === cur && now.getDate() < 28 ? all.length - 1 : all.length;
+    const cut = {}; Object.keys(d).forEach(k => cut[k] = Array.isArray(d[k]) && d[k].length === all.length ? d[k].slice(0, n) : d[k]);
+    return cut;
   };
   window.TF.anim = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 

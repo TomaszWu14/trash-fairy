@@ -2,6 +2,7 @@
 {% from "ui/_ui.html" import icon %}
 {% set perspective = "dashboard" %}
 {% block title %}Urządzenia na koszach{% endblock %}
+{% block page %}urzadzenia{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='ui/dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='ui/urzadzenia.css') }}">
@@ -13,12 +14,12 @@
     <div>
       <p class="eyebrow">MPO Kraków · infrastruktura na koszach</p>
       <div class="dash-title"><h1>Dashboard miasta</h1>
-        <nav class="dash-tabs" aria-label="Widoki dashboardu"><a href="{{ url_for('ui.dashboard') }}">{{ icon('layout-dashboard', 'i-sm') }}Przegląd</a><a href="{{ url_for('ui.devices_page') }}" aria-current="page">{{ icon('radio-tower', 'i-sm') }}Urządzenia</a></nav></div>
+        <nav class="dash-tabs" aria-label="Widoki dashboardu"><a href="{{ url_for('ui.dashboard') }}">{{ icon('gauge', 'i-sm') }}Wskaźniki</a><a href="{{ url_for('ui.devices_page') }}" aria-current="page">{{ icon('radio-tower', 'i-sm') }}Urządzenia</a></nav></div>
       <p class="muted" id="u-sub">Panele z przyciskiem i czujniki zapełnienia: bateria, sygnał, odczyty</p>
     </div>
   </header>
 
-  <form class="filters card u-filters" id="u-filters" aria-label="Filtry urządzeń">
+  <form class="filters card u-filters" id="u-filters" data-help="urzadzenia.filtry" aria-label="Filtry urządzeń">
     <div class="seg" role="radiogroup" aria-label="Typ urządzenia">
       {% for v, l in [('', 'Wszystkie'), ('panel', 'Panele'), ('czujnik', 'Czujniki')] %}
       <label><input type="radio" name="typ" value="{{ v }}"{% if not v %} checked{% endif %}><span>{{ l }}</span></label>
@@ -34,7 +35,7 @@
     {% for _ in range(5) %}<article class="card kpi"><span class="skel" style="width:60%"></span><span class="skel" style="height:30px;width:50%"></span><span class="skel" style="width:70%"></span></article>{% endfor %}
   </section>
 
-  <div id="u-list">
+  <div id="u-list" data-help="urzadzenia.lista">
     <div class="u-grid">{% for _ in range(8) %}<div class="card u-card u-skel"><span class="skel" style="width:70%"></span><span class="skel" style="width:45%"></span><span class="skel" style="height:22px"></span><span class="skel" style="width:55%"></span></div>{% endfor %}</div>
   </div>
 </div>

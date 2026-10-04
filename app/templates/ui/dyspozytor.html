@@ -1,0 +1,61 @@
+{% extends "ui/base.html" %}
+{% from "ui/_ui.html" import icon, state_icon %}
+{% set perspective = "dyspozytor" %}
+{% block title %}Panel dyspozytora{% endblock %}
+{% block page %}dyspozytor{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/markercluster/MarkerCluster.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='ui/mapa.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='ui/dyspozytor.css') }}">
+{% endblock %}
+{% block body_class %}dp-body{% endblock %}
+{% block content %}
+<div class="dp">
+  <h1 class="sr-only">Panel dyspozytora MPO</h1>
+  <div class="dp-map" id="dp-map" role="region" aria-label="Mapa koszy na żywo: kształt stanu zapełnienia, trasy pojazdów, gorące obszary zgłoszeń i dzikie wysypiska"></div>
+
+  <section class="dp-kpis" id="dp-kpis" aria-label="Sytuacja teraz" data-help="dyspozytor.kafle">
+    <article class="dp-kpi"><span class="dp-kpi-ico">{{ state_icon('warn') }}</span><div><p class="dp-kpi-v"><b class="num" data-k="zagrozone">–</b> zagrożonych</p><p class="dp-kpi-s">przekroczą 85% przed najbliższym kursem</p></div></article>
+    <article class="dp-kpi"><span class="dp-kpi-ico">{{ state_icon('full') }}</span><div><p class="dp-kpi-v"><b class="num" data-k="przepelnione">–</b> przepełnionych</p><p class="dp-kpi-s">80% i więcej teraz</p></div></article>
+    <article class="dp-kpi"><span class="dp-kpi-ico dp-kpi-route">{{ icon('route') }}</span><div><p class="dp-kpi-v"><b class="num" data-k="km">–</b> km trasy</p><p class="dp-kpi-s" data-k="kurs">kosze uliczne</p></div></article>
+    <article class="dp-kpi"><span class="dp-kpi-ico dp-kpi-good">{{ icon('trending-down') }}</span><div><p class="dp-kpi-v"><b class="num" data-k="odbiory">–</b> odbiorów</p><p class="dp-kpi-s" data-k="porownanie">vs stały harmonogram</p></div></article>
+  </section>
+
+  <aside class="dp-panel" aria-label="Decyzje dyspozytora">
+    <div class="dp-tabs" role="tablist" aria-label="Widoki panelu">
+      <button type="button" role="tab" id="dp-t-pilne" aria-controls="dp-p-pilne" aria-selected="true">{{ icon('circle-alert', 'i-sm') }}Pilne <span class="dp-count num" id="dp-n-pilne"></span></button>
+      <button type="button" role="tab" id="dp-t-trasy" aria-controls="dp-p-trasy" aria-selected="false" tabindex="-1">{{ icon('truck', 'i-sm') }}Ekipy i trasy</button>
+      <button type="button" role="tab" id="dp-t-zgl" aria-controls="dp-p-zgl" aria-selected="false" tabindex="-1">{{ icon('message-square-text', 'i-sm') }}Zgłoszenia <span class="dp-count num" id="dp-n-zgl"></span></button>
+    </div>
+    <div class="dp-pane" role="tabpanel" id="dp-p-pilne" aria-labelledby="dp-t-pilne" tabindex="0" data-help="dyspozytor.pilne">
+      <p class="dp-lead">Przekroczą 85% przed najbliższym kursem. Kolejność ustala reguła, „Dodaj do kursu” to decyzja dyspozytora.</p>
+      <ul class="dp-list" id="dp-pilne"><li class="dp-skel"><span class="skel" style="height:120px"></span></li></ul>
+    </div>
+    <div class="dp-pane" role="tabpanel" id="dp-p-trasy" aria-labelledby="dp-t-trasy" tabindex="0" hidden data-help="dyspozytor.trasy">
+      <p class="dp-lead">Trasy na najbliższy kurs każdej floty, z postępem opróżnień ekipy.</p>
+      <ul class="dp-list" id="dp-trasy"></ul>
+      <p class="dp-note" id="dp-trasy-note"></p>
+      <div class="dp-crew" id="dp-crew" data-help="dyspozytor.punkty_ekip"></div>
+    </div>
+    <div class="dp-pane" role="tabpanel" id="dp-p-zgl" aria-labelledby="dp-t-zgl" tabindex="0" hidden data-help="dyspozytor.zgloszenia">
+      <p class="dp-lead">Ostatnie zgłoszenia przy koszach i dzikie wysypiska. Lista odświeża się sama.</p>
+      <ul class="dp-list dp-feed" id="dp-zgl"></ul>
+      <p class="sr-only" id="dp-live" aria-live="polite"></p>
+    </div>
+  </aside>
+
+  <ul class="dp-legend" aria-label="Legenda mapy" data-help="dyspozytor.legenda">
+    <li>{{ state_icon('ok') }}poniżej 50%</li><li>{{ state_icon('warn') }}50–79%</li><li>{{ state_icon('full') }}80% i więcej</li>
+    <li>{{ state_icon('report') }}zgłoszenie</li><li><i class="lg-cl num" aria-hidden="true">5</i>grupa koszy</li>
+    <li><i class="lg-dump" aria-hidden="true">{{ icon('trash') }}</i>dzikie wysypisko</li><li><i class="lg-hot" aria-hidden="true"></i>gorący obszar</li>
+    <li><i class="lg-line" aria-hidden="true"></i>kosze uliczne</li><li><i class="lg-line lg-dash" aria-hidden="true"></i>altany</li>
+  </ul>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}" defer></script>
+<script src="{{ url_for('static', filename='vendor/markercluster/leaflet.markercluster.js') }}" defer></script>
+<script src="{{ url_for('static', filename='ui/mapa.js') }}" defer></script>
+<script src="{{ url_for('static', filename='ui/dyspozytor.js') }}" defer></script>
+{% endblock %}

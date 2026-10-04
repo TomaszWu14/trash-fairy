@@ -37,6 +37,8 @@
   --spark: #FFC247;
   --on-warn: #0B0F1A;      /* znak na bursztynie, w obu motywach ciemny */
   --on-state: #0B0F1A;     /* znak (✓ ! …) na kształcie stanu i numer przystanku */
+  /* znak marki: ciemny szklany kafel + turkus; celowo bez nadpisania w jasnym motywie (logo wygląda tak samo wszędzie) */
+  --logo-tile: #1F2A44; --logo-tile-2: #0E1424; --logo-ring: #4FD1E0; --logo-glyph: #4FD1E0; --logo-star: #FFFFFF;
 
   /* stany pojemników: kolor + kształt + znak, nigdy sam kolor */
   --fill-ok: #3DBF72;      --fill-ok-ink: #6FD99A;   --fill-ok-soft: #1B3436;

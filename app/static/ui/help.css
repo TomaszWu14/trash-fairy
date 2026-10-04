@@ -12,6 +12,16 @@
 .help-toggle[aria-pressed="false"] .help-ico::after { content: ""; position: absolute; left: -2px; top: 7px; width: 20px; height: 2px;
   border-radius: 1px; background: currentColor; box-shadow: 0 0 0 1px var(--surface); transform: rotate(-45deg); }
 .help-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* „Powitanie”: ta sama wysokość co okrągłe ikony, podpis tylko na szerokim ekranie (niżej sama ikona, nazwa w aria-label) */
+.help-welcome { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 28px; height: 28px;
+  padding: 0; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface); color: var(--ink-2);
+  font: 600 var(--fs-xs)/1 var(--font); white-space: nowrap; cursor: pointer; }
+.help-welcome::after { content: ""; position: absolute; inset: -8px -3px; }
+.help-welcome:hover { color: var(--ink); border-color: var(--ink-3); }
+.help-welcome .i { width: 16px; height: 16px; color: var(--brand); }
+.help-welcome-lbl { display: none; }
+.show-welcome { padding: 0; border: 0; background: none; font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; min-height: 44px; }
+.show-welcome[hidden], .help-welcome[hidden] { display: none; }
 
 /* ---------- ikonka „i”: mała i stonowana, obszar kliknięcia 44 px przez pseudo-element ---------- */
 .help-i { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 20px; height: 20px;
@@ -22,10 +32,6 @@
 .help-i:hover, .help-i[aria-expanded="true"] { color: var(--brand); }
 .help-i.at-corner { position: absolute; top: var(--s2); right: var(--s2); margin: 0; z-index: 1; }
 .help-off .help-i, [hidden] + .help-i { display: none; }
-.topbar-end .help-i { width: 16px; margin-left: -6px; }
-.topbar-end .help-i::before { inset: -14px -8px -14px 0; }  /* w ciasnym nagłówku 24 × 44 px, bez zabierania kliknięć sąsiadom */
-html:not(.help-off) .switcher:has(+ .help-i) { margin-right: 0; }
-.switcher + .help-i { margin: 0 auto 0 calc(-1 * var(--s2)); }
 
 /* ---------- chmurka podpowiedzi ---------- */
 .help-tip { position: fixed; z-index: 75; top: 0; left: 0; width: min(380px, calc(100vw - 2 * var(--s4))); padding: var(--s4);
@@ -48,21 +54,49 @@ html:not(.help-off) .switcher:has(+ .help-i) { margin-right: 0; }
 .tour-x { margin-top: var(--s2); color: var(--ink-2); }
 .tour-act { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2); margin-top: var(--s4); }
 .tour-act [data-tour="prev"] { margin-right: auto; }
+.tour-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.tour-n { display: inline-flex; align-items: center; gap: 6px; }
+.tour-dots { display: flex; gap: 4px; }  /* jak kropki paska scenariusza */
+.tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }
+.tour-dots i.on { background: var(--brand); }
+.tour-l { margin-top: var(--s3); }
+.tour-l .link { min-height: 44px; }
+/* krok bez elementu na stronie: brak obwódki, tło przyciemnia samo .tour-bg, chmurka na środku (help.js) */
+.tour-bg.dim { background: var(--scrim); }
+.tour-mid { width: min(460px, calc(100vw - 2 * var(--s4))); }
 
-/* ---------- .topbar-end bez poziomego przewijania (motyw, Podpowiedzi, Przewodnik, plakietka demo). W powłoce 1280 px
-   mieści się jeden napis: zostaje „Dane demonstracyjne”, reszta to okrągłe ikony z nazwą dla czytnika. Progi = pomiar
-   (brand 139, przełącznik perspektyw 681 / 236 px); pełny układ z napisami wymaga przeprojektowania nagłówka. ---------- */
-@media (min-width: 1101px) and (max-width: 1310px), (max-width: 860px) { .topbar-end .demo-tag span { display: none; } }
+/* ---------- propozycja przewodnika: niemodalna karta w rogu, nie zasłania treści na środku ---------- */
+.tour-offer { position: fixed; z-index: 65; right: var(--s6); bottom: var(--s6); display: grid; grid-template-columns: auto 1fr; gap: var(--s2) var(--s3);
+  width: min(380px, calc(100vw - 2 * var(--s4))); padding: var(--s4); border: 1px solid var(--line); border-radius: var(--r-xl);
+  background: var(--surface); color: var(--ink-2); box-shadow: var(--shadow-3); font-size: var(--fs-sm);
+  animation: toast-in var(--t-slow) var(--ease) both; }
+.tour-offer-ico { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--r-pill);
+  background: var(--brand-soft); color: var(--brand-ink); }
+.tour-offer-ico .i { width: 18px; height: 18px; }
+.tour-offer-t { color: var(--ink); font: 700 var(--fs-md)/1.3 var(--font-display); }
+.tour-offer-txt p + p { margin-top: 2px; }
+.tour-offer-act { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: var(--s2); }
+
+/* ---------- nagłówek bez poziomego przewijania: 6 perspektyw + .topbar-end (Powitanie, motyw, Podpowiedzi, Przewodnik, plakietka demo).
+   Progi z pomiaru szerokości (marka 141, przełącznik z podpisami ~750, same ikony 282); progi app.css liczono dla 5 perspektyw.
+   Plakietka: „Dane demo” (pełna nazwa w title), sama ikona tam, gdzie brak miejsca; podpis „Powitanie” tylko przy pełnej szerokości. ---------- */
+.demo-tag .demo-full { display: none; } .demo-tag .demo-short { display: inline; }
+@media (min-width: 1181px) { .switcher a { padding: 0 var(--s3); } }
+@media (min-width: 1328px) { .help-welcome { padding: 0 var(--s3) 0 var(--s2); } .help-welcome-lbl { display: inline; } }
+@media (min-width: 721px) and (max-width: 1180px) { .switcher a span { display: none; } .switcher a { padding: 0 var(--s3); } }
+@media (min-width: 721px) and (max-width: 799px), (min-width: 1181px) and (max-width: 1327px) { .topbar-end .demo-tag span { display: none; } }
 @media (max-width: 720px) {
-  .topbar-end { margin-left: auto; gap: var(--s1); }  /* miejsce na przełącznik motywu, Podpowiedzi, Przewodnik i plakietkę demo */
-  .topbar-end .help-i { margin-left: -2px; }
-  html:not(.help-off) .switcher:has(+ .help-i) { width: calc(100% - 20px - var(--s4)); }
-  .switcher + .help-i { order: 3; margin: 0; }
+  .topbar-end { margin-left: auto; gap: var(--s1); }
+  .topbar-end .theme-toggle { height: 28px; }  /* jak pozostałe okrągłe przyciski: marka i 5 przycisków w jednym wierszu przy 390 px */
+  .switcher a { padding: 0 2px; }  /* 6 perspektyw z podpisami mieści się w 358 px */
+  .switcher a small { font-size: 12px; letter-spacing: -.01em; }
 }
-/* telefon: chmurka i przewodnik jako panel na dole ekranu; „i” przy przełączniku podpowiedzi znika (390 px: brak miejsca),
-   bo sam przełącznik tłumaczy się komunikatem po kliknięciu */
+@media (max-width: 440px) { .demo-dane { display: none; } }
+@media (max-width: 374px) { .topbar-end .demo-tag span { display: none; } }
+/* telefon: chmurka i przewodnik jako panel na dole ekranu */
 @media (max-width: 640px) {
-  .topbar-end .help-toggle + .help-i { display: none; }
   .help-tip, .tour { top: auto; right: 0; bottom: 0; left: 0; width: auto; max-height: 60vh; overflow: auto; border-width: 1px 0 0;
     border-radius: var(--r-xl) var(--r-xl) 0 0; padding-bottom: calc(var(--s5) + env(safe-area-inset-bottom)); }
+  .tour-offer { right: var(--s3); left: var(--s3); bottom: calc(var(--s3) + env(safe-area-inset-bottom)); width: auto; }
+  .tour-offer-act .btn { flex: 1; min-height: 44px; }
 }

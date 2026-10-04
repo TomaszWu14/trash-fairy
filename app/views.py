@@ -68,7 +68,7 @@ def health():
 
 # ---------- stare adresy → nowe perspektywy ----------
 REDIRECTS = {
-    "/telefony": "ui.start", "/dyspozytor": "ui.dashboard", "/program": "ui.start", "/program/regulamin": "ui.start",
+    "/telefony": "ui.start", "/program": "ui.start", "/program/regulamin": "ui.start",
     "/przyjaciele": "ui.start", "/zdjecia": "ui.dashboard", "/logowanie": "ui.start", "/ekipa": "ui.driver",
 }
 

@@ -23,8 +23,8 @@ def _report(client, pid=18, **kw):
     return client.post("/api/zgloszenia", json=body)
 
 
-@pytest.mark.parametrize("path", ["/", "/panel/18", "/zglos", "/zglos/18", "/kierowca", "/kierowca/kosz/18", "/dashboard",
-                                  "/metodologia", "/dostepnosc", "/prywatnosc", "/api/docs"])
+@pytest.mark.parametrize("path", ["/", "/panel/18", "/zglos", "/zglos/18", "/kierowca", "/kierowca/kosz/18", "/dyspozytor",
+                                  "/dashboard", "/metodologia", "/dostepnosc", "/prywatnosc", "/api/docs"])
 def test_every_screen_renders_without_login(client, demo, path):
     r = client.get(path)
     assert r.status_code == 200
@@ -32,7 +32,7 @@ def test_every_screen_renders_without_login(client, demo, path):
     assert 'lang="pl"' in html and "Dane demonstracyjne" in html
 
 
-@pytest.mark.parametrize("old, new", [("/telefony", "/"), ("/dyspozytor", "/dashboard"), ("/program", "/"), ("/logowanie", "/"),
+@pytest.mark.parametrize("old, new", [("/telefony", "/"), ("/program", "/"), ("/logowanie", "/"),
                                       ("/epapier/18", "/panel/18"), ("/ekipa", "/kierowca")])
 def test_old_addresses_redirect_to_new_screens(client, demo, old, new):
     r = client.get(old)
@@ -173,3 +173,18 @@ def test_non_object_json_and_huge_ids_and_extreme_dates_are_4xx(client, demo):
     assert client.get("/api/kosze?blisko=inf,0").status_code == 400
     for q in ("do=0001-01-01", "od=0001-01-01", "do=9999-12-31"):
         assert client.get(f"/api/dashboard/kpi?{q}").json["kod"] == "nieprawidlowa_data"
+
+
+def test_panel_next_pickup_only_when_bin_is_on_route(client, demo):
+    # J-08: termin odbioru tylko dla kosza na najbliższym kursie; inaczej panel mówi „gdy będzie potrzebny”, bez obietnic
+    bins = [_bin(client, p.id) for p in Point.query.filter_by(kind="bin").order_by(Point.id).limit(25)]
+    assert all((k["nastepny_odbior"] is not None) == k["trasa"]["na_trasie"] for k in bins)
+    assert {k["trasa"]["na_trasie"] for k in bins} == {True, False}  # oba przypadki w danych demo
+
+
+def test_forecast_says_when_to_empty_not_threshold(client, demo):
+    # J-30: „Do opróżnienia ok. HH:MM” zamiast „Przewidywane 85%”; próg zostaje w regułach
+    texts = {k["prognoza"] for k in client.get("/api/kosze").json["kosze"]}
+    assert texts and not any("85%" in t or "Przewidywane" in t for t in texts)
+    assert any(t.startswith("Do opróżnienia") for t in texts)
+    assert "Przewidywane" not in client.get("/panel/18").get_data(as_text=True)

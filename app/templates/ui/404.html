@@ -2,19 +2,19 @@
 {% from "ui/_ui.html" import icon %}
 {% block title %}{{ 'Błąd' if error else 'Nie znaleziono' }}{% endblock %}
 {% block content %}
-<div class="shell page">
-  <section class="card empty" style="max-width:560px;margin-inline:auto">
+<div class="shell page page-404">
+  <section class="card empty">
     <img src="{{ url_for('static', filename='ui/ill/pusto.svg') }}" alt="" width="140" height="112">
     {% if error %}
-    <h3>Coś poszło nie tak po naszej stronie</h3>
+    <h1>Coś poszło nie tak po naszej stronie</h1>
     <p>Spróbuj za chwilę. Jeśli problem wraca, zresetuj dane demo na ekranie przeglądu.</p>
     {% else %}
-    <h3>Nie znaleźliśmy tej strony</h3>
-    <p>Kod QR mógł pochodzić ze starej naklejki albo kosz został przeniesiony. Wybierz kosz w pobliżu albo wróć do przeglądu.</p>
+    <h1>Nie znaleźliśmy tej strony</h1>
+    <p>Nie ma takiej strony albo kosza. Problem z koszem zgłosisz przy nim: przyciskiem na panelu albo skanem jego kodu QR.</p>
     {% endif %}
-    <div style="display:flex;gap:var(--s3);flex-wrap:wrap;justify-content:center">
-      <a class="btn btn-primary" href="{{ url_for('ui.report_pick') }}">{{ icon('map-pin') }}Kosze w pobliżu</a>
-      <a class="btn" href="{{ url_for('ui.start') }}">{{ icon('house') }}Przegląd</a>
+    <div class="empty-act">
+      <a class="btn btn-primary" href="{{ url_for('ui.start') }}">{{ icon('house') }}Przegląd</a>
+      <a class="btn" href="{{ url_for('ui.report_pick') }}">{{ icon('list-ordered') }}Twoje zgłoszenia</a>
     </div>
   </section>
 </div>
