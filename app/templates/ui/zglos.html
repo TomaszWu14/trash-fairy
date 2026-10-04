@@ -36,7 +36,7 @@
 
   <!-- krok 2: co jest nie tak -->
   <fieldset class="m-step" data-step="2" hidden>
-    <legend class="m-legend">Co jest nie tak?</legend>
+    <legend class="m-legend" tabindex="-1">Co jest nie tak?</legend>
     <div class="m-types">
       {% for val, label, sub in [('przepelniony', 'Przepełniony', 'Nie mieści się więcej'), ('odpady_obok', 'Odpady obok', 'Worki lub śmieci przy koszu'),
                                  ('uszkodzony', 'Uszkodzony', 'Zepsuty, przewrócony, bez klapy'), ('inne', 'Inne', 'Opiszesz w komentarzu')] %}
@@ -64,7 +64,7 @@
 
   <!-- krok 3: podsumowanie i wysłanie -->
   <fieldset class="m-step" data-step="3" hidden>
-    <legend class="m-legend">Sprawdź i wyślij</legend>
+    <legend class="m-legend" tabindex="-1">Sprawdź i wyślij</legend>
     <dl class="m-sum">
       <div><dt>Kosz</dt><dd>{{ bin.nazwa }}, {{ bin.adres }}</dd></div>
       <div><dt>Problem</dt><dd id="sum-typ">–</dd></div>
@@ -82,7 +82,7 @@
 
 <section class="m-card m-success" id="m-success" hidden aria-live="polite">
   <img src="{{ url_for('static', filename='ui/ill/sukces.svg') }}" alt="" width="200" height="160">
-  <h1>Zgłoszenie przyjęte</h1>
+  <h1 tabindex="-1">Zgłoszenie przyjęte</h1>
   <p>Numer zgłoszenia</p>
   <p class="m-nr num" id="m-nr">TF-00000</p>
   <p class="muted" id="m-success-txt">Kosz trafia na listę kierowcy MPO. Status zobaczysz na osi czasu.</p>

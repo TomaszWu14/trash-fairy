@@ -4,6 +4,8 @@ Czyste funkcje (reliability, is_hit, low_reliability) są wspólne dla symulator
 """
 from datetime import timedelta
 
+from sqlalchemy import select
+
 from . import db
 from .models import Press, Report
 
@@ -36,8 +38,9 @@ def low_reliability(resolved, now):
 
 
 def point_reliability(point_id):
-    rows = (Report.query.filter(Report.point_id == point_id, Report.hit.isnot(None))
-            .order_by(Report.first_at.desc()).limit(RELIABILITY_WINDOW).all())
+    fill = select(Press.report_id).where(Press.kind.is_(None) | Press.kind.in_(("full", "overflow")))
+    rows = (Report.query.filter(Report.point_id == point_id, Report.hit.isnot(None), Report.id.in_(fill))  # „uszkodzony” nie mówi
+            .order_by(Report.first_at.desc()).limit(RELIABILITY_WINDOW).all())  # o zapełnieniu: nie psuje wiarygodności
     return reliability([r.hit for r in reversed(rows)])
 
 

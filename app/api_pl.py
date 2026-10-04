@@ -7,6 +7,7 @@ Decyzje liczą reguły w kodzie; nic tu nie pyta AI.
 """
 import hashlib
 import hmac
+import math
 from datetime import UTC, datetime
 
 from flask import Blueprint, current_app, jsonify, request
@@ -23,7 +24,8 @@ bp = Blueprint("api_pl", __name__, url_prefix="/api")
 GEO_RADIUS_M = 150          # zgłoszenie tylko z telefonu najwyżej 150 m od kosza (jak dotąd, decyzja 28)
 MAX_ACCURACY_M = 150        # słaby GPS w kamienicy nie blokuje zgłoszenia przy koszu, ale „5 km dokładności” nie wyłącza kontroli
 REPORT_GAP_S = 60           # ten sam telefon i ten sam kosz: nie częściej niż raz na minutę
-REPORTS_PER_IP_HOUR = 30    # wszystkie kosze z jednego adresu IP (obok limitu per telefon i kosz)
+REPORTS_PER_IP_HOUR = 200   # wszystkie kosze z jednego IP: wysoko, bo sala HackYeah i jury wychodzą przez jeden NAT
+RESET_GAP_S = 20            # ręczny reset demo najwyżej raz na 20 s (wszystkie workery)
 LEVELS = (0, 25, 50, 75, 100)
 TYPY = {  # typ zgłoszenia → (rodzaj w silniku, etykieta)
     "przepelniony": ("full", "Przepełniony"),
@@ -35,6 +37,12 @@ KIND_LABEL = {kind: label for kind, label in TYPY.values()} | {None: "Przycisk n
 PROBLEMY = {"no_access": "Nie da się podjechać", "damaged": "Kosz uszkodzony", "blocked": "Zablokowany dojazd",
             "overflow": "Odpady obok kosza"}
 FRAKCJE = {"papier": "Papier", "metale_tworzywa": "Metale i tworzywa", "szklo": "Szkło", "bio": "Bio", "zmieszane": "Zmieszane"}
+
+
+def _json_body():
+    """Ciało JSON jako słownik; tablica, liczba albo zły JSON → {} (walidacja pól zwróci 400 zamiast 500)."""
+    data = request.get_json(silent=True)
+    return data if isinstance(data, dict) else {}
 
 
 def blad(message, kod, status=400):
@@ -61,14 +69,16 @@ def numer(report_id):
 
 def _report_from_nr(nr):
     try:
-        return db.session.get(Report, int(str(nr).upper().removeprefix("TF-")))
+        rid = int(str(nr).upper().removeprefix("TF-"))
+        return db.session.get(Report, rid) if 0 < rid < 2**31 else None
     except (TypeError, ValueError):
         return None
 
 
 def _point(value):
     try:
-        p = db.session.get(Point, int(value))
+        pid = int(value)
+        p = db.session.get(Point, pid) if 0 < pid < 2**31 else None
     except (TypeError, ValueError):
         return None
     return p if p is not None and getattr(p, "live", True) else None
@@ -154,8 +164,11 @@ def zmiany():
 
 @bp.post("/demo/reset")
 def demo_reset():
-    """Przywraca dane demo do stanu początkowego (jedna rola „Przegląd jury”, bez logowania)."""
-    clock.reset()
+    """Przywraca dane demo do stanu początkowego (jedna rola „Przegląd jury”, bez logowania).
+    Reset trwa kilka–kilkanaście sekund: limit wspólny dla workerów i blokada w procesie, żeby dwa kliknięcia
+    (albo kliknięcie w trakcie auto-resetu) nie kasowały i nie wstawiały symulacji równolegle."""
+    if not rate.hit("demo-reset", 1, RESET_GAP_S) or not clock.reset_exclusive():
+        return blad("Reset danych demo już trwa albo był przed chwilą. Spróbuj za kilkanaście sekund.", "reset_trwa", 429)
     return jsonify(ok=True, meta=meta())
 
 
@@ -169,6 +182,8 @@ def kosze():
     if request.args.get("blisko"):
         try:
             lat, lon = (float(x) for x in request.args["blisko"].split(","))
+            if not (math.isfinite(lat) and math.isfinite(lon)):
+                raise ValueError
         except ValueError:
             return blad("Parametr „blisko” to szerokość i długość geograficzna, np. 50.06,19.94.", "zly_parametr")
         for k in out:
@@ -188,7 +203,8 @@ def kosz(point_id):
 
 def _accuracy(data):
     try:
-        return min(max(float(data.get("dokladnosc") or 0), 0.0), MAX_ACCURACY_M)
+        acc = float(data.get("dokladnosc") or 0)
+        return min(max(acc, 0.0), MAX_ACCURACY_M) if math.isfinite(acc) else 0.0
     except (TypeError, ValueError):
         return 0.0
 
@@ -197,20 +213,22 @@ def _accuracy(data):
 def zglos():
     """Zgłoszenie mieszkańca: tylko z tokenem z kodu QR kosza i z położeniem do 150 m od kosza.
     Pola: kosz, typ, qr, lat, lon, dokladnosc, komentarz?, symulacja?, zdjecie? (multipart)."""
-    data = request.form if request.files or request.form else (request.get_json(silent=True) or {})
+    data = request.form if request.files or request.form else _json_body()
     p = _point(data.get("kosz"))
     if p is None:
         return blad("Nie ma takiego kosza.", "kosz_nie_istnieje", 404)
-    if data.get("typ") not in TYPY:
+    if not isinstance(data.get("typ"), str) or data["typ"] not in TYPY:
         return blad("Wybierz, co jest nie tak z koszem.", "zly_typ")
     if not hmac.compare_digest(str(data.get("qr") or ""), qr_token(p.id)):
         return blad("Zeskanuj kod QR na koszu, żeby zgłosić problem.", "brak_skanu_qr", 403)
     try:
         lat, lon = float(data.get("lat")), float(data.get("lon"))
+        if not (math.isfinite(lat) and math.isfinite(lon) and abs(lat) <= 90 and abs(lon) <= 180):
+            raise ValueError
     except (TypeError, ValueError):
         return blad("Włącz udostępnianie lokalizacji: zgłoszenie przyjmujemy tylko przy koszu.", "brak_lokalizacji", 403)
     dist = distance_m(lat, lon, p.lat, p.lon)
-    if dist - _accuracy(data) > GEO_RADIUS_M:
+    if not dist - _accuracy(data) <= GEO_RADIUS_M:  # „not <=”: NaN nigdy nie przechodzi kontroli
         return blad(f"Jesteś {round(dist)} m od kosza. Podejdź bliżej (do {GEO_RADIUS_M} m), żeby zgłosić.", "za_daleko", 403)
     raw = mt = None
     upload = request.files.get("zdjecie")
@@ -230,7 +248,7 @@ def zglos():
     if not rate.hit(f"zgl-ip:{request.remote_addr}", REPORTS_PER_IP_HOUR, 3600):
         return blad(f"Z tej sieci wysłano już {REPORTS_PER_IP_HOUR} zgłoszeń w ciągu godziny. Spróbuj później.",
                     "za_duzo_zgloszen", 429)
-    note = (data.get("komentarz") or "").strip()[:280] or None
+    note = str(data.get("komentarz") or "").strip()[:280] or None
     photo_id = photos.save(p.id, clock.now(), raw, mt, source="resident").id if raw else None
     now = clock.now()
     kind = TYPY[data["typ"]][0]
@@ -254,11 +272,10 @@ def zgloszenie(nr):
     p = db.session.get(Point, r.point_id)
     now = clock.now()
     jade = _jade_at(p.id, r.first_at)
-    if r.resolved_at is None:  # opróżnienie z PWA kierowcy rozstrzyga zgłoszenie od razu (resolve_reports)
-        e = Emptying.query.filter(Emptying.point_id == p.id, Emptying.at >= r.first_at, Emptying.at <= now).first()
-        done_at = e.at if e else None
-    else:
-        done_at = r.resolved_at
+    # opróżnienie z aplikacji kierowcy rozstrzyga zgłoszenie od razu (resolve_reports); szukanie Emptying „po first_at”
+    # łapało wcześniejsze opróżnienie z tą samą minutą zegara demo i nowe zgłoszenie było od razu „zrealizowane”
+    done_at = r.resolved_at if r.resolved_at and r.resolved_at <= now else None
+    jade = jade or done_at  # „Jadę” kasujemy przy opróżnieniu (patrz odbior): krok „W realizacji” kończy się najpóźniej z odbiorem
     status = "zrealizowane" if done_at else "w_realizacji" if jade else "przyjete"
     run_at, _ = next_runs(p.kind, now)
     first = Press.query.filter_by(report_id=r.id).order_by(Press.at).first()
@@ -338,7 +355,9 @@ def dojazd():
     if p is None:
         return blad("Nie ma takiego kosza.", "kosz_nie_istnieje", 404)
     try:
-        lat, lon = (float(x) for x in request.args.get("od", "").split(","))
+        lat, lon = (round(float(x), 4) for x in request.args.get("od", "").split(","))  # ~10 m: cache OSRM nie rośnie od szumu GPS
+        if not (math.isfinite(lat) and math.isfinite(lon)):
+            raise ValueError
     except ValueError:
         lat, lon = DEPOT["lat"], DEPOT["lon"]
     path, approx = osrm.street_path([(lat, lon), (p.lat, p.lon)])
@@ -348,7 +367,7 @@ def dojazd():
 @bp.post("/odbiory")
 def odbior():
     """Akcje kierowcy jednym dotknięciem: `jade`, `oprozniono` (z poziomem zastanym), `problem` (z rodzajem)."""
-    data = request.form if request.form else (request.get_json(silent=True) or {})
+    data = request.form if request.form else _json_body()
     p = _point(data.get("kosz"))
     if p is None:
         return blad("Nie ma takiego kosza.", "kosz_nie_istnieje", 404)
@@ -370,12 +389,14 @@ def odbior():
             pass
         e = Emptying(point_id=p.id, at=now, level=level, source="crew", far_m=far)
         db.session.add(e)
+        # „Jadę” zrealizowane: bez tego kolejne zgłoszenie z tą samą minutą zegara demo od razu było „w realizacji”
+        StopIssue.query.filter(StopIssue.point_id == p.id, StopIssue.kind == "jade").delete(synchronize_session=False)
         resolve_reports(e)
         msg = f"Opróżniono: {p.name}."
     elif akcja == "problem":
-        if data.get("problem") not in PROBLEMY:
+        if not isinstance(data.get("problem"), str) or data["problem"] not in PROBLEMY:
             return blad("Wybierz, jaki to problem.", "zly_problem")
-        db.session.add(StopIssue(point_id=p.id, at=now, kind=data["problem"], note=(data.get("notatka") or "").strip()[:200] or None))
+        db.session.add(StopIssue(point_id=p.id, at=now, kind=data["problem"], note=str(data.get("notatka") or "").strip()[:200] or None))
         msg = f"Zgłoszono problem: {PROBLEMY[data['problem']]}."
     else:
         return blad("Nieznana akcja. Dozwolone: jade, oprozniono, problem.", "zla_akcja")

@@ -3,6 +3,8 @@ na opróżnieniach z harmonogramu, które „wydarzyły się” w przewiniętym 
 import threading
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy import text
+
 from . import db, devices, history, photos, residents
 from .models import DemoClock, Emptying, FairyReport, StopIssue
 from .reports import resolve_reports
@@ -42,20 +44,65 @@ def touch():
 
 
 def maybe_auto_reset():
-    """Reset demo, gdy od ostatniej akcji minęło IDLE. Warunkowy UPDATE: przy kilku workerach resetuje tylko jeden."""
+    """Reset demo, gdy od ostatniej akcji minęło IDLE. Warunkowy UPDATE: przy kilku workerach resetuje tylko jeden.
+    Przy okazji retencja z /prywatnosc (IP po 24 h, zdjęcia po 7 dniach) raz na godzinę, nie tylko przy starcie."""
+    _retention()
     clock = db.session.get(DemoClock, 1)
     if clock is None or clock.last_activity is None or _wall() - clock.last_activity < IDLE:
         return False
     claimed = (DemoClock.query.filter(DemoClock.id == 1, DemoClock.last_activity == clock.last_activity)
                .update({DemoClock.last_activity: None}, synchronize_session=False))
     db.session.commit()
-    if not claimed:
+    from . import rate
+    if not claimed or not rate.hit("demo-reset", 1, 20):  # ten sam licznik co ręczny reset (api_pl.RESET_GAP_S)
         return False
     _reset_in_background()
     return True
 
 
 _resetting = threading.Lock()
+
+
+def _retention():
+    from . import rate
+    from .privacy import forget_old_ips
+    try:
+        if rate.hit("retencja", 1, 3600):
+            forget_old_ips()
+            photos.cleanup()
+    except Exception:  # retencja nie może zepsuć strony startowej
+        from flask import current_app
+        current_app.logger.exception("Retencja nie powiodła się")
+        db.session.rollback()
+
+
+RESET_LOCK_ID = 4242  # pg_advisory_lock: jeden reset naraz we wszystkich workerach
+
+
+def _locked_reset():
+    """reset() pod blokadą bazy (PostgreSQL): False, gdy inny worker właśnie resetuje. Osobne połączenie, bo reset()
+    robi kilka commitów i sesja może zmienić połączenie z puli, a blokada advisory należy do połączenia. SQLite: jeden proces."""
+    if db.engine.dialect.name != "postgresql":
+        reset()
+        return True
+    with db.engine.connect() as conn:
+        if not conn.execute(text("SELECT pg_try_advisory_lock(:k)"), {"k": RESET_LOCK_ID}).scalar():
+            return False
+        try:
+            reset()
+        finally:
+            conn.execute(text("SELECT pg_advisory_unlock(:k)"), {"k": RESET_LOCK_ID})
+    return True
+
+
+def reset_exclusive():
+    """Reset ręczny: False, gdy reset już trwa (w tym procesie albo w innym workerze)."""
+    if not _resetting.acquire(blocking=False):
+        return False
+    try:
+        return _locked_reset()
+    finally:
+        _resetting.release()
 
 
 def _reset_in_background():
@@ -72,7 +119,12 @@ def _reset_in_background():
     def run():
         try:
             with app.app_context():
-                reset()
+                try:
+                    _locked_reset()
+                except Exception:  # bez tego last_activity zostaje None i auto-reset nie wróci aż do kolejnej akcji
+                    app.logger.exception("Auto-reset demo nie powiódł się")
+                    db.session.rollback()
+                    touch()
         finally:
             _resetting.release()
 

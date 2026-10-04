@@ -1,6 +1,8 @@
 // Perspektywa kierowcy: trasa po priorytecie, karta kosza z akcjami jednym dotknięciem, nawigacja prowadzona w aplikacji (symulowany przejazd).
 (() => {
   const { api, esc, gauge, fillBadge, frac, icon, toast } = window.TF;
+  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();  // kolory tylko z tokens.css
+  const BRAND = tok('--brand'), COLOR = { ok: tok('--fill-ok'), warn: tok('--fill-warn'), full: tok('--fill-full') };
   const POS_KEY = 'tf-pojazd';
   const DEPOT = [50.0702786, 20.0056628];
   const LEVELS = [0, 25, 50, 75, 100];
@@ -47,10 +49,9 @@
         document.getElementById('k-done-n').textContent = `(${done.length})`;
         document.getElementById('k-done-list').innerHTML = done.map(k => row(k, false)).join('');
         layer.clearLayers();
-        if (d.linia.length > 1) L.polyline(d.linia, { color: '#5B3DF5', weight: 4, opacity: .75 }).addTo(layer);
-        const COLOR = { ok: '#16A34A', warn: '#F59E0B', full: '#DC2626' };
+        if (d.linia.length > 1) L.polyline(d.linia, { color: BRAND, weight: 4, opacity: .75 }).addTo(layer);
         todo.slice(5).forEach(k => L.circleMarker([k.lat, k.lon], { radius: 6, weight: 2, color: '#fff', fillColor: COLOR[window.TF.lvl(k.poziom)], fillOpacity: 1 })
-          .bindTooltip(`${k.nazwa} · ${k.poziom}%`).on('click', () => location.href = `/kierowca/kosz/${k.id}`).addTo(layer));
+          .bindTooltip(`${TF.esc(k.nazwa)} · ${k.poziom}%`).on('click', () => location.href = `/kierowca/kosz/${k.id}`).addTo(layer));
         todo.slice(0, 5).forEach((k, i) => L.marker([k.lat, k.lon], { icon: pin(k.poziom, i + 1), title: k.nazwa, zIndexOffset: 1000 - i })
           .on('click', () => location.href = `/kierowca/kosz/${k.id}`).addTo(layer));
         L.marker(truckPos(), { icon: truckIcon(), title: 'Twój pojazd', keyboard: false }).addTo(layer);
@@ -118,7 +119,7 @@
     try { path = (await api(`/api/trasa/dojazd?do=${id}&od=${from[0]},${from[1]}`)).sciezka; }
     catch (e) { path = [from, binLL]; }
     if (routeLine) routeLine.remove();
-    routeLine = L.polyline(path, { color: '#5B3DF5', weight: 6, opacity: .85 }).addTo(map);
+    routeLine = L.polyline(path, { color: BRAND, weight: 6, opacity: .85 }).addTo(map);
     map.fitBounds(routeLine.getBounds().pad(0.15));
     const cum = [0]; for (let i = 1; i < path.length; i++) cum.push(cum[i - 1] + segLen(path[i - 1], path[i]));
     const total = cum[cum.length - 1], tr = turns(path);

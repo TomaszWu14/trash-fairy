@@ -37,6 +37,7 @@
   let lastOk = null, offline = false;
   const setOnline = ok => {
     if (ok && offline) load();  // sieć wróciła: od razu świeże dane
+    if (ok) lastOk = window.TF.now();  // poll bez zmian danych też potwierdza aktualny stan
     offline = !ok;
     document.getElementById('k-off').hidden = ok;
     if (!ok) document.getElementById('k-off-t').textContent = lastOk

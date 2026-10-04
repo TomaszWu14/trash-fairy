@@ -105,7 +105,7 @@
       fd.append('klient', clientId());
       if (form.zdjecie.files[0]) fd.append('zdjecie', form.zdjecie.files[0]);
       try {
-        const d = await api('/api/zgloszenia', { method: 'POST', body: fd });
+        const d = await api('/api/zgloszenia', { method: 'POST', body: fd, signal: AbortSignal.timeout?.(90000) });
         form.hidden = true;
         const ok = document.getElementById('m-success');
         document.getElementById('m-nr').textContent = d.numer;
@@ -130,7 +130,7 @@
     const BADGE = { przyjete: ['brand', 'circle-dot', 'Przyjęte'], w_realizacji: ['progress', 'truck', 'W realizacji'], zrealizowane: ['ok', 'circle-check-big', 'Zrealizowane'] };
     const time = iso => iso ? new Date(iso).toLocaleString('pl-PL', { weekday: 'short', hour: '2-digit', minute: '2-digit' }) : null;
     const render = d => {
-      const [cls, ico, label] = BADGE[d.status];
+      const [cls, ico, label] = BADGE[d.status] || BADGE.przyjete;
       document.getElementById('st-badge').className = `badge ${cls}`;
       document.getElementById('st-badge').innerHTML = `${icon(ico)}${label}`;
       const k = d.kosz;
@@ -138,7 +138,7 @@
         <div class="m-bin-tags">${fillBadge(k.poziom)}${frac(k.frakcja)}</div></div><b class="m-bin-pct num">${k.poziom}%</b>`;
       document.getElementById('st-ai').innerHTML = d.ai ? `<div class="m-ai"><b>Zdjęcie w zgłoszeniu</b>${window.TF.aiBlock(d.ai)}</div>` : '';
       const order = ['przyjete', 'w_realizacji', 'zrealizowane'], at = order.indexOf(d.status);
-      const desc = { przyjete: `${esc(d.typ)}${d.osob > 1 ? ` · zgłosiło ${d.osob} osób` : ''}`, w_realizacji: 'Kierowca MPO jedzie do kosza.',
+      const desc = { przyjete: `${esc(d.typ)}${d.osob > 1 ? ` · ${TF.plural(d.osob, ['zgłosiła', 'zgłosiły', 'zgłosiło'])} ${d.osob} ${TF.plural(d.osob, ['osoba', 'osoby', 'osób'])}` : ''}`, w_realizacji: 'Kierowca MPO jedzie do kosza.',
                      zrealizowane: 'Kosz opróżniony. Dziękujemy!' };
       document.getElementById('st-steps').innerHTML = d.kroki.map((s, i) => `<li class="${i <= at ? 'done' : ''} ${i === at + 1 ? 'now' : ''}">
         <span class="tl-dot">${i <= at ? icon('check') : ''}</span><div><b>${s.etykieta}</b>

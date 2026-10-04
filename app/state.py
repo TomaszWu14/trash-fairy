@@ -110,18 +110,27 @@ def forecast_reason(f, now):
 
 def data_version():
     """Zmienia się przy każdej zmianie danych, od której zależy stan: zgłoszenie, opróżnienie, zdjęcie i jego analiza,
-    problem kierowcy, urządzenie, przewinięcie zegara, nowa prognoza pogody. Klucz cache i wersja dla pollingu."""
-    from . import clock, weather
+    problem kierowcy, urządzenie, przewinięcie zegara. Wersja dla pollingu; klucz cache silnika: _engine_version."""
+    from . import clock
+    from .residents import HEARTBEAT_LOST
     last = [db.session.query(func.max(m.id)).scalar() or 0 for m in (Press, Emptying, PhotoAnalysis, StopIssue)]
     rows = [db.session.query(func.count(m.id)).scalar() for m in (Press, Emptying)]  # SQLite potrafi powtórzyć id po resecie
     analysed = PhotoAnalysis.query.filter(PhotoAnalysis.status != "pending").count()
     dev = db.session.query(func.max(Device.last_heartbeat), func.max(Device.last_selftest)).one()
-    w = int(((weather._state.get("data") or {}).get("fetched_at")) or 0)
+    online = Device.query.filter(Device.last_heartbeat >= clock.now() - HEARTBEAT_LOST).count()  # drugi „ożywiony” panel też
     devices = "-".join(f"{d:%d%H%M}" if d else "0" for d in dev)
-    return f"{clock.now():%Y%m%d%H%M}-" + "-".join(map(str, last + rows + [analysed])) + f"-{devices}-{w}"
+    return f"{clock.now():%Y%m%d%H%M}-" + "-".join(map(str, last + rows + [analysed])) + f"-{devices}-{online}"
+
+
+def _engine_version():
+    """Klucz cache silnika: wersja danych + pogoda. Pogoda (prognoza godzin przyszłych) jest w pamięci każdego workera
+    z własnym czasem pobrania, więc w /api/zmiany powodowała przeładowanie ekranów co poll między workerami."""
+    from . import weather
+    return f"{data_version()}-{int(((weather._state.get('data') or {}).get('fetched_at')) or 0)}"
 
 
 _cache = {}
+CACHE_MAX = 300
 
 
 def clear_cache():
@@ -132,12 +141,15 @@ def clear_cache():
 def _cached(name, now, compute):
     """Jeden wynik na proces dla (zegar, wersja danych): 300–600 ms liczymy raz na zmianę danych, nie raz na zapytanie.
     Zwracamy kopię, bo wywołujący dopisują pola (trasy: geometria, poziom przystanku)."""
-    key = (name, now, data_version())
-    if key not in _cache:
-        for k in [k for k in _cache if k[0] == name]:
-            del _cache[k]
-        _cache[key] = compute()
-    return copy.deepcopy(_cache[key])
+    key = (name, now, _engine_version())
+    val = _cache.get(key)  # .get, nie „in” + [key]: reset w wątku w tle może wyczyścić cache między tymi krokami
+    if val is None:
+        for k in [k for k in list(_cache) if k[0] == name]:
+            _cache.pop(k, None)
+        if len(_cache) > CACHE_MAX:  # ponytail: proste czyszczenie zamiast LRU; klucze dashboardu rosną od parametrów adresu
+            _cache.clear()
+        val = _cache[key] = compute()
+    return copy.deepcopy(val)
 
 
 def point_states(now):
@@ -191,13 +203,13 @@ def _point_states(now):
     # zgłoszenia z ekranu /zglos: „uszkodzony” nie podnosi poziomu (flaga dla ekipy), „odpady obok” to notatka przy zgłoszeniu
     damaged = {pid: at for pid, at in db.session.query(Press.point_id, func.max(Press.at))
                .filter(Press.kind == "damaged", Press.at > now - DAMAGE_WINDOW, Press.at <= now).group_by(Press.point_id)
-               if last_emptying.get(pid) is None or last_emptying[pid] < at}
+               if last_emptying.get(pid) is None or last_emptying[pid] <= at}  # <=: ta sama minuta zegara demo
     overflow_reported = {pid for (pid,) in db.session.query(Press.point_id).distinct()
                          .filter(Press.kind == "overflow", Press.at > now - MERGE_WINDOW, Press.at <= now)}
     crew_issue = {}
     for i in (StopIssue.query.filter(StopIssue.at > now - CREW_ISSUE_WINDOW, StopIssue.at <= now, StopIssue.kind.in_(CREW_ISSUES))
               .order_by(StopIssue.at)):  # „Pomiń” i „Jadę” liczą się tylko w postępie kursu, nie flagują punktu
-        if last_emptying.get(i.point_id) is None or last_emptying[i.point_id] < i.at:
+        if last_emptying.get(i.point_id) is None or last_emptying[i.point_id] < i.at:  # opróżnienie zamyka problem ekipy
             crew_issue[i.point_id] = {"kind": i.kind, "label": CREW_ISSUES[i.kind], "at": i.at.isoformat(), "note": i.note}
     out = {}
     for pid, f in forecasts.items():
