@@ -13,8 +13,9 @@ from flask import Blueprint, Response, jsonify, request
 from sqlalchemy import func, select
 
 from . import clock, db
-from .dashboard import (Filters, PROJECT_METRICS, dow_of, hour_of, last_months, metric_value, month_days, monthly,
-                        monthly_plan, pickups, plan, project_windows, reports, savings, totals, _where)
+from .dashboard import (ANOMALY_M, REPAIR_SLA, SLA_H, Filters, PROJECT_METRICS, accuracy, anomaly_pct, by_district, dow_of,
+                        hour_of, last_months, latest_anomalies, metric_value, month_days, monthly, monthly_plan, pickups, plan,
+                        project_windows, repair_queue, reports, savings, sla_pct, totals, _where)
 from .history import FRACTIONS, HISTORY_START, WDROZENIE
 from .methodology import money_assumptions
 from .models import Point, Project
@@ -130,13 +131,18 @@ def _kpi_values(t, p, a):
     zl, visits, km = savings(t, p, a)
     return {"koszt": _num(t["koszt"]), "wywozy": int(t["wywozy"]), "zapelnienie": _num(t["zapelnienie"], 1),
             "zgloszenia": int(t["zgloszenia"]), "czas_reakcji": _num(t["czas_reakcji"], 1),
-            "oszczednosci": _num(zl), "co2": _num(km * a["co2_per_km"], 1), "kursy": round(visits)}
+            "oszczednosci": _num(zl), "co2": _num(km * a["co2_per_km"], 1), "kursy": round(visits),
+            "sla_2h": _num(sla_pct(t), 1), "anomalie": int(t["anomalie"]), "anomalie_pct": _num(anomaly_pct(t), 1)}
 
 
 KPI = [("koszt", "Koszt wywozów", "zł", "mniej"), ("wywozy", "Wywozy", "szt.", "mniej"),
        ("zapelnienie", "Średnie zapełnienie przy odbiorze", "%", "wiecej"), ("zgloszenia", "Zgłoszenia", "szt.", "mniej"),
-       ("czas_reakcji", "Średni czas reakcji", "h", "mniej"), ("oszczednosci", "Oszczędności wobec planu", "zł", "wiecej"),
-       ("co2", "Redukcja CO₂", "kg", "wiecej")]
+       ("czas_reakcji", "Średni czas reakcji", "h", "mniej"), ("sla_2h", f"Obsłużone w ≤ {SLA_H} h", "%", "wiecej"),
+       ("oszczednosci", "Oszczędności wobec planu", "zł", "wiecej"), ("co2", "Redukcja CO₂", "kg", "wiecej"),
+       ("anomalie", "Anomalie ekipy", "szt.", "mniej")]
+KPI_OPIS = {"sla_2h": f"Norma MPO dla interwencji: {SLA_H} h od zgłoszenia. Liczone ze zgłoszeń zamkniętych albo otwartych "
+                      f"dłużej niż {SLA_H} h.",
+            "anomalie": f"Odbiory potwierdzone w aplikacji kierowcy dalej niż {ANOMALY_M} m od kosza."}
 
 
 @bp.get("/dashboard/kpi")
@@ -159,6 +165,10 @@ def kpi():
                 "trend": [trends[m][kid] for m in months]}
         if kid == "oszczednosci":
             item["kursy"] = cur["kursy"]
+        if kid in KPI_OPIS:
+            item["opis"] = KPI_OPIS[kid]
+        if kid == "anomalie" and cur["anomalie_pct"] is not None:
+            item["podpis"] = f"{cur['anomalie_pct']:g}".replace(".", ",") + f"% wywozów · próg {ANOMALY_M} m"
         out.append(item)
     return {"meta": {**meta, "miesiace": months}, "kpi": out}
 
@@ -229,8 +239,37 @@ def _mapa(f, now):
     return {"kosze": kosze, "goraco": [[lat, lon, n] for lat, lon, n in rows], "goraco_dni": HOT_DAYS}
 
 
+def _pct(a, b, nd=1):
+    return round(100 * a / b, nd) if b else None
+
+
+def _jakosc(f, now):
+    """Jakość obsługi według dzielnic: norma 2 h, anomalie ekipy (> 150 m), trafność zgłoszeń (symulacja obszaru demo)."""
+    names = [f.district] if f.district else districts()
+    rows, acc = by_district(f, now), accuracy(f, now)
+    out = []
+    for d in names:
+        r = rows.get(d, {})
+        hit, n = acc.get(d, (0, 0))
+        out.append({"dzielnica": d, "sla_2h_pct": _pct(r.get("sla_ok", 0), r.get("sla_ocenione", 0)),
+                    "sla_ocenione": int(r.get("sla_ocenione", 0)), "wywozy": int(r.get("wywozy", 0)),
+                    "anomalie": int(r.get("anomalie", 0)), "anomalie_pct": _pct(r.get("anomalie", 0), r.get("wywozy", 0), 2),
+                    "trafnosc_pct": _pct(hit, n), "trafnosc_rozstrzygniete": n})
+    return {"dzielnice": out, "norma_h": SLA_H, "prog_m": ANOMALY_M,
+            "trafnosc_zrodlo": "Symulacja obszaru demo (72 punkty, Stare Miasto i Grzegórzki): zgłoszenie trafne, "
+                               "gdy przy odbiorze kosz był zapełniony co najmniej w 75%."}
+
+
+def _anomalie(f, now):
+    rows = latest_anomalies(f, now)
+    names = {p.id: (p.name, p.address) for p in Point.query.filter(Point.id.in_({r.point_id for r in rows}))} if rows else {}
+    return {"prog_m": ANOMALY_M, "lista": [
+        {"kosz_id": r.point_id, "kosz": names.get(r.point_id, ("", ""))[0], "adres": names.get(r.point_id, ("", ""))[1],
+         "dzielnica": r.district, "data": r.at.isoformat(), "odleglosc_m": int(r.far_m)} for r in rows]}
+
+
 CHARTS = {"frakcje": _frakcje, "dzielnice": _dzielnice, "koszty": _koszty, "zgloszenia": _zgloszenia,
-          "heatmapa": _heatmapa, "mapa": _mapa}
+          "heatmapa": _heatmapa, "mapa": _mapa, "jakosc": _jakosc, "anomalie": _anomalie}
 
 
 @bp.get("/dashboard/wykresy/<nazwa>")
@@ -241,6 +280,21 @@ def chart(nazwa):
     now = clock.now()
     f, meta = parse_filters(now)
     return {"meta": meta, **CHARTS[nazwa](f, now)}
+
+
+@bp.get("/naprawy")
+@_cached_json
+def repairs():
+    """Kolejka napraw: otwarte zgłoszenia „Uszkodzony” z terminem 24 h (dashboard.REPAIR_SLA). Okres filtrów nie ma
+    znaczenia (to stan na teraz); filtr dzielnicy działa."""
+    now = clock.now()
+    f, meta = parse_filters(now)
+    items = repair_queue(now, f.district)
+    return {"meta": {**meta, "sla_h": int(REPAIR_SLA.total_seconds() // 3600)}, "naprawy": [
+        {"kosz_id": it["point"].id, "kosz": it["point"].name, "adres": it["point"].address or "",
+         "dzielnica": it["point"].district, "zgloszono": it["at"].isoformat(), "termin": it["due"].isoformat(),
+         "status": "po terminie" if it["late"] else "w terminie", "po_terminie": it["late"],
+         "zgloszen": it["presses"], "komentarz": it["note"] or ""} for it in items]}
 
 
 def _project_trend(pr, now, months):

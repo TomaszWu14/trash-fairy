@@ -15,7 +15,7 @@
   const fmtM = m => m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;
   const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m} min`;
   // „dlaczego tu”: powód z reguły priorytetu (api_pl.powod); pełny kosz ma już kolor i ikonę w samym powodzie
-  const WHY = [['zgłosz', 'brand', 'message-square-text'], ['Pełny', 'full', 'circle-alert'], ['Prognoza', 'warn', 'trending-up']];
+  const WHY = [['Zdjęcie', 'neutral', 'camera'], ['zgłosz', 'brand', 'message-square-text'], ['Pełny', 'full', 'circle-alert'], ['Prognoza', 'warn', 'trending-up']];
   const why = k => {
     const [, cls, ico] = WHY.find(([t]) => (k.powod || '').includes(t)) || [null, 'neutral', 'route'];
     return `<span class="badge ${cls}" title="Dlaczego na tej pozycji">${icon(ico)}${esc(k.powod || '')}</span>`;
@@ -48,6 +48,12 @@
         document.getElementById('k-done-box').hidden = !done.length;
         document.getElementById('k-done-n').textContent = `(${done.length})`;
         document.getElementById('k-done-list').innerHTML = done.map(k => row(k, false)).join('');
+        const skip = d.pominiete || [], more = (d.pominiete_liczba || 0) - skip.length;  // „dlaczego nie na trasie” (routes.skip_reason)
+        document.getElementById('k-skip-box').hidden = !skip.length;
+        document.getElementById('k-skip-n').textContent = `(${d.pominiete_liczba})`;
+        document.getElementById('k-skip-list').innerHTML = skip.map(k => `<li><a href="/kierowca/kosz/${k.id}"><b>${esc(k.nazwa)}</b>
+          <b class="num">${k.poziom}%</b><span>${esc(k.powod)}</span></a></li>`).join('')
+          + (more > 0 ? `<li class="hint">i ${more} mniej pełnych</li>` : '');
         layer.clearLayers();
         if (d.linia.length > 1) L.polyline(d.linia, { color: BRAND, weight: 4, opacity: .75 }).addTo(layer);
         todo.slice(5).forEach(k => L.circleMarker([k.lat, k.lon], { radius: 6, weight: 2, color: '#fff', fillColor: COLOR[window.TF.lvl(k.poziom)], fillOpacity: 1 })
@@ -77,7 +83,8 @@
   const render = k => {
     document.getElementById('k-head').innerHTML = `${gauge(k.poziom)}<div><h1>${esc(k.nazwa)}</h1><span>${esc(k.adres)} · ${esc(k.rodzaj)}</span>
       <div class="k-stop-tags">${fillBadge(k.poziom)}${frac(k.frakcja)}</div></div><b class="k-big num">${k.poziom}%</b>
-      <p class="k-fc">${icon('trending-up', 'i-sm')}${esc(k.prognoza)}</p>`;
+      <p class="k-fc">${icon('trending-up', 'i-sm')}${esc(k.prognoza)}</p>
+      ${k.trasa && k.trasa.powod ? `<p class="k-fc">${icon(k.trasa.na_trasie ? 'route' : 'clock', 'i-sm')}<span><b>${k.trasa.na_trasie ? 'Na trasie najbliższego kursu' : 'Poza najbliższym kursem'}:</b> ${esc(k.trasa.powod)}</span></p>` : ''}`;
     document.getElementById('k-reports').innerHTML = k.zgloszenia.length ? `<div class="k-reports">${k.zgloszenia.map(z =>
       `<div class="k-rep">${icon('message-square-text')}<div><b>Zgłoszenie mieszkańca: ${esc(z.typ)}</b>${z.komentarz ? `<q>${esc(z.komentarz)}</q>` : 'Bez komentarza.'}${window.TF.aiBlock(z.ai)}</div></div>`).join('')}</div>`
       : '<p class="hint">Brak zgłoszeń mieszkańców przy tym koszu.</p>';

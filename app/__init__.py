@@ -119,6 +119,7 @@ def _add_missing_columns():
     insp = inspect(db.engine)
     for table, column, ddl in [("press", "kind", "VARCHAR(10)"), ("demo_clock", "last_activity", "TIMESTAMP"),
                                ("emptying", "source", "VARCHAR(10)"), ("emptying", "far_m", "INTEGER"),
+                               ("pickup", "far_m", "INTEGER"),
                                ("press", "note", "VARCHAR(280)"), ("press", "photo_id", "INTEGER"),
                                ("point", "live", "BOOLEAN NOT NULL DEFAULT TRUE"), ("point", "district", "VARCHAR(30)"),
                                ("point", "fraction", "VARCHAR(20) NOT NULL DEFAULT 'zmieszane'"),

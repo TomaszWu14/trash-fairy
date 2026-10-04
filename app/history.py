@@ -121,13 +121,27 @@ def fraction_factor(district, fraction, d):
     return SEASON[fraction][d.month - 1] * (1 + shift * edu)
 
 
+# Odległość telefonu ekipy od kosza przy potwierdzeniu odbioru (ZAŁOŻENIE DEMO, nie dane MPO): zwykle rozrzut GPS przy
+# koszu — rozkład log-normalny z medianą FAR_MEDIAN_M (σ = 0,6: ok. 95% poniżej 35 m); w FAR_ANOMALY_SHARE odbiorów
+# potwierdzenie „z kabiny” albo hurtem po kursie — równomiernie FAR_ANOMALY_M od kosza. Anomalia na panelu: > 150 m
+# (dashboard.ANOMALY_M). Osobny RNG (seed:far), więc pozostałe liczby historii nie zmieniają się.
+FAR_MEDIAN_M, FAR_SIGMA = 12, 0.6
+FAR_ANOMALY_SHARE, FAR_ANOMALY_M = 0.03, (160, 900)
+
+
+def far_m(rng):
+    if rng.random() < FAR_ANOMALY_SHARE:
+        return rng.randint(*FAR_ANOMALY_M)
+    return min(150, round(rng.lognormvariate(log(FAR_MEDIAN_M), FAR_SIGMA)))
+
+
 def _reaction(rng, on_demand):
     return timedelta(hours=rng.lognormvariate(log(REACTION_H[on_demand]) - 0.125, 0.5))
 
 
 class _Out:
-    def __init__(self, a):
-        self.a, self.pickups, self.reports = a, [], []
+    def __init__(self, a, far_rng):
+        self.a, self.far_rng, self.pickups, self.reports = a, far_rng, [], []
 
     def pickup(self, p, at, fill, on_demand, rng):
         km = KM_PER_VISIT[p.kind]
@@ -136,7 +150,7 @@ class _Out:
         m = mass_kg(fill, CAPACITY_L[p.kind], FRACTIONS[p.fraction][1])
         self.pickups.append({"point_id": p.id, "at": at, "fraction": p.fraction, "mass_kg": round(m, 2),
                              "cost_pln": round(cost_pln(m, km, self.a), 2), "km": round(km, 3), "fill_pct": int(fill),
-                             "on_demand": on_demand})
+                             "on_demand": on_demand, "far_m": far_m(self.far_rng)})
 
     def report(self, p, created, resolved, kind="przepelniony"):
         self.reports.append({"point_id": p.id, "created_at": created, "resolved_at": resolved, "kind": kind})
@@ -235,7 +249,7 @@ def generate_history(seed=HISTORY_SEED, now=DEMO_NOW, sim_start=None):
     end = hour_floor(now)
     start = end - timedelta(days=HISTORY_DAYS)
     sim_start = sim_start or end  # tylko wyrównanie cyklu altan (co 3 dni) z symulacją
-    out = _Out(money_assumptions())
+    out = _Out(money_assumptions(), random.Random(f"{seed}:far"))
     for p in Point.live_query().order_by(Point.osm_id):
         _live_point(p, random.Random(f"{seed}:{p.osm_id}"), start, now, sim_start, out)
     snapshot = [{"id": p.id, "snapshot_fill": _city_point(p, random.Random(f"{seed}:{p.osm_id}"), start, now, out)}

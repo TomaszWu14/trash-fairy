@@ -18,6 +18,6 @@ def test_large_static_is_gzipped_small_and_uncompressed_clients_are_not(client):
     import gzip
     r = client.get("/static/vendor/echarts/echarts.min.js", headers={"Accept-Encoding": "gzip, br"})
     assert r.headers["Content-Encoding"] == "gzip" and r.headers["Vary"] == "Accept-Encoding"
-    assert len(r.data) < 500_000 and len(gzip.decompress(r.data)) > 1_000_000
+    assert len(r.data) < 300_000 and len(gzip.decompress(r.data)) > 500_000
     assert "Content-Encoding" not in client.get("/static/vendor/echarts/echarts.min.js").headers
     assert "Content-Encoding" not in client.get("/health", headers={"Accept-Encoding": "gzip"}).headers  # < 1 kB

@@ -25,6 +25,9 @@
         {% for _ in range(6) %}<li class="k-stop"><span class="skel" style="width:34px;height:40px"></span><span class="skel" style="flex:1;height:40px"></span></li>{% endfor %}
       </ol>
       <details class="k-done" id="k-done-box" hidden><summary>Opróżnione <span id="k-done-n"></span></summary><ol class="k-stops" id="k-done-list"></ol></details>
+      <details class="k-done k-skip" id="k-skip-box" hidden><summary>Pominięte w tym kursie <span id="k-skip-n"></span></summary>
+        <p class="hint">Reguły w kodzie: poziom, prognoza 85% i bezpiecznik. Te kosze zdążą na kolejny kurs.</p>
+        <ul class="k-skip-list" id="k-skip-list"></ul></details>
     </section>
   </div>
 </div>

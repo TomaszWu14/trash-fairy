@@ -162,3 +162,20 @@ def test_auto_reset_after_idle(point):
     assert clock.maybe_auto_reset()
     assert clock.now() == clock.DEMO_NOW and db.session.get(DemoClock, 1).last_activity is None
     assert Press.query.filter(Press.wall_at.isnot(None)).count() == 0
+
+
+
+def test_point_reliability_counts_reports_without_presses_and_skips_damaged(point):
+    """Zgłoszenia z symulacji nie mają naciśnięć z report_id; „uszkodzony” nie mówi o zapełnieniu."""
+    from datetime import datetime
+    from app.models import Press, Report
+    from app.reports import point_reliability, reliability
+    t = datetime(2026, 10, 3, 10)
+    for _ in range(3):
+        db.session.add(Report(point_id=point.id, first_at=t, last_at=t, presses=1, weight=0.7, hit=True))
+    bad = Report(point_id=point.id, first_at=t, last_at=t, presses=1, weight=0.7, hit=False)
+    db.session.add(bad)
+    db.session.flush()
+    db.session.add(Press(point_id=point.id, at=t, report_id=bad.id, kind="damaged"))
+    db.session.commit()
+    assert point_reliability(point.id) == reliability([True, True, True])

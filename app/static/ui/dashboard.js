@@ -3,7 +3,7 @@
   const TF = window.TF, { api, esc, icon, num, zl, C } = TF;
   const form = document.getElementById('d-filters');
   const KPI_ICON = { koszt: 'banknote', wywozy: 'truck', zapelnienie: 'gauge', zgloszenia: 'message-square-text', czas_reakcji: 'timer',
-                     oszczednosci: 'coins', co2: 'leaf' };
+                     oszczednosci: 'coins', co2: 'leaf', sla_2h: 'clock', anomalie: 'locate-fixed' };
   const cache = {};
   const st = { charts: {} };
 
@@ -175,6 +175,40 @@
     cache.mapa = kosze;
   }
 
+  // ---------- jakość obsługi i kolejka napraw (tabele, bez ECharts) ----------
+  const pct = (v, nd = 1) => v == null ? '–' : `${num(v, nd)}%`;
+  const when = iso => new Date(iso).toLocaleString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  function rJakosc(d) {
+    const rows = d.dzielnice || [], box = document.getElementById('ch-jakosc');
+    box.innerHTML = `<table class="dtable q-table"><thead><tr><th scope="col">Dzielnica</th><th scope="col">Zgłoszenia w ≤ ${d.norma_h} h</th>
+      <th scope="col" class="n">Anomalie ekipy</th><th scope="col" class="n">Trafność zgłoszeń<span aria-hidden="true">*</span></th></tr></thead><tbody>${rows.map(r => `<tr>
+      <th scope="row">${esc(r.dzielnica)}</th>
+      <td><div class="q-sla"><b class="num">${pct(r.sla_2h_pct)}</b><div class="bar" aria-hidden="true"><i style="--p:${((r.sla_2h_pct || 0) / 100).toFixed(3)}"></i></div></div>
+        <small>z ${num(r.sla_ocenione)} ${TF.plural(r.sla_ocenione, ['zgłoszenia', 'zgłoszeń', 'zgłoszeń'])}</small></td>
+      <td class="n"><b class="num">${num(r.anomalie)}</b><small>${pct(r.anomalie_pct, 1)} z ${num(r.wywozy)} ${TF.plural(r.wywozy, ['wywozu', 'wywozów', 'wywozów'])}</small></td>
+      <td class="n">${r.trafnosc_pct == null ? '<small>brak danych</small>' : `<b class="num">${pct(r.trafnosc_pct)}</b><small>z ${num(r.trafnosc_rozstrzygniete)} rozstrzygniętych</small>`}</td></tr>`).join('')}</tbody></table>`;
+    document.getElementById('q-note').textContent = `Dane demonstracyjne. Norma: odbiór w ≤ ${d.norma_h} h od zgłoszenia (liczone zgłoszenia zamknięte albo otwarte dłużej niż ${d.norma_h} h). `
+      + `Anomalia: odbiór potwierdzony dalej niż ${d.prog_m} m od kosza. * ${d.trafnosc_zrodlo}`;
+  }
+  function rNaprawy(d) {
+    const list = d.naprawy || [], box = document.getElementById('ch-naprawy'), count = document.getElementById('rq-count');
+    const late = list.filter(x => x.po_terminie).length;
+    count.hidden = !list.length;
+    count.className = `badge ${late ? 'full' : 'neutral'}`;
+    count.textContent = late ? `${num(list.length)} · ${num(late)} po terminie` : `${num(list.length)} w kolejce`;
+    if (!list.length) {
+      box.innerHTML = `<div class="empty rq-empty"><img src="/static/ui/ill/sukces.svg" alt=""><h3>Brak uszkodzeń do naprawy</h3>
+        <p>Zgłoszenie „Uszkodzony” od mieszkańca pojawi się tutaj z terminem ${num(d.meta?.sla_h || 24)} h.</p></div>`;
+      return;
+    }
+    box.innerHTML = `<ul class="rq-list">${list.map(x => `<li class="rq-item${x.po_terminie ? ' late' : ''}">
+      <span class="rq-ico">${icon('wrench')}</span>
+      <div class="rq-main"><b>${esc(x.kosz)}</b><span>${esc(x.adres)}${x.adres ? ' · ' : ''}${esc(x.dzielnica || '')}</span>
+        <span>Zgłoszono ${esc(when(x.zgloszono))} · termin ${esc(when(x.termin))}</span>
+        ${x.komentarz ? `<q>${esc(x.komentarz)}</q>` : ''}</div>
+      <span class="badge ${x.po_terminie ? 'full' : 'ok'}">${icon(x.po_terminie ? 'triangle-alert' : 'clock')}${esc(x.status)}</span></li>`).join('')}</ul>`;
+  }
+
   // ---------- projekty ----------
   const STATUS = { planowany: ['neutral', 'Planowany'], w_realizacji: ['progress', 'W realizacji'], zakonczony: ['ok', 'Zakończony'] };
   function rProjekty(list) {
@@ -210,6 +244,13 @@
       const tot = cache.frakcje.reduce((a, r) => a + r.masa_t, 0) || 1;
       b.innerHTML = table([{ t: 'Frakcja' }, { t: 'Masa', n: 1 }, { t: 'Udział', n: 1 }],
         cache.frakcje.map(r => [`<span class="frac" data-f="${esc(r.frakcja)}">${esc(r.etykieta)}</span>`, `${num(r.masa_t, 1)} t`, `${num(100 * r.masa_t / tot, 1)}%`]));
+    } else if (kind === 'anomalie' && cache.anomalie) {
+      h.textContent = `Anomalie ekipy: odbiory dalej niż ${cache.anomalie.prog_m} m od kosza`;
+      const list = cache.anomalie.lista;
+      b.innerHTML = list.length ? `${table([{ t: 'Kosz' }, { t: 'Dzielnica' }, { t: 'Data' }, { t: 'Odległość', n: 1 }],
+        list.map(a => [`<b>${esc(a.kosz)}</b><br><small>${esc(a.adres || '')}</small>`, esc(a.dzielnica || ''), esc(when(a.data)), `${num(a.odleglosc_m)} m`]))}
+        <p class="q-note">Najnowsze ${num(list.length)} w wybranym okresie. Dane demonstracyjne.</p>`
+        : '<div class="empty"><img src="/static/ui/ill/sukces.svg" alt=""><h3>Brak anomalii w tym okresie</h3></div>';
     } else if (kind === 'kosz') {
       h.textContent = item.nazwa;
       b.innerHTML = table([{ t: 'Pole' }, { t: 'Wartość' }], [['Adres', esc(item.adres || '–')], ['Dzielnica', esc(item.dzielnica)],
@@ -222,21 +263,25 @@
   document.getElementById('d-print').addEventListener('click', () => window.print());
 
   // ---------- ładowanie ----------
-  const NAMES = ['koszty', 'frakcje', 'dzielnice', 'zgloszenia', 'heatmapa', 'mapa'];
-  const RENDER = { koszty: rKoszty, frakcje: rFrakcje, dzielnice: rDzielnice, zgloszenia: rZgloszenia, heatmapa: rHeat, mapa: rMapa };
+  const NAMES = ['koszty', 'frakcje', 'dzielnice', 'zgloszenia', 'heatmapa', 'mapa', 'jakosc', 'anomalie'];
+  const NO_ECHARTS = ['mapa', 'jakosc', 'anomalie'];
+  const RENDER = { koszty: rKoszty, frakcje: rFrakcje, dzielnice: rDzielnice, zgloszenia: rZgloszenia, heatmapa: rHeat, mapa: rMapa,
+                   jakosc: rJakosc, anomalie: d => { cache.anomalie = d; } };
   let seq = 0;
   async function load() {
     const my = ++seq, q = params().toString(), qs = q ? `?${q}` : '';
     try {
-      const [kpi, ...charts] = await Promise.all([api(`/api/dashboard/kpi${qs}`), ...NAMES.map(n => api(`/api/dashboard/wykresy/${n}${qs}`))]);
+      const [kpi, naprawy, ...charts] = await Promise.all([api(`/api/dashboard/kpi${qs}`), api(`/api/naprawy${qs}`),
+        ...NAMES.map(n => api(`/api/dashboard/wykresy/${n}${qs}`))]);
       if (my !== seq) return;  // nowszy filtr wygrywa
       renderKpis(kpi);
-      rMapa(charts[NAMES.indexOf('mapa')]);  // mapa (Leaflet) nie czeka na ECharts
+      rNaprawy(naprawy);
+      NO_ECHARTS.forEach(n => RENDER[n](charts[NAMES.indexOf(n)]));  // mapa (Leaflet) i tabele nie czekają na ECharts
       try { await TF.echarts; } catch (_) {
         TF.echarts = TF.loadEcharts();  // kolejna zmiana danych albo filtr spróbuje wczytać wykresy jeszcze raz
         throw new Error('Nie udało się wczytać wykresów. Sprawdź połączenie, spróbujemy ponownie.');
       }
-      charts.forEach((d, i) => NAMES[i] !== 'mapa' && RENDER[NAMES[i]](d));
+      charts.forEach((d, i) => !NO_ECHARTS.includes(NAMES[i]) && RENDER[NAMES[i]](d));
     } catch (e) {
       TF.toast(e.message, 'err');
     }

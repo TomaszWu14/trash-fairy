@@ -391,3 +391,15 @@ Frontend: polska odmiana liczebników, blokada podwójnej wysyłki także z klaw
 Reset biegnie pod blokadą `pg_try_advisory_lock` (jeden naraz we wszystkich workerach). `seed --force` na PostgreSQL zeruje sekwencję
 id punktów: bez tego kosz demo nr 18 (QR na slajdach, `/panel/18`) znikał i strona startowa dawała 404.
 Odrzuciliśmy zamknięcie resetu hasłem: demo jest bez logowania z decyzji autora, a limit i blokada wystarczą na okno oceny.
+
+## 10 wzmocnień pod jury (niedz. 4.10, rano)
+
+**Wszystko regułami w kodzie, na danych, które już mamy.** Dashboard: terminowość „≤ 2 h” (norma MPO dla interwencji; w dzielnicach
+ze stałym harmonogramem generator daje ok. 0%, w dzielnicach z odbiorem na żądanie ok. 35% — to wynik danych demonstracyjnych, nie poprawiamy),
+anomalie ekipy (> 150 m; historia ma `far_m` z generatora: 97% rozrzutu GPS, 3% daleko — jawne założenie demo, regenerowane raz przy resecie),
+trafność zgłoszeń z symulacji, kolejka napraw dla „Uszkodzony” z terminem 24 h (`/api/naprawy`). Kierowca: powód pominięcia kosza w kursie
+(`routes.skip_reason`), AI obniża priorytet przy zdjęciu „w porządku” z pewnością ≥ 0,8, ale nigdy nie zamyka zgłoszenia; OR-Tools z pojemnością
+i do 3 pojazdów (w demo wystarcza jeden, więc liczby ze slajdów bez zmian: pilnuje test). Otwarte API: miesięczne open data i Open311 GeoReport v2
+bez danych osobowych. Własna paczka ECharts (645 kB zamiast 1 MB). QR na slajdzie 1 = ten sam adres co na panelu kosza (`/kosz/18/zglos`).
+Poprawka z przeglądu: wiarygodność przycisku wyklucza zgłoszenia „uszkodzony/inne” zamiast wybierać „pełne” (symulowane naciśnięcia nie mają
+`report_id`, więc wybór gubił całą historię). Odrzuciliśmy kolejkę napraw odporną na odbiór (status „naprawiono”): wymaga roli serwisu, w ROADMAPA.

@@ -21,7 +21,7 @@
                  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23676D85' stroke-width='2'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E") no-repeat right 10px center; }
 .f-sel .select.on { border-color: var(--brand); background-color: var(--brand-soft); color: var(--brand-ink); }
 
-.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s3); }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s3); }  /* 9 kafli, oszczędności ×2 = 2 rzędy */
 .kpi-oszczednosci { grid-column: span 2; background: linear-gradient(135deg, #fff 40%, var(--brand-soft)); border-color: var(--brand-line); }
 .kpi-oszczednosci .kpi-v { color: var(--brand-ink); }
 .kpi-note { grid-column: 1 / -1; font-size: var(--fs-xs); color: var(--ink-3); margin-top: calc(-1 * var(--s1)); }
@@ -50,6 +50,27 @@
 .lg.full { background: var(--fill-full); } .lg.hot { background: radial-gradient(circle, rgb(220 38 38 / .55), rgb(220 38 38 / 0) 70%); width: 16px; height: 16px; }
 .tiles-soft { filter: grayscale(.9) contrast(.9) brightness(1.08); }
 
+/* jakość obsługi (tabela dzielnic) i kolejka napraw */
+.q-body { margin-top: var(--s3); overflow-x: auto; }
+.q-table td small { display: block; font-size: var(--fs-xs); color: var(--ink-3); }
+.q-table th[scope="row"] { color: var(--ink); font-weight: 650; font-size: var(--fs-sm); text-transform: none; letter-spacing: 0; white-space: nowrap; }
+.q-sla { display: flex; align-items: center; gap: var(--s2); }
+.q-sla b { min-width: 3.5em; }
+.q-sla .bar { flex: 1; min-width: 60px; max-width: 160px; }
+.q-note { font-size: var(--fs-xs); color: var(--ink-3); margin-top: var(--s3); }
+.rq { margin-top: var(--s3); max-height: 420px; overflow-y: auto; }
+.rq-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+.rq-item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s2) var(--s3); padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r-md); }
+.rq-item.late { border-color: var(--fill-full); background: var(--fill-full-soft); }
+.rq-item .badge { grid-column: 2; justify-self: start; }
+.rq-ico { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--r-sm); background: var(--surface-2); color: var(--ink-2); }
+.rq-main { display: grid; gap: 2px; min-width: 0; font-size: var(--fs-xs); color: var(--ink-2); }
+.rq-main b { font-size: var(--fs-sm); color: var(--ink); }
+.rq-main q { font-style: italic; color: var(--ink); }
+.rq-empty { padding: var(--s6) var(--s4); }
+.rq-empty img { width: 110px; }
+.rq-empty p { font-size: var(--fs-sm); max-width: 32ch; }
+
 .projects { margin-top: var(--s4); }
 .pgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s4); }
 .pcard { display: flex; flex-direction: column; gap: var(--s3); padding: var(--s5); color: inherit; text-decoration: none; }
@@ -77,7 +98,7 @@
 .proj-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s3); }
 .pgrid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s4); }
 
-@media (max-width: 1100px) { .dgrid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .dgrid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rq { max-height: none; } }
 @media (max-width: 720px) {
   .dash { width: min(100% - 2 * var(--s4), 1440px); }
   .filters { position: static; } .f-sel, .f-sel .select { width: 100%; } .seg { width: 100%; } .seg label { flex: 1; } .seg span { justify-content: center; width: 100%; padding: 0 var(--s2); }

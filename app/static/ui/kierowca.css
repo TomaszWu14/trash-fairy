@@ -32,6 +32,14 @@
 .k-stop.top { background: linear-gradient(90deg, var(--brand-soft), rgb(239 235 255 / 0) 70%); }
 .k-stop.done .k-stop-txt b { text-decoration: line-through; color: var(--ink-3); }
 .k-done summary { padding: var(--s3) var(--s5); cursor: pointer; font-weight: 700; font-size: var(--fs-sm); color: var(--ink-2); border-top: 1px solid var(--line); }
+.k-skip .hint { padding: 0 var(--s5) var(--s2); }
+.k-skip-list { list-style: none; padding: 0; margin: 0; }
+.k-skip-list li { border-top: 1px solid var(--line); }
+.k-skip-list li.hint { padding: var(--s3) var(--s5); }
+.k-skip-list a { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--s3); padding: var(--s3) var(--s5); min-height: 44px;
+                 color: inherit; text-decoration: none; font-size: var(--fs-sm); }
+.k-skip-list a:hover { background: var(--surface-2); }
+.k-skip-list a span { grid-column: 1 / -1; color: var(--ink-2); font-size: var(--fs-xs); }
 .truck { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--ink); color: #fff;
          box-shadow: 0 0 0 3px #fff, var(--shadow-2); }
 .truck .i { width: 20px; height: 20px; }

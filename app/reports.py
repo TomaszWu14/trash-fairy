@@ -38,9 +38,11 @@ def low_reliability(resolved, now):
 
 
 def point_reliability(point_id):
-    fill = select(Press.report_id).where(Press.kind.is_(None) | Press.kind.in_(("full", "overflow")))
-    rows = (Report.query.filter(Report.point_id == point_id, Report.hit.isnot(None), Report.id.in_(fill))  # „uszkodzony” nie mówi
-            .order_by(Report.first_at.desc()).limit(RELIABILITY_WINDOW).all())  # o zapełnieniu: nie psuje wiarygodności
+    # wykluczamy zgłoszenia z naciśnięciem „uszkodzony”/„inne” (nie mówią o zapełnieniu); wykluczanie, nie wybór „pełnych”,
+    # bo naciśnięcia z symulacji nie mają report_id i wybór zgubiłby całą historię przycisku
+    odd = select(Press.report_id).where(Press.report_id.isnot(None), Press.kind.in_(("damaged", "other")))
+    rows = (Report.query.filter(Report.point_id == point_id, Report.hit.isnot(None), Report.id.notin_(odd))
+            .order_by(Report.first_at.desc()).limit(RELIABILITY_WINDOW).all())
     return reliability([r.hit for r in reversed(rows)])
 
 

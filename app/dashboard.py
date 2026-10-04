@@ -8,7 +8,7 @@ liczą; akcje z demo od razu zmieniają liczniki panelu.
 from dataclasses import dataclass, replace
 from datetime import date, datetime, timedelta
 
-from sqlalchemy import Integer, case, cast, extract, func, literal, select, union_all
+from sqlalchemy import Integer, and_, case, cast, extract, func, literal, or_, select, union_all
 
 from . import db
 from .history import CAPACITY_L, FRACTIONS, KM_PER_VISIT, WDROZENIE, cost_pln, mass_kg
@@ -17,6 +17,9 @@ from .models import Emptying, Pickup, Point, Press, Report, ReportHistory
 
 EMPTY_BELOW = 50  # odbiór przy zapełnieniu poniżej 50% = „pusty wywóz” (jak EMPTY_VISIT_BELOW w porównaniu)
 BASELINE = (date(2025, 11, 1), WDROZENIE)  # plan = średnia dzienna z miesięcy przed pierwszym wdrożeniem
+SLA_H = 2  # norma MPO: interwencja na zgłoszenie w ≤ 2 h
+SLA_EPS_H = 1 / 3600  # 1 s tolerancji: julianday w SQLite liczy różnicę z błędem zaokrąglenia
+ANOMALY_M = 150  # „anomalia ekipy”: odbiór potwierdzony dalej niż 150 m od kosza (ten sam promień co zgłoszenia, api_pl)
 
 
 @dataclass(frozen=True)
@@ -65,16 +68,16 @@ def _by(mapping, col):
 # --- źródła danych ---
 
 def pickups(now):
-    """Wszystkie odbiory do `now`: kolumny point_id, district, fraction, at, mass_kg, cost_pln, km, fill_pct, on_demand."""
+    """Wszystkie odbiory do `now`: kolumny point_id, district, fraction, at, mass_kg, cost_pln, km, fill_pct, on_demand, far_m."""
     a = money_assumptions()
     km = _by(KM_PER_VISIT, Point.kind)
     mass = mass_kg(Emptying.level, _by(CAPACITY_L, Point.kind), _by({k: v[1] for k, v in FRACTIONS.items()}, Point.fraction))
     live = (select(Emptying.point_id, Point.district, Point.fraction, Emptying.at, mass.label("mass_kg"),
                    cost_pln(mass, km, a).label("cost_pln"), km.label("km"), Emptying.level.label("fill_pct"),
-                   literal(1).label("on_demand"))
+                   literal(1).label("on_demand"), Emptying.far_m)
             .join(Point, Point.id == Emptying.point_id).where(Emptying.source == "crew", Emptying.at <= now))
     hist = (select(Pickup.point_id, Point.district, Pickup.fraction, Pickup.at, Pickup.mass_kg, Pickup.cost_pln, Pickup.km,
-                   Pickup.fill_pct, case((Pickup.on_demand, 1), else_=0).label("on_demand"))
+                   Pickup.fill_pct, case((Pickup.on_demand, 1), else_=0).label("on_demand"), Pickup.far_m)
             .join(Point, Point.id == Pickup.point_id).where(Pickup.at <= now))
     return union_all(hist, live).subquery("odbiory")
 
@@ -111,11 +114,35 @@ def _pickup_cols(o):
             func.coalesce(func.sum(o.c.mass_kg), 0).label("masa"), func.coalesce(func.sum(o.c.km), 0).label("km"),
             func.avg(o.c.fill_pct).label("zapelnienie"),
             func.coalesce(func.sum(case((o.c.fill_pct < EMPTY_BELOW, 1), else_=0)), 0).label("puste"),
-            func.coalesce(func.sum(case((o.c.fraction == "zmieszane", o.c.mass_kg), else_=0)), 0).label("masa_zmieszane"))
+            func.coalesce(func.sum(case((o.c.fraction == "zmieszane", o.c.mass_kg), else_=0)), 0).label("masa_zmieszane"),
+            _anomaly_col(o))
 
 
-def _report_cols(z):
-    return (func.count().label("zgloszenia"), func.avg(hours_between(z.c.created_at, z.c.resolved_at)).label("czas_reakcji"))
+def _anomaly_col(o):
+    return func.coalesce(func.sum(case((o.c.far_m > ANOMALY_M, 1), else_=0)), 0).label("anomalie")
+
+
+def _sla_cols(z, now):
+    """Norma 2 h. sla_ocenione = zgłoszenia z rozstrzygniętą normą: zamknięte albo otwarte dłużej niż 2 h (otwarte od
+    30 min jeszcze mogą zdążyć — nie liczą się ani na plus, ani na minus)."""
+    in_time = and_(z.c.resolved_at.isnot(None), hours_between(z.c.created_at, z.c.resolved_at) <= SLA_H + SLA_EPS_H)
+    judged = or_(z.c.resolved_at.isnot(None), z.c.created_at <= now - timedelta(hours=SLA_H))
+    return (func.coalesce(func.sum(case((in_time, 1), else_=0)), 0).label("sla_ok"),
+            func.coalesce(func.sum(case((judged, 1), else_=0)), 0).label("sla_ocenione"))
+
+
+def _report_cols(z, now):
+    return (func.count().label("zgloszenia"), func.avg(hours_between(z.c.created_at, z.c.resolved_at)).label("czas_reakcji"),
+            *_sla_cols(z, now))
+
+
+def sla_pct(t):
+    """Udział zgłoszeń obsłużonych w ≤ 2 h (%), None = brak ocenionych zgłoszeń."""
+    return 100 * t["sla_ok"] / t["sla_ocenione"] if t["sla_ocenione"] else None
+
+
+def anomaly_pct(t):
+    return 100 * t["anomalie"] / t["wywozy"] if t["wywozy"] else None
 
 
 def pickup_totals(f, now):
@@ -126,7 +153,7 @@ def pickup_totals(f, now):
 def totals(f, now):
     """Sumy odbiorów i zgłoszeń w przedziale filtrów."""
     z = reports(now)
-    r = db.session.execute(_where(select(*_report_cols(z)), z, f, z.c.created_at)).mappings().one()
+    r = db.session.execute(_where(select(*_report_cols(z, now)), z, f, z.c.created_at)).mappings().one()
     return {**pickup_totals(f, now), **r}
 
 
@@ -137,16 +164,70 @@ def monthly(f, now, months, with_reports=True):
     o, z = pickups(now), reports(now)
     om, zm = month_of(o.c.at), month_of(z.c.created_at)
     out = {m: {"wywozy": 0, "koszt": 0, "masa": 0, "km": 0, "zapelnienie": None, "puste": 0, "masa_zmieszane": 0,
-               "zgloszenia": 0, "czas_reakcji": None} for m in months}
+               "anomalie": 0, "zgloszenia": 0, "czas_reakcji": None, "sla_ok": 0, "sla_ocenione": 0} for m in months}
     for row in db.session.execute(_where(select(om.label("m"), *_pickup_cols(o)), o, mf, o.c.at).group_by(om)).mappings():
         if row["m"] in out:
             out[row["m"]].update({k: v for k, v in row.items() if k != "m"})
     if with_reports:
-        for row in db.session.execute(_where(select(zm.label("m"), *_report_cols(z)), z, mf, z.c.created_at)
+        for row in db.session.execute(_where(select(zm.label("m"), *_report_cols(z, now)), z, mf, z.c.created_at)
                                       .group_by(zm)).mappings():
             if row["m"] in out:
                 out[row["m"]].update({k: v for k, v in row.items() if k != "m"})
     return out
+
+
+# --- jakość obsługi: norma 2 h, anomalie ekipy, trafność zgłoszeń, kolejka napraw ---
+REPAIR_SLA = timedelta(hours=24)  # „Uszkodzony”: naprawa w 24 h od zgłoszenia, niezależnie od trasy odbioru
+
+
+def by_district(f, now):
+    """{dzielnica: {wywozy, anomalie, sla_ok, sla_ocenione}} w przedziale filtrów."""
+    o, z = pickups(now), reports(now)
+    out = {}
+    for row in db.session.execute(_where(select(o.c.district, func.count().label("wywozy"), _anomaly_col(o)), o, f, o.c.at)
+                                  .group_by(o.c.district)).mappings():
+        out.setdefault(row["district"], {}).update(wywozy=row["wywozy"], anomalie=row["anomalie"])
+    for row in db.session.execute(_where(select(z.c.district, *_sla_cols(z, now)), z, f, z.c.created_at)
+                                  .group_by(z.c.district)).mappings():
+        out.setdefault(row["district"], {}).update(sla_ok=row["sla_ok"], sla_ocenione=row["sla_ocenione"])
+    return out
+
+
+def latest_anomalies(f, now, limit=50):
+    """Najnowsze odbiory potwierdzone > 150 m od kosza: [(at, point_id, district, far_m)]."""
+    o = pickups(now)
+    q = _where(select(o.c.at, o.c.point_id, o.c.district, o.c.far_m).where(o.c.far_m > ANOMALY_M), o, f, o.c.at)
+    return db.session.execute(q.order_by(o.c.at.desc()).limit(limit)).all()
+
+
+def accuracy(f, now):
+    """{dzielnica: (trafne, rozstrzygnięte)} z tabeli Report (72 punkty demo: symulacja + naciśnięcia na żywo).
+    Bez zgłoszeń z naciśnięciem „uszkodzony”/„inne”: nie mówią, czy kosz był pełny. Wykluczamy, a nie wybieramy
+    naciśnięcia o zapełnieniu, bo naciśnięcia z symulacji nie mają report_id."""
+    other = select(Press.report_id).where(Press.kind.in_(("damaged", "other")), Press.report_id.isnot(None))
+    r = (select(Point.district, Point.fraction, Report.first_at, Report.hit).join(Point, Point.id == Report.point_id)
+         .where(Report.hit.isnot(None), Report.resolved_at <= now, Report.id.notin_(other))).subquery("trafnosc")
+    q = _where(select(r.c.district, func.coalesce(func.sum(case((r.c.hit, 1), else_=0)), 0), func.count()), r, f, r.c.first_at)
+    return {d: (int(hit), int(n)) for d, hit, n in db.session.execute(q.group_by(r.c.district))}
+
+
+def repair_queue(now, district=None):
+    """Otwarte zgłoszenia „Uszkodzony” (Press.kind = damaged, zgłoszenie nierozstrzygnięte w chwili `now`), od
+    najpilniejszego. Termin = pierwsze zgłoszenie uszkodzenia + REPAIR_SLA; po terminie, gdy now > termin."""
+    q = (db.session.query(Press, Point).join(Report, Report.id == Press.report_id).join(Point, Point.id == Press.point_id)
+         .filter(Press.kind == "damaged", Press.at <= now, or_(Report.resolved_at.is_(None), Report.resolved_at > now)))
+    if district:
+        q = q.filter(Point.district == district)
+    items = {}
+    for press, point in q.order_by(Press.at, Press.id):
+        it = items.setdefault(press.report_id, {"point": point, "at": press.at, "note": None, "presses": 0})
+        it["presses"] += 1
+        it["note"] = it["note"] or press.note
+    out = []
+    for it in items.values():
+        due = it["at"] + REPAIR_SLA
+        out.append({**it, "due": due, "late": now > due})
+    return sorted(out, key=lambda x: x["due"])
 
 
 # --- plan ---
