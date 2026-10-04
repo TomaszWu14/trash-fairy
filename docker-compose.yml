@@ -1,0 +1,33 @@
+# Uruchomienie jednym poleceniem: docker compose up --build  →  http://localhost:8080
+# Aplikacja + PostgreSQL 16 (jak na produkcji). Seed (punkty z data/*.geojson + 8 tygodni symulacji) startuje sam w CMD obrazu.
+# Klucz Claude jest opcjonalny: bez niego analiza AI pokazuje „Do weryfikacji” i aplikacja działa w pełni.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: trashfairy
+      POSTGRES_USER: trashfairy
+      POSTGRES_PASSWORD: trashfairy
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trashfairy -d trashfairy"]
+      interval: 3s
+      retries: 20
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql://trashfairy:trashfairy@db:5432/trashfairy
+      SECRET_KEY: ${SECRET_KEY:-zmien-mnie-lokalnie}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

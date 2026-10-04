@@ -13,7 +13,7 @@
     <h2 id="near-h">Kosze w pobliżu</h2>
     <button class="btn btn-ghost btn-sm" type="button" data-locate>{{ icon('locate-fixed', 'i-sm') }}Moje położenie</button>
   </div>
-  <div class="m-map" id="m-map" role="img" aria-label="Mapa koszy w pobliżu"></div>
+  <div class="m-map" id="m-map" role="region" aria-label="Mapa koszy w pobliżu"></div>
   <p class="hint m-pos" id="m-pos">Położenie przyjęte w demo: Rynek Główny. Możesz użyć prawdziwego GPS.</p>
   <ul class="m-list" id="m-list" aria-live="polite">
     {% for _ in range(4) %}<li class="m-row"><span class="skel" style="width:32px;height:38px"></span><span class="skel" style="flex:1;height:36px"></span></li>{% endfor %}

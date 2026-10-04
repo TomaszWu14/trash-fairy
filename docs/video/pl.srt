@@ -1,94 +1,113 @@
 1
-00:00:00,500 --> 00:00:05,000
+00:00:00,000 --> 00:00:05,000
 Na Floriańskiej każdy kosz opróżnia się
 trzy razy dziennie, pełny czy pusty.
 
 2
-00:00:05,000 --> 00:00:09,500
+00:00:05,000 --> 00:00:10,500
 W Krakowie 9 383 kosze
 opróżnia się według kalendarza,
 
 3
-00:00:09,500 --> 00:00:14,800
-a przepełnione altany osiedlowe
-wypychają worki na ulicę.
+00:00:10,500 --> 00:00:15,000
+nie według potrzeb.
 
 4
 00:00:15,000 --> 00:00:19,500
-Trash Fairy to mózg dla MPO,
-który nie potrzebuje czujników.
+Trash Fairy to mózg odbioru.
+Mieszkanka skanuje kod QR na koszu.
 
 5
 00:00:19,500 --> 00:00:25,000
-Zbiera tanie sygnały: przycisk na koszu,
-zgłoszenia z telefonu i dane od kierowców.
+Zgłoszenie przyjmujemy tylko z kodu
+tego kosza i do 150 metrów od niego.
 
 6
-00:00:25,000 --> 00:00:29,000
-Krok pierwszy:
-co jest przepełnione teraz.
+00:00:25,000 --> 00:00:30,000
+Trzy kroki, opcjonalne zdjęcie.
+Usuwamy EXIF, Claude Vision ocenia kosz,
 
 7
-00:00:29,000 --> 00:00:35,500
-Krok drugi: kiedy kosz przekroczy 85%,
-z wydarzeniami z Karnetu i pogodą.
+00:00:30,000 --> 00:00:35,500
+a reguła nadaje „Zweryfikowane AI”
+albo „Do weryfikacji”.
 
 8
-00:00:35,500 --> 00:00:42,000
-Krok trzeci: trasa na jutro rano, kilkadziesiąt
-przystanków po prawdziwych ulicach.
+00:00:35,500 --> 00:00:40,000
+AI nigdy nie odrzuca zgłoszenia.
 
 9
-00:00:42,000 --> 00:00:49,500
-Decyzje podejmują jawne reguły w kodzie.
-AI tylko opisuje.
+00:00:40,000 --> 00:00:44,000
+Panel na koszu widać z daleka:
+zapełnienie, najbliższy odbiór
 
 10
-00:00:50,000 --> 00:00:54,500
-Teraz jeden kosz, numer 18,
-na trzech urządzeniach.
+00:00:44,000 --> 00:00:48,000
+i co tu wrzucać.
 
 11
-00:00:54,500 --> 00:01:00,000
-Mieszkaniec skanuje QR i klika „Pełny”.
-Po dwóch sekundach kosz pokazuje „Zgłoszono”.
+00:00:48,000 --> 00:00:53,000
+Kierowca widzi kosze po priorytecie,
+a przy każdym powód: ile zgłoszeń
 
 12
-00:01:00,000 --> 00:01:07,500
-Przewijam czas o godzinę: kosz trafia na trasę,
-a e-papier pokazuje „Ekipa w drodze”.
+00:00:53,000 --> 00:00:57,500
+i jakie zapełnienie. Prognoza mówi,
+o której kosz przekroczy 85%.
 
 13
-00:01:07,500 --> 00:01:13,500
-Kierowca klika „Opróżniony”
-i zgłoszenie się zamyka.
+00:00:57,500 --> 00:01:03,000
+„Jadę” prowadzi nawigacją w aplikacji,
+bez przełączania do map.
 
 14
-00:01:13,500 --> 00:01:24,500
-Punkty w programie mieszkańców
-są tylko za trafne zgłoszenia.
+00:01:03,000 --> 00:01:08,000
+„Opróżniono” zamyka zgłoszenie
+jednym dotknięciem.
 
 15
-00:01:25,000 --> 00:01:31,500
-W czterech tygodniach symulacji puste przyjazdy
-spadają z 57 do 27 procent,
+00:01:08,000 --> 00:01:14,000
+Mieszkanka widzi oś czasu: przyjęte,
+w realizacji, zrealizowane.
 
 16
-00:01:31,500 --> 00:01:36,500
-a przepełnione altany
-z 338 godzin do zera.
+00:01:14,000 --> 00:01:20,000
+Dashboard miasta, dane demonstracyjne.
+Ostatnie 30 dni: koszt 70,4 tys. zł,
 
 17
-00:01:36,500 --> 00:01:44,500
-Dla całego Krakowa
-to od 1,5 do 2,8 mln zł rocznie.
+00:01:20,000 --> 00:01:26,000
+minus 2,7%, 4,1 tys. zł oszczędności
+i 668 kursów mniej niż w planie.
 
 18
-00:01:45,000 --> 00:01:51,000
-Kod otwarty, dane syntetyczne pokazane wprost,
-sprzęt tylko tam, gdzie się zwraca.
+00:01:26,000 --> 00:01:31,000
+Projekt na Starym Mieście:
+13% mniej wywozów,
 
 19
-00:01:51,000 --> 00:01:59,500
+00:01:31,000 --> 00:01:36,500
+czas reakcji z 6,3 do 2,7 godziny.
+
+20
+00:01:36,500 --> 00:01:42,000
+W symulacji puste przyjazdy
+spadają z 57 do 27%,
+
+21
+00:01:42,000 --> 00:01:48,000
+przepełnione altany
+z 338 godzin do zera,
+
+22
+00:01:48,000 --> 00:01:54,000
+a dla Krakowa to
+1,5 do 2,8 mln zł rocznie.
+
+23
+00:01:54,000 --> 00:01:57,000
 Kraków nie potrzebuje więcej koszy.
+
+24
+00:01:57,000 --> 00:02:00,000
 Potrzebuje wróżki.

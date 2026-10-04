@@ -15,7 +15,7 @@
         <span class="k-nav-i" id="k-nav-i">{{ icon('navigation') }}</span>
         <div><b id="k-nav-t">Prowadzenie do kosza</b><span id="k-nav-s">Liczymy trasę…</span></div>
       </div>
-      <div id="k-map" class="k-map-big" role="img" aria-label="Mapa dojazdu do kosza"></div>
+      <div id="k-map" class="k-map-big" role="region" aria-label="Mapa dojazdu do kosza"></div>
     </section>
     <section class="card k-detail rise">
       <div class="k-detail-h" id="k-head">
@@ -53,6 +53,6 @@
 </dialog>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/kierowca.js') }}" defer></script>
 {% endblock %}

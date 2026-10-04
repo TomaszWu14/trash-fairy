@@ -26,6 +26,7 @@
   function apply() {
     const p = params();
     history.replaceState(null, '', p.toString() ? `?${p}` : location.pathname);
+    document.querySelectorAll('[data-export]').forEach(a => { a.href = `/api/eksport/${a.dataset.export}.csv${p.toString() ? `?${p}` : ''}`; });
     document.getElementById('f-range').hidden = form.querySelector('input[name=okres]:checked').value !== 'zakres';
     ['dzielnica', 'frakcja', 'projekt'].forEach(k => form.elements[k].classList.toggle('on', !!form.elements[k].value));
     document.getElementById('f-clear').hidden = !['dzielnica', 'frakcja', 'projekt', 'od', 'do'].some(k => p.get(k)) && !p.get('okres');
@@ -230,6 +231,7 @@
       const [kpi, ...charts] = await Promise.all([api(`/api/dashboard/kpi${qs}`), ...NAMES.map(n => api(`/api/dashboard/wykresy/${n}${qs}`))]);
       if (my !== seq) return;  // nowszy filtr wygrywa
       renderKpis(kpi);
+      await TF.echarts;
       charts.forEach((d, i) => RENDER[NAMES[i]](d));
     } catch (e) {
       TF.toast(e.message, 'err');

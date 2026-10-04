@@ -15,7 +15,7 @@
   </div>
 
   <h2>Porównanie: stały harmonogram kontra Trash Fairy ({{ result.weeks }} tygodnie)</h2>
-  <table>
+  <table tabindex="0">
     <thead><tr><th>Flota</th><th>Miara</th><th class="num">Stały</th><th class="num">Wróżka</th></tr></thead>
     <tbody>
     {% for kind, label in [('bin', 'Kosze uliczne'), ('shelter', 'Altany')] %}
@@ -32,7 +32,7 @@
   <h2>Założenia finansowe i CO₂</h2>
   <p class="note">To <b>założenia</b>, nie dane MPO. Można je zmienić zmiennymi środowiskowymi
     <code>COST_PER_KM_PLN</code>, <code>COST_PER_VISIT_PLN</code> i <code>CO2_KG_PER_KM</code>.</p>
-  <table>
+  <table tabindex="0">
     <tbody>
       <tr><td>Koszt kilometra (paliwo i eksploatacja)</td><td class="num">{{ money.assumptions.cost_per_km }} zł/km</td></tr>
       <tr><td>Koszt wizyty przy punkcie (praca ekipy)</td><td class="num">{{ money.assumptions.cost_per_visit }} zł</td></tr>
@@ -46,11 +46,11 @@
   <p>Wynik koszy z porównania ({{ city.visit_cut_pct }}% mniej wizyt, {{ city.km_cut_pct }}% mniej km, {{ city.km_per_visit|string|replace('.', ',') }} km na wizytę)
      przykładamy do liczby wizyt z <a href="https://mpo.krakow.pl/czystosc/">harmonogramu oczyszczania MPO 08/2026</a>.
      Wizyta {{ city.assumptions.cost_per_visit|int }} zł, kilometr {{ city.assumptions.cost_per_km|int }} zł (te same założenia co wyżej). Altan nie skalujemy, bo nie znamy ich liczby w mieście.</p>
-  <table>
+  <table tabindex="0">
     <thead><tr><th scope="col">Częstotliwość</th><th scope="col">Koszy</th><th scope="col">Wizyt na 30 dni</th></tr></thead>
     <tbody>{% for r in city.rows %}<tr><td>{{ r.label }}</td><td>{{ "{:,}".format(r.bins).replace(",", " ") }}</td><td>{{ "{:,}".format(r.visits).replace(",", " ") }}</td></tr>{% endfor %}</tbody>
   </table>
-  <table>
+  <table tabindex="0">
     <thead><tr><th scope="col">Wariant</th><th scope="col">Koszy</th><th scope="col">Mniej wizyt / mies.</th><th scope="col">Oszczędność / mies.</th><th scope="col">Oszczędność / rok</th></tr></thead>
     <tbody>
       {% for name, v in [('Ostrożny: kosze opróżniane codziennie lub częściej', city.careful), ('Pełny: wszystkie kosze w Krakowie', city.full)] %}
@@ -62,8 +62,25 @@
   <p class="note">Przedział, a nie jedna liczba: w centrum puste przyjazdy są najczęstsze, więc tam efekt modelu jest najpewniejszy.
      Kolejny krok to pilotaż w Dzielnicy I (43% koszy opróżnianych 3× dziennie).</p>
 
+  <h2 id="pilotaz">Koszt pilotażu i zwrot ({{ roi.bins }} koszy w Dzielnicy I)</h2>
+  <p class="note">To <b>założenia do weryfikacji w pilotażu</b>, nie oferty ani dane MPO. Zmienne: <code>COST_QR_STICKER_PLN</code>,
+    <code>COST_PANEL_PLN</code>, <code>COST_HOSTING_MONTH_PLN</code>. Oszczędność na kosz bierzemy z wariantu ostrożnego wyżej
+    ({{ roi.per_bin|string|replace('.', ',') }} zł na kosz miesięcznie), bo w Dzielnicy I kosze opróżnia się codziennie lub częściej.</p>
+  <table tabindex="0">
+    <thead><tr><th scope="col">Wariant</th><th scope="col">Koszt startu</th><th scope="col">Netto / mies. (oszczędność − hosting)</th><th scope="col">Zwrot</th></tr></thead>
+    <tbody>
+      {% for name, v in [('Naklejki z kodem QR (' ~ roi.assumptions.qr|int ~ ' zł/kosz)', roi.qr), ('Panel e-papier z przyciskiem (' ~ (roi.assumptions.qr + roi.assumptions.panel)|int ~ ' zł/kosz)', roi.panel)] %}
+      <tr><td>{{ name }}</td><td class="num">{{ "{:,}".format(v.setup).replace(",", " ") }} zł</td>
+          <td class="num">{{ "{:,}".format(v.net_month).replace(",", " ") }} zł</td>
+          <td class="num">{% if v.payback_months is none %}{% elif v.payback_months < 1 %}poniżej 1 mies.{% else %}{{ v.payback_months|string|replace('.', ',') }} mies.{% endif %}{% if v.payback_months is none %}brak zwrotu przy tych założeniach{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="note">Hosting i utrzymanie: {{ roi.assumptions.hosting|int }} zł/mies. Oszczędność pilotażu: {{ "{:,}".format(roi.saving_month).replace(",", " ") }} zł/mies.
+    Model biznesowy po pilotażu: abonament za kosz miesięcznie plus jednorazowe wdrożenie; czujniki tylko tam, gdzie rekomendacja pokaże, że się opłacają.</p>
+
   <h2>Reguły i parametry</h2>
-  <table>
+  <table tabindex="0">
     <thead><tr><th>Obszar</th><th>Założenie</th><th>Wartość</th></tr></thead>
     <tbody>{% for area, what, value in assumptions %}<tr><td>{{ area }}</td><td>{{ what }}</td><td>{{ value }}</td></tr>{% endfor %}</tbody>
   </table>
@@ -81,13 +98,16 @@
 
   <h2>Rola AI</h2>
   <p><b>Decyzje</b> (stan kosza, priorytet na liście kierowcy, trasa, status zgłoszenia, rekomendacja) podejmują wyłącznie reguły opisane wyżej.
-     Moduł AI (<code>app/llm.py</code>: opis zdjęcia kosza, raport z gotowych liczb) jest w kodzie za ogranicznikiem danych i walidacją odpowiedzi,
-     ale ekrany tej wersji pokazowej z niego nie korzystają.</p>
+     AI (<code>app/llm.py</code>, za ogranicznikiem danych i walidacją schematu) tylko opisuje zdjęcie dołączone do zgłoszenia:
+     czy widać kosz, jego stan i pewność oceny. Status „Zweryfikowane AI” albo „Do weryfikacji” liczy reguła
+     (kosz widoczny, stan zgodny z typem zgłoszenia, pewność ≥ {{ verify_min|string|replace('.', ',') }}). AI nigdy nie odrzuca zgłoszenia;
+     bez klucza API albo przy błędzie zgłoszenie trafia do dyspozytora.</p>
 
   <h2>Prywatność (RODO)</h2>
   <ul>
     <li>Zgłoszenie nie zbiera danych osobowych. Położenie służy tylko do sprawdzenia odległości od kosza, adres IP do limitu i znika po 24 h.</li>
-    <li>Zdjęcia dołączone do zgłoszeń są usuwane po 7 dniach (<code>flask cleanup-photos</code>).</li>
+    <li>Ze zdjęć usuwamy metadane (EXIF: położenie GPS, model aparatu, czas) przed zapisem na dysk. Zdjęcia są usuwane po 7 dniach (<code>flask cleanup-photos</code>).</li>
+    <li>Jeśli AI rozpozna na zdjęciu osobę albo tablicę rejestracyjną, zdjęcie nie jest pokazywane publicznie.</li>
   </ul>
 
   <h2>Ograniczenia</h2>

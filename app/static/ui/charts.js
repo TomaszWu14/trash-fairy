@@ -10,7 +10,13 @@
   };
   const axis = { axisLine: { lineStyle: { color: C.line } }, axisTick: { show: false }, axisLabel: { color: C.ink3, fontSize: 12 },
                  splitLine: { lineStyle: { color: C.line, type: [4, 4] } } };
-  echarts.registerTheme('tf', {
+  // ECharts (1 MB) ładowany po pierwszym malowaniu, gdy strona nie dołączyła go tagiem <script> (dashboard: Lighthouse)
+  const afterLoad = () => new Promise(ok => document.readyState === 'complete' ? ok() : addEventListener('load', ok, { once: true }));
+  window.TF.echarts = (window.echarts ? Promise.resolve() : afterLoad().then(() => new Promise((ok, fail) => {
+    const s = Object.assign(document.createElement('script'), { src: document.documentElement.dataset.echarts, onload: ok, onerror: fail });
+    document.head.append(s);
+  }))).then(() => echarts.registerTheme('tf', theme));
+  const theme = {
     color: C.series, backgroundColor: 'transparent',
     textStyle: { fontFamily: C.font, color: C.ink2 },
     grid: { left: 8, right: 12, top: 36, bottom: 8, containLabel: true },
@@ -18,7 +24,7 @@
     legend: { top: 0, left: 0, icon: 'roundRect', itemWidth: 10, itemHeight: 10, textStyle: { color: C.ink2, fontSize: 12 } },
     tooltip: { backgroundColor: C.ink, borderWidth: 0, padding: [8, 12], textStyle: { color: '#fff', fontSize: 13 },
                extraCssText: 'border-radius:10px;box-shadow:0 10px 30px rgb(13 17 38 / .25);' },
-  });
+  };
   window.TF.chart = el => {
     const c = echarts.getInstanceByDom(el) || echarts.init(el, 'tf', { renderer: 'svg' });
     new ResizeObserver(() => c.resize()).observe(el);

@@ -49,10 +49,10 @@
       <div><b>Pełny albo zepsuty?</b><span>Zeskanuj kod i zgłoś problem. Zgłoszenie przyjmujemy tylko przy tym koszu.</span></div>
     </div>
   </section>
-  <p class="kiosk-foot">Dane demonstracyjne · ekran odświeża się sam</p>
+  <p class="kiosk-foot">Dane demonstracyjne · ekran odświeża się sam · panel tylko do odczytu, bez danych osobowych</p>
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='vendor/qrcode/qrcode.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/qrcode/qrcode.min.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/kiosk.js') }}" defer></script>
 {% endblock %}

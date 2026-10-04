@@ -17,7 +17,7 @@
     </div>
   </header>
   <div class="k-grid">
-    <section class="k-map card" aria-label="Mapa trasy"><div id="k-map" role="img" aria-label="Mapa trasy z koszami"></div>
+    <section class="k-map card" aria-label="Mapa trasy"><div id="k-map" role="region" aria-label="Mapa trasy z koszami"></div>
       <div class="k-legend" aria-hidden="true"><span><i class="lg ok"></i>do 50%</span><span><i class="lg warn"></i>50–80%</span><span><i class="lg full"></i>ponad 80%</span><span><i class="lg route"></i>trasa</span></div></section>
     <section class="k-list card" aria-labelledby="k-list-h">
       <div class="k-list-h"><h2 id="k-list-h">Kosze po priorytecie</h2><span class="hint">najpierw zgłoszone, potem najpełniejsze</span></div>
@@ -30,6 +30,6 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/kierowca.js') }}" defer></script>
 {% endblock %}

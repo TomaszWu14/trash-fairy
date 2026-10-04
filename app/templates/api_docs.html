@@ -8,18 +8,24 @@
   <p class="c-doc-note"><strong>Dane syntetyczne.</strong> {{ spec.info.description }}</p>
   <p>Kontrakt OpenAPI 3.1: <a href="{{ url_for('static', filename='openapi.json') }}">openapi.json</a></p>
 
-  {% for path, ops in spec.paths.items() %}{% set op = ops['get'] %}{% set example = path.replace('{id}', '18') %}
-  <section class="c-doc-ep" aria-labelledby="ep-{{ loop.index }}">
-    <h2 id="ep-{{ loop.index }}"><span class="c-doc-get">GET</span> <code>{{ path }}</code></h2>
-    <p>{{ op.summary }}</p>
-    {% if op.parameters %}<p class="c-doc-small">Parametry: {% for prm in op.parameters %}<code>{{ prm.name }}</code> ({{ prm['in'] }}, {{ prm.schema.type }}){% endfor %}</p>{% endif %}
+  {% for path, ops in spec.paths.items() %}{% set outer = loop %}{% for method, op in ops.items() %}
+  {% set example = path.replace('{id}', '18').replace('eksport/{nazwa}', 'eksport/odbiory').replace('{nazwa}', 'koszty') %}
+  <section class="c-doc-ep" aria-labelledby="ep-{{ outer.index }}-{{ method }}">
+    <h2 id="ep-{{ outer.index }}-{{ method }}"><span class="c-doc-get">{{ method|upper }}</span> <code>{{ path }}</code></h2>
+    <p>{% if op.tags %}<span class="c-doc-small">{{ op.tags[0] }} · </span>{% endif %}{{ op.summary }}</p>
+    {% if op.parameters %}<p class="c-doc-small">Parametry: {% for prm in op.parameters %}<code>{{ prm.name }}</code> ({{ prm['in'] }}, {{ prm.schema.type }}){{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
+    {% if method == 'get' %}
     <pre><code>curl {{ request.host_url.rstrip('/') }}{{ example }}</code></pre>
-    <p><a href="{{ example }}">Otwórz odpowiedź: {{ example }}</a></p>
+    {% if '{' not in example %}<p><a href="{{ example }}">Otwórz odpowiedź: {{ example }}</a></p>{% endif %}
+    {% else %}
+    <pre><code>curl -X {{ method|upper }} {{ request.host_url.rstrip('/') }}{{ example }} -H "Content-Type: application/json" -d '{{ op.requestBody.content['application/json'].example|tojson }}'</code></pre>
+    {% endif %}
+    {% if op.responses %}<p class="c-doc-small">Odpowiedzi: {% for code, r in op.responses.items() %}<code>{{ code }}</code> {{ r.description }}{{ ', ' if not loop.last }}{% endfor %}. Błędy: <code>{"blad": "…", "kod": "…"}</code>.</p>{% endif %}
   </section>
-  {% endfor %}
+  {% endfor %}{% endfor %}
 
   <section class="c-doc-ep" aria-labelledby="ep-rules">
-    <h2 id="ep-rules">Czego API nie zwraca</h2>
+    <h2 id="ep-rules">Czego otwarte API v1 nie zwraca</h2>
     <p>Wiarygodności przycisków, powodów nadużyć, danych mieszkańców ani zgłoszeń kierowców. To dane operacyjne MPO,
       a nie dane publiczne. Decyzje (stan, trasa) liczą jawne reguły opisane w <a href="/metodologia">Metodologii</a>.</p>
   </section>
