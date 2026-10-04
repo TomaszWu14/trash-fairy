@@ -45,6 +45,7 @@ class Pickup(db.Model):
     km = db.Column(db.Float, nullable=False)  # przejazd przypisany do odbioru (CO₂, koszt)
     fill_pct = db.Column(db.Integer, nullable=False)  # zapełnienie w chwili odbioru
     on_demand = db.Column(db.Boolean, nullable=False, default=False)
+    far_m = db.Column(db.Integer)  # odległość telefonu ekipy od kosza przy potwierdzeniu (jak Emptying.far_m); None = brak
 
 
 class ReportHistory(db.Model):

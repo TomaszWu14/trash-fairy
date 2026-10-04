@@ -45,7 +45,7 @@
   </form>
 
   <section class="kpis" id="d-kpis" aria-label="Najważniejsze liczby">
-    {% for _ in range(7) %}<article class="card kpi"><span class="skel" style="width:60%"></span><span class="skel" style="height:30px;width:70%"></span><span class="skel" style="width:40%"></span></article>{% endfor %}
+    {% for _ in range(9) %}<article class="card kpi"><span class="skel" style="width:60%"></span><span class="skel" style="height:30px;width:70%"></span><span class="skel" style="width:40%"></span></article>{% endfor %}
   </section>
 
   <div class="dgrid">
@@ -78,6 +78,17 @@
     <section class="card chart" data-chart="heatmapa">
       <header class="chart-h"><div><h2>Kiedy kosze się przepełniają</h2><p>Zgłoszenia według dnia tygodnia i godziny</p></div></header>
       <div class="chart-body" id="ch-heatmapa"></div>
+    </section>
+    <section class="card chart" data-chart="jakosc" aria-labelledby="q-h">
+      <header class="chart-h"><div><h2 id="q-h">Jakość obsługi w dzielnicach</h2><p>Norma MPO 2 h dla zgłoszeń, anomalie ekipy i trafność zgłoszeń mieszkańców</p></div>
+        <button class="btn btn-ghost btn-sm" type="button" data-details="anomalie">{{ icon('list-ordered', 'i-sm') }}Szczegóły</button></header>
+      <div class="q-body" id="ch-jakosc" tabindex="0" role="region" aria-label="Tabela jakości obsługi w dzielnicach"><span class="skel" style="height:220px"></span></div>
+      <p class="q-note" id="q-note"></p>
+    </section>
+    <section class="card chart" data-chart="naprawy" aria-labelledby="rq-h">
+      <header class="chart-h"><div><h2 id="rq-h">Kolejka napraw</h2><p>Zgłoszenia „Uszkodzony”: naprawa w 24 h, bez czekania na trasę odbioru</p></div>
+        <span class="badge neutral" id="rq-count" hidden></span></header>
+      <div class="rq" id="ch-naprawy" aria-live="polite"><span class="skel" style="height:120px"></span></div>
     </section>
   </div>
 

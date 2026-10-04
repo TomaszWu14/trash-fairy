@@ -5,7 +5,8 @@ import pytest
 from app.comparison import compare, run_policy
 from app.geo import distance_m
 from app.osm_import import import_points
-from app.routes import DEPOT, DETOUR, next_runs, plan_routes, road_m, select_reason, solve_route
+from app.routes import (DEPOT, DETOUR, FLEETS, next_runs, plan_routes, road_m, select_reason, skip_reason, solve_fleet,
+                        solve_route)
 from app.simulation import DEMO_NOW, simulate
 from app.state import point_states
 
@@ -36,6 +37,15 @@ def test_safety_3_days_for_bins_and_7_for_shelters():
     assert select_reason("shelter", "ok", None, RUN - timedelta(days=7), RUN, FOLLOWING).startswith("bezpiecznik")
 
 
+def test_skip_reason_explains_points_left_for_later():
+    now = RUN - timedelta(minutes=30)
+    late = skip_reason("bin", 42, FOLLOWING + timedelta(hours=2), now - timedelta(hours=3), now, FOLLOWING)
+    assert late == "poziom 42%, 85% dopiero ok. 04.10 08:00 — po kolejnym kursie (04.10 06:00) · opróżniony 3 h temu"
+    calm = skip_reason("bin", 10, None, now - timedelta(days=1, hours=2), now, FOLLOWING)
+    assert calm == "poziom 10%, bez 85% w prognozie 24 h · bezpiecznik za 2 dni"
+    assert skip_reason("shelter", 5, None, now - timedelta(days=6, hours=1), now, FOLLOWING).endswith("bezpiecznik za 1 dzień")
+
+
 def test_next_runs_per_fleet():
     now = datetime(2026, 10, 3, 13, 30)
     assert next_runs("bin", now) == (datetime(2026, 10, 3, 14), datetime(2026, 10, 4, 6))
@@ -61,6 +71,22 @@ def test_empty_route():
     assert solve_route(((DEPOT["lat"], DEPOT["lon"]),)) == ((), 0.0)
 
 
+def test_capacity_splits_route_into_vehicles_and_visits_each_point_once():
+    coords = ((DEPOT["lat"], DEPOT["lon"]),) + tuple((50.05 + 0.002 * i, 19.93 + 0.003 * (i % 4)) for i in range(10))
+    demands = (0,) + (120,) * 10
+    routes = solve_fleet(coords, demands, 700, 3)  # 1 200 l do zabrania, pojazd 700 l → 2 pojazdy
+    assert len(routes) == 2
+    assert sorted(i for order, _ in routes for i in order) == list(range(1, 11))
+    assert all(sum(demands[i] for i in order) <= 700 for order, _ in routes)
+    assert solve_fleet(coords, demands, 700, 3) == routes  # deterministycznie
+    assert solve_fleet(coords, demands, 2000, 3) == (solve_route(coords),)  # mieści się: ta sama trasa co bez pojemności
+
+
+def test_demo_fits_one_vehicle_per_fleet():
+    """Założenie demo: wszystkie punkty pełne naraz (60 koszy, 12 altan) mieszczą się w jednym pojeździe floty."""
+    assert 60 * 120 <= FLEETS["bin"]["capacity_l"] and 12 * 1100 <= FLEETS["shelter"]["capacity_l"]
+
+
 def test_plan_routes_on_demo_data(cache):
     import_points(cache)
     simulate(weeks=2)
@@ -71,6 +97,10 @@ def test_plan_routes_on_demo_data(cache):
         assert len(ids) == len(set(ids))
         assert f["path"][0] == f["path"][-1] == [DEPOT["lat"], DEPOT["lon"]]
         assert all(s["reason"] for s in f["stops"])
+        assert f["vehicles"] == 1 and f["extra_routes"] == [] and all(s["vehicle"] == 1 for s in f["stops"])
+        assert not set(ids) & {s["id"] for s in f["skipped"]} and all(s["reason"] for s in f["skipped"])
+        levels = [s["level"] for s in f["skipped"]]
+        assert levels == sorted(levels, reverse=True)
 
 
 # --- porównanie „przed i po” ---

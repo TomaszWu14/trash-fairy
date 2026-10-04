@@ -116,6 +116,191 @@
         ]
       }
     },
+    "/api/v1/open-data/miesieczne.csv": {
+      "get": {
+        "tags": [
+          "Otwarte API v1"
+        ],
+        "summary": "Otwarte dane miesięczne CSV: odbiory, masa i zgłoszenia per dzielnica i frakcja (12 miesięcy, separator „;”)",
+        "responses": {
+          "200": {
+            "description": "CSV UTF-8 z BOM, pierwsza linia: źródło danych (syntetyczne)",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/open-data/miesieczne.json": {
+      "get": {
+        "tags": [
+          "Otwarte API v1"
+        ],
+        "summary": "Otwarte dane miesięczne JSON (te same agregaty co CSV, meta.synthetic)",
+        "responses": {
+          "200": {
+            "description": "Agregaty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "meta": {
+                      "$ref": "#/components/schemas/Meta"
+                    },
+                    "rows": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "miesiac": {
+                            "type": "string"
+                          },
+                          "dzielnica": {
+                            "type": "string"
+                          },
+                          "frakcja": {
+                            "type": "string"
+                          },
+                          "odbiory": {
+                            "type": "integer"
+                          },
+                          "masa_kg": {
+                            "type": "number"
+                          },
+                          "zgloszenia": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/open311/services.json": {
+      "get": {
+        "tags": [
+          "Otwarte API v1"
+        ],
+        "summary": "Open311 GeoReport v2: rodzaje zgłoszeń (przepelniony, odpady_obok, uszkodzony, inne)",
+        "responses": {
+          "200": {
+            "description": "Lista usług",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/open311/requests.json": {
+      "get": {
+        "tags": [
+          "Otwarte API v1"
+        ],
+        "summary": "Open311 GeoReport v2: zgłoszenia mieszkańców bez danych osobowych (do 500 najnowszych)",
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "description": "Od (ISO 8601)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "description": "Do (ISO 8601; sama data = cały dzień)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "closed"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Zgłoszenia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "service_request_id": {
+                        "type": "string",
+                        "example": "TF-00001"
+                      },
+                      "status": {
+                        "enum": [
+                          "open",
+                          "closed"
+                        ]
+                      },
+                      "service_code": {
+                        "type": "string"
+                      },
+                      "service_name": {
+                        "type": "string"
+                      },
+                      "requested_datetime": {
+                        "type": "string"
+                      },
+                      "updated_datetime": {
+                        "type": "string"
+                      },
+                      "lat": {
+                        "type": "number"
+                      },
+                      "long": {
+                        "type": "number"
+                      },
+                      "address": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Zły parametr (blad, kod)"
+          }
+        }
+      }
+    },
     "/api/kosze": {
       "get": {
         "tags": [
@@ -289,7 +474,7 @@
         "tags": [
           "Aplikacja"
         ],
-        "summary": "Trasa kierowcy: przystanki po priorytecie z powodem („2 zgłoszenia · 113%”) i postępem kursu",
+        "summary": "Trasa kierowcy: przystanki po priorytecie z powodem, postęp kursu, pominięte kosze z powodem i liczba pojazdów",
         "responses": {
           "200": {
             "description": "OK",
@@ -372,7 +557,7 @@
         "tags": [
           "Dashboard miasta"
         ],
-        "summary": "KPI miasta ze zmianą wobec poprzedniego okresu i trendem 12 miesięcy",
+        "summary": "KPI miasta (w tym zgłoszenia obsłużone w ≤ 2 h i anomalie ekipy) ze zmianą wobec poprzedniego okresu i trendem 12 miesięcy",
         "responses": {
           "200": {
             "description": "OK",
@@ -452,7 +637,7 @@
         "tags": [
           "Dashboard miasta"
         ],
-        "summary": "Dane wykresu: koszty, frakcje, dzielnice, zgloszenia, heatmapa, mapa",
+        "summary": "Dane wykresu: koszty, frakcje, dzielnice, zgloszenia, heatmapa, mapa, jakosc (≤ 2 h, anomalie, trafność), anomalie",
         "responses": {
           "200": {
             "description": "OK",
@@ -867,6 +1052,46 @@
                 "numer_seryjny": "TF-US-000133",
                 "zapelnienie": 64,
                 "autotest_ok": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/naprawy": {
+      "get": {
+        "tags": [
+          "Dashboard miasta"
+        ],
+        "summary": "Kolejka napraw: otwarte zgłoszenia „Uszkodzony” z terminem 24 h i statusem „w terminie” / „po terminie”",
+        "parameters": [
+          {
+            "name": "dzielnica",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nieznana dzielnica",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }

@@ -36,6 +36,8 @@ TYPY = {  # typ zgłoszenia → (rodzaj w silniku, etykieta)
 KIND_LABEL = {kind: label for kind, label in TYPY.values()} | {None: "Przycisk na koszu"}
 PROBLEMY = {"no_access": "Nie da się podjechać", "damaged": "Kosz uszkodzony", "blocked": "Zablokowany dojazd",
             "overflow": "Odpady obok kosza"}
+AI_DEPRIORITIZE_CONFIDENCE = 0.8  # zdjęcie „W porządku” z tą pewnością obniża priorytet zgłoszenia; nigdy go nie odrzuca
+SKIPPED_LIMIT = 30          # ile pominiętych koszy pokazujemy kierowcy (najpełniejsze)
 FRAKCJE = {"papier": "Papier", "metale_tworzywa": "Metale i tworzywa", "szklo": "Szkło", "bio": "Bio", "zmieszane": "Zmieszane"}
 
 
@@ -119,6 +121,28 @@ def _ai(press):
     return photos.verification(db.session.get(PhotoAnalysis, press.photo_id), press.kind)
 
 
+def _ai_ok(reports):
+    """Pewność AI (0–1), że na najnowszym zdjęciu ze zgłoszeń kosz jest w porządku, gdy ≥ AI_DEPRIORITIZE_CONFIDENCE;
+    inaczej None. Reguła w kodzie: wynik tylko przesuwa kosz niżej na liście kierowcy, zgłoszenie zostaje otwarte."""
+    if not reports:
+        return None
+    press = (Press.query.filter(Press.report_id.in_([r.id for r in reports]), Press.photo_id.isnot(None))
+             .order_by(Press.at.desc(), Press.id.desc()).first())
+    pa = db.session.get(PhotoAnalysis, press.photo_id) if press else None
+    if (pa is None or pa.status != "done" or not pa.bin_visible or pa.condition != "w_porzadku"
+            or (pa.confidence or 0) < AI_DEPRIORITIZE_CONFIDENCE):
+        return None
+    return round(pa.confidence, 2)
+
+
+def _route_status(p, now):
+    """Czy kosz jedzie na najbliższy kurs swojej floty i dlaczego (tak albo nie). Reguły z app/routes.py."""
+    fleet = next(f for f in current_routes(now) if f["kind"] == p.kind)
+    stop = next((s for r in [fleet, *fleet["extra_routes"]] for s in r["stops"] if s["id"] == p.id), None)
+    skip = next((s for s in fleet["skipped"] if s["id"] == p.id), None)
+    return {"na_trasie": stop is not None, "powod": stop["reason"] if stop else skip["reason"] if skip else None}
+
+
 def _report_texts(reports):
     """Treść zgłoszeń dla kierowcy i panelu: rodzaj, komentarz mieszkańca i analiza zdjęcia (bez danych osobowych)."""
     ids = [r.id for r in reports]
@@ -152,7 +176,7 @@ def kosz_json(p, states, now, detail=False):
         out.update(nastepny_odbior=run_at.isoformat(), zgloszenia=_report_texts(reports),
                    zgloszenia_liczba=sum(r.presses for r in reports),
                    oprozniono=last.at.isoformat() if last else None, kierowca_w_drodze=jade is not None,
-                   pojemnosc_l=120 if p.kind == "bin" else 1100)
+                   pojemnosc_l=120 if p.kind == "bin" else 1100, trasa=_route_status(p, now))
     return out
 
 
@@ -303,6 +327,9 @@ def _plural(n, one, few, many):
 def powod(k):
     """Krótkie „dlaczego tu” przy przystanku kierowcy; ta sama kolejność co _priority. Reguła, nie AI."""
     n = k["zgloszenia_liczba"]
+    if k.get("ai_w_porzadku"):
+        conf = f"{k['ai_w_porzadku']:.2f}".replace(".", ",")
+        return f"Zdjęcie: kosz w porządku (AI {conf}) · sprawdź przy okazji"
     if n:
         return f"{n} {_plural(n, 'zgłoszenie', 'zgłoszenia', 'zgłoszeń')} · {k['poziom']}%"
     if k["poziom"] >= 80:
@@ -313,8 +340,9 @@ def powod(k):
 
 
 def _priority(k):
-    """Kolejność na liście kierowcy: najpierw zgłoszone przez mieszkańców, potem najpełniejsze. Reguła, nie AI."""
-    return (not k["zgloszony"], -k["poziom"], k["kolejnosc"])
+    """Kolejność na liście kierowcy: najpierw zgłoszone przez mieszkańców (te ze zdjęciem „w porządku” wg AI na końcu
+    zgłoszonych), potem najpełniejsze. Reguła, nie AI: analiza zdjęcia tylko obniża priorytet, nigdy nie odrzuca."""
+    return (not k["zgloszony"], bool(k.get("ai_w_porzadku")), -k["poziom"], k["kolejnosc"])
 
 
 @bp.get("/trasa")
@@ -330,7 +358,8 @@ def trasa():
         k = kosz_json(p, states, now)
         reports = _open_reports(p.id, now)
         k.update(kolejnosc=n, zgloszenia_liczba=sum(r.presses for r in reports),
-                 w_drodze=bool(reports and _jade_at(p.id, reports[0].first_at)), zrobione=p.id in done)
+                 w_drodze=bool(reports and _jade_at(p.id, reports[0].first_at)), zrobione=p.id in done,
+                 ai_w_porzadku=_ai_ok(reports))
         k["powod"] = powod(k)
         stops.append(k)
     for pid in done - {s["id"] for s in stops}:  # opróżnione wypadają z planu: zostają na liście jako zrobione
@@ -342,9 +371,12 @@ def trasa():
     drive_min = traffic.drive_min(fleet["km"], traffic.city_ratio())
     left_min = round(drive_min * (len(todo) / max(1, len(stops))) + service_min * len(todo))
     out, _ = osrm.street_path(fleet["path"][:-1])
+    skipped = [{"id": s["id"], "nazwa": s["name"], "poziom": s["level"], "powod": s["reason"]}
+               for s in fleet["skipped"] if s["id"] not in done]  # już posortowane: najpełniejsze pierwsze
     return jsonify(kurs=fleet["run_at"], etykieta=fleet["run_label"], pojazd=fleet["vehicle"], km=fleet["km"],
                    baza=DEPOT, przystanki=todo + [s for s in stops if s["zrobione"]],
                    postep={"zrobione": len(stops) - len(todo), "wszystkie": len(stops), "pozostalo_min": left_min},
+                   pojazdy=fleet["vehicles"], pominiete=skipped[:SKIPPED_LIMIT], pominiete_liczba=len(skipped),
                    linia=out, meta=meta())
 
 

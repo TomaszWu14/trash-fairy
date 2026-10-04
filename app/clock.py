@@ -137,7 +137,9 @@ def reset(weeks=8):
     clear_cache()
     stats = simulate(weeks=weeks, now=DEMO_NOW)
     from .models import Pickup
-    if db.session.query(Pickup.id).first() is None:  # historia nie zależy od akcji z pokazu: reset jej nie odtwarza (szybki auto-reset)
+    # historia nie zależy od akcji z pokazu: reset jej nie odtwarza (szybki auto-reset). Wyjątek: brak historii albo stara
+    # historia bez far_m (sprzed „Anomalii ekipy”) — wtedy jednorazowo generujemy ją od nowa.
+    if db.session.query(Pickup.id).filter(Pickup.far_m.isnot(None)).first() is None:
         stats["history"] = history.generate_history(sim_start=hour_floor(DEMO_NOW) - timedelta(weeks=weeks))
     photos.seed_demo(DEMO_NOW)
     residents.seed_demo(DEMO_NOW)

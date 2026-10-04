@@ -119,12 +119,23 @@ Stare adresy (`/telefony`, `/dyspozytor`, `/epapier/<id>`, kody QR z naklejek) p
 Pomocniczo: [`/dashboard/urzadzenia`](https://trashfairy.twapp.pl/dashboard/urzadzenia) (bateria, odczyty i status paneli oraz czujników).
 Audyt i przebudowa: `audit/AUDYT-UX.md`, zrzuty rund w `audit/iteracje/`, przed i po: [`audit/PRZED-PO.html`](audit/PRZED-PO.html), jak poprowadzić pokaz: [`DEMO.md`](DEMO.md).
 
+## Dla miasta i dyspozytora (reguły w kodzie)
+- **Terminowość:** KPI „Obsłużone w ≤ 2 h” (norma MPO dla interwencji) w mieście i wg dzielnic, ze zmianą wobec poprzedniego okresu.
+- **Anomalie ekipy:** odbiór potwierdzony dalej niż 150 m od kosza (położenie telefonu kierowcy), liczba, udział i lista.
+- **Trafność zgłoszeń:** udział zgłoszeń potwierdzonych przy odbiorze (kosz zapełniony co najmniej w 75%) wg dzielnic.
+- **Kolejka napraw:** zgłoszenia „Uszkodzony” nie czekają na trasę śmieciarki: osobna lista z terminem 24 h i statusem „w terminie” / „po terminie”.
+- **Dlaczego nie na trasie:** kierowca i dyspozytor widzą powód pominięcia kosza w kursie (np. „poziom 42%, 85% dopiero po kolejnym kursie”).
+- **AI obniża priorytet, nigdy nie odrzuca:** gdy zdjęcie od mieszkańca pokazuje kosz w porządku (pewność AI ≥ 0,8), kosz idzie za innymi zgłoszonymi.
+- **Pojemność pojazdów:** OR-Tools z wymiarem pojemności i do 3 pojazdów na flotę; w obszarze demo wystarcza jeden pojazd na flotę.
+
 ## Integracje i otwarte API
 - **Pogoda (Open-Meteo, bez klucza):** mnożnik tempa zapełniania tylko na godziny przyszłe: deszcz ≥ 1 mm/h ×0,8, ciepły suchy weekend ×1,25.
 - **Ruch (TomTom Traffic Flow, `TOMTOM_API_KEY`):** korek z 8 punktów na głównych drogach zmienia tylko czas przejazdu i ETA, nigdy wybór punktów ani km.
 - **SMS (Twilio Verify):** kod przy rejestracji w programie mieszkańców; bez bramki kod demo na ekranie.
 - **Otwarte API tylko do odczytu:** [`/api/v1/bins.geojson`](https://trashfairy.twapp.pl/api/v1/bins.geojson), `/api/v1/bins/<id>` (prognoza 24 h),
-  `/api/v1/routes`, `/api/v1/conditions`; CORS *, `meta.synthetic`. Kontrakt OpenAPI 3.1 w `app/static/openapi.json`, opis na [`/api/docs`](https://trashfairy.twapp.pl/api/docs).
+  `/api/v1/routes`, `/api/v1/conditions`, open data [`/api/v1/open-data/miesieczne.csv`](https://trashfairy.twapp.pl/api/v1/open-data/miesieczne.csv)
+  (miesięcznie wg dzielnicy i frakcji) i zgłoszenia w formacie **Open311 GeoReport v2** (`/api/v1/open311/requests.json`, `services.json`)
+  do miejskiego systemu zgłoszeń, bez danych osobowych; CORS *, `meta.synthetic`. Kontrakt OpenAPI 3.1 w `app/static/openapi.json`, opis na [`/api/docs`](https://trashfairy.twapp.pl/api/docs).
 
 Każda integracja ma wyłącznik i bezpieczny stan bez sieci: brak danych oznacza mnożnik 1,0, a nie błąd.
 
@@ -178,7 +189,7 @@ Bez klucza API aplikacja działa w pełni; zdjęcia trafiają „Do weryfikacji�
 UI po polsku, WCAG 2.1 AA: stan kosza to zawsze kolor + ikona + tekst, nigdy sam kolor; cele dotykowe w PWA kierowcy od 56 px;
 strony `/dostepnosc` i `/prywatnosc`. Raporty Lighthouse (desktop i telefon) dla `/` i `/dashboard` są w `audit/lighthouse/`.
 
-Lighthouse 12 (lokalnie, `audit/lighthouse/`): `/` wydajność 93 telefon / 100 desktop, `/dashboard` 94 desktop (na telefonie 67: 1 MB wykresów ECharts przy symulowanym słabym CPU; dashboard to narzędzie biurowe), dostępność, dobre praktyki i SEO 100 na obu. axe-core (WCAG 2.1 A/AA, `scripts/axe_check.py`): 0 naruszeń na 8 ekranach w 1366 px i 390 px.
+Lighthouse 12 (lokalnie, `audit/lighthouse/`): `/` wydajność 93 telefon / 100 desktop, `/dashboard` 99 desktop (na telefonie 77: wykresy ECharts przy symulowanym słabym CPU, własna paczka 645 kB; dashboard to narzędzie biurowe), dostępność, dobre praktyki i SEO 100 na obu. axe-core (WCAG 2.1 A/AA, `scripts/axe_check.py`): 0 naruszeń na 8 ekranach w 1366 px i 390 px.
 
 ## Licencja
 [GNU AGPL-3.0](LICENSE): kod można używać i zmieniać, także w sektorze publicznym, ale kto uruchomi zmienioną wersję

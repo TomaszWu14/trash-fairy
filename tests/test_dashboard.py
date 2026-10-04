@@ -87,8 +87,8 @@ def test_history_covers_all_points_for_twelve_months():
 def test_kpi_shape_and_synthetic_label(client):
     d = client.get("/api/dashboard/kpi").json
     assert d["meta"]["syntetyczne"] is True and d["meta"]["etykieta"] == "Ostatnie 30 dni"
-    assert [k["id"] for k in d["kpi"]] == ["koszt", "wywozy", "zapelnienie", "zgloszenia", "czas_reakcji",
-                                           "oszczednosci", "co2"]
+    assert [k["id"] for k in d["kpi"]] == ["koszt", "wywozy", "zapelnienie", "zgloszenia", "czas_reakcji", "sla_2h",
+                                           "oszczednosci", "co2", "anomalie"]
     assert all(len(k["trend"]) == 12 and k["lepiej_gdy"] in ("mniej", "wiecej") for k in d["kpi"])
     kpi = {k["id"]: k for k in d["kpi"]}
     assert kpi["wywozy"]["wartosc"] > 0 and "kursy" in kpi["oszczednosci"]
@@ -162,7 +162,7 @@ def test_empty_result_is_zeros_not_error(client, query):
     assert r.status_code == 200
     kpi = {k["id"]: k for k in r.json["kpi"]}
     assert kpi["koszt"]["wartosc"] == 0 and kpi["wywozy"]["wartosc"] == 0 and kpi["zapelnienie"]["wartosc"] is None
-    for name in ("frakcje", "dzielnice", "koszty", "zgloszenia", "heatmapa", "mapa"):
+    for name in ("frakcje", "dzielnice", "koszty", "zgloszenia", "heatmapa", "mapa", "jakosc", "anomalie"):
         assert client.get(f"/api/dashboard/wykresy/{name}?{query}").status_code == 200
 
 
@@ -252,3 +252,48 @@ def test_csv_export_uses_dashboard_filters(client):
     assert z[1] == "data;kosz_id;dzielnica;frakcja;rodzaj;zamkniete" and len(z) > 2
     assert client.get("/api/eksport/hasla.csv").json["kod"] == "nieznany_eksport"
     assert client.get("/api/eksport/odbiory.csv?frakcja=zloto").status_code == 400
+
+
+def test_quality_numbers_on_history(client):
+    """Norma 2 h i anomalie ekipy z historii syntetycznej: liczby nietrywialne, dzielnice sumują się do KPI."""
+    kpi = {k["id"]: k for k in client.get("/api/dashboard/kpi?okres=kwartal").json["kpi"]}
+    sla, anomalies = kpi["sla_2h"], kpi["anomalie"]
+    assert 0 < sla["wartosc"] < 100 and len(sla["trend"]) == 12 and sla["opis"]
+    assert anomalies["wartosc"] > 0 and "% wywozów" in anomalies["podpis"]
+    assert 2 <= 100 * anomalies["wartosc"] / kpi["wywozy"]["wartosc"] <= 4.5  # FAR_ANOMALY_SHARE = 3%
+    j = client.get("/api/dashboard/wykresy/jakosc?okres=kwartal").json
+    rows = {r["dzielnica"]: r for r in j["dzielnice"]}
+    assert len(rows) == 6 and sum(r["anomalie"] for r in rows.values()) == anomalies["wartosc"]
+    assert sum(r["wywozy"] for r in rows.values()) == kpi["wywozy"]["wartosc"]
+    demo = {"Stare Miasto", "Grzegórzki"}  # trafność tylko z symulacji obszaru demo
+    assert all((r["trafnosc_pct"] is not None) == (d in demo) for d, r in rows.items())
+    assert all(0 < rows[d]["trafnosc_pct"] < 100 for d in demo)
+    a = client.get("/api/dashboard/wykresy/anomalie?okres=kwartal").json["lista"]
+    assert 0 < len(a) <= 50 and all(x["odleglosc_m"] > 150 and x["kosz"] for x in a)
+    assert [x["data"] for x in a] == sorted((x["data"] for x in a), reverse=True)
+
+
+def test_reset_regenerates_history_once_when_far_m_missing(monkeypatch):
+    """Stara baza (historia bez far_m): reset raz generuje historię od nowa; potem reset jej nie rusza (szybki)."""
+    before = _history_fingerprint()
+    Pickup.query.update({Pickup.far_m: None})
+    db.session.commit()
+    clock.reset()
+    assert db.session.query(func.count(Pickup.id)).filter(Pickup.far_m.isnot(None)).scalar() == before[0][0]
+    assert _history_fingerprint() == before
+    from app import history
+    monkeypatch.setattr(history, "generate_history", lambda **kw: pytest.fail("reset nie powinien odtwarzać historii"))
+    clock.reset()
+
+
+def test_repair_queue_lists_live_damaged_report(client):
+    pid = Point.live_query().filter_by(kind="bin").order_by(Point.id).first().id
+    record_press(pid, clock.now(), wall_at=datetime(2026, 10, 3, 11, 30), kind="damaged")
+    try:
+        items = client.get("/api/naprawy").json["naprawy"]
+        assert [(i["kosz_id"], i["status"]) for i in items] == [(pid, "w terminie")]
+        assert items[0]["termin"] == (clock.now() + timedelta(hours=24)).isoformat()
+    finally:
+        Press.query.filter(Press.at == clock.now()).delete()
+        Report.query.filter(Report.first_at == clock.now()).delete()
+        db.session.commit()

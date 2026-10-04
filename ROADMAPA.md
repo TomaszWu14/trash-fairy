@@ -52,12 +52,12 @@ od mieszkańców i od kierowców.
 - Rozmycie twarzy i tablic rejestracyjnych na zdjęciach przed zapisem.
 - Interfejs mieszkańca po angielsku i ukraińsku (turyści, mieszkańcy z Ukrainy).
 - Integracja z systemami MPO (harmonogram, GPS pojazdów) zamiast eksportów.
-- Eksport zgłoszeń do miejskiego systemu zgłoszeń (np. format Open311).
+- Integracja dwustronna z miejskim systemem zgłoszeń (odczyt w formacie Open311 GeoReport v2 już jest: `/api/v1/open311/requests.json`).
 
 **12 miesięcy**
 - Prognoza uczona na prawdziwych danych z pilotażu (Holt-Winters lub ML) zamiast profilu z symulacji.
 - Cały Kraków (9 383 kosze z harmonogramu MPO 08/2026), potem inne miasta.
-- Kilka pojazdów na flotę, okna czasowe i ruch drogowy w macierzy czasów OR-Tools.
+- Okna czasowe i ruch drogowy w macierzy czasów OR-Tools (pojemność i do 3 pojazdów na flotę już są).
 
 ## Backlog techniczny
 
@@ -86,13 +86,14 @@ od mieszkańców i od kierowców.
 - Alembic zamiast dodawania brakujących kolumn przy starcie; Sentry lub logi strukturalne; runbook i kopie zapasowe bazy.
 - Limity, cache pogody i ruchu we wspólnym magazynie (Redis/Postgres) przy kilku workerach Gunicorna; dziś pamięć procesu + plik.
 - Autoryzacja endpointu resetu demo (`/api/demo/reset`); w pilotażu tylko dla dyspozytora.
-- Otwarte API: klucze i limity na klienta, wersjonowanie kontraktu, webhook „kosz przepełniony”, zagregowane miesięczne CSV jako open data.
+- Otwarte API: klucze i limity na klienta, wersjonowanie kontraktu, webhook „kosz przepełniony” (miesięczne open data CSV/JSON już są).
 - Kafelki mapy z własnego serwera lub komercyjnego dostawcy przy większym ruchu (polityka użycia tile.openstreetmap.org).
 - Model per zadanie (mniejszy model dla prostych wywołań), gdy wolumen wywołań AI wzrośnie.
 - CI: `scripts/e2e_demo.py` i Lighthouse w GitHub Actions, skan sekretów (gitleaks).
 
 **Nieaktualne po przebudowie UI (4.10):** panel `/dyspozytor` (mobilny i ciemny), `/telefony`, loginy floty ze wspólnym hasłem, sekcja „Pilne teraz”,
 tabela punktów pod mapą, emoji zamiast ikon i wspólny `tokens.css` (zrobione w design systemie `app/static/ui/`). Stare adresy przekierowują do nowych ekranów.
-- Wydajność `/dashboard` na słabych telefonach (Lighthouse mobile ok. 65): lżejsza paczka ECharts (tylko użyte wykresy) albo wykresy SVG renderowane na serwerze.
+- Wydajność `/dashboard` na słabych telefonach (Lighthouse mobile 77 z własną paczką ECharts 645 kB): wykresy SVG renderowane na serwerze albo dashboard mobilny bez wykresów.
 - Indeksy na `point.district` i `pickup.fraction` (filtry dashboardu) przez migracje Alembic.
 - `.env.example` bez `DEMO_PASSWORD` (logowanie usunięte) i zmienna usunięta w Coolify.
+- Kolejka napraw z rolą serwisu i statusem „naprawiono” (dziś każdy odbiór zamyka też zgłoszenie „Uszkodzony”).
