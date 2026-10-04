@@ -12,13 +12,17 @@ from functools import wraps
 from flask import Blueprint, Response, jsonify, request
 from sqlalchemy import func, select
 
-from . import clock, db
-from .dashboard import (ANOMALY_M, REPAIR_SLA, SLA_H, Filters, PROJECT_METRICS, accuracy, anomaly_pct, by_district, dow_of,
-                        hour_of, last_months, latest_anomalies, metric_value, month_days, monthly, monthly_plan, pickups, plan,
-                        project_windows, repair_queue, reports, savings, sla_pct, totals, _where)
+from . import clock, db, dumping
+from . import crew_points as cp
+from .dashboard import (ANOMALY_M, BASELINE, REPAIR_SLA, SLA_H, Filters, PROJECT_METRICS, accuracy, anomaly_pct,
+                        baseline_label, by_district, control_districts, cost_explanation, dow_of, effect_label, hour_of, last_months,
+                        latest_anomalies, metric_value, month_days, monthly, monthly_plan, pickups, pl_num, pl_range, plan, plural,
+                        project_windows, repair_queue, reports, savings, sla_pct, totals, _baseline, _where)
 from .history import FRACTIONS, HISTORY_START, WDROZENIE
-from .methodology import money_assumptions
+from .methodology import money_assumptions, visit_cost_parts
+from .misuse import misuse_overview
 from .models import Point, Project
+from .recommendations import WINDOW, recommendations
 from .state import _cached, point_states
 
 bp = Blueprint("dashboard_api", __name__, url_prefix="/api")
@@ -128,21 +132,91 @@ def _change(cur, prev):
 
 
 def _kpi_values(t, p, a):
-    zl, visits, km = savings(t, p, a)
+    zl, _, km = savings(t, p, a)
     return {"koszt": _num(t["koszt"]), "wywozy": int(t["wywozy"]), "zapelnienie": _num(t["zapelnienie"], 1),
             "zgloszenia": int(t["zgloszenia"]), "czas_reakcji": _num(t["czas_reakcji"], 1),
-            "oszczednosci": _num(zl), "co2": _num(km * a["co2_per_km"], 1), "kursy": round(visits),
+            "oszczednosci": _num(zl), "co2": _num(km * a["co2_per_km"], 1),
             "sla_2h": _num(sla_pct(t), 1), "anomalie": int(t["anomalie"]), "anomalie_pct": _num(anomaly_pct(t), 1)}
 
 
-KPI = [("koszt", "Koszt wywozów", "zł", "mniej"), ("wywozy", "Wywozy", "szt.", "mniej"),
-       ("zapelnienie", "Średnie zapełnienie przy odbiorze", "%", "wiecej"), ("zgloszenia", "Zgłoszenia", "szt.", "mniej"),
-       ("czas_reakcji", "Średni czas reakcji", "h", "mniej"), ("sla_2h", f"Obsłużone w ≤ {SLA_H} h", "%", "wiecej"),
-       ("oszczednosci", "Oszczędności wobec planu", "zł", "wiecej"), ("co2", "Redukcja CO₂", "kg", "wiecej"),
-       ("anomalie", "Anomalie ekipy", "szt.", "mniej")]
-KPI_OPIS = {"sla_2h": f"Norma MPO dla interwencji: {SLA_H} h od zgłoszenia. Liczone ze zgłoszeń zamkniętych albo otwartych "
+# Odbiór = opróżnienie kosza (odbiory mniej to pominięte kosze), kurs = przejazd śmieciarki. Id KPI bez zmian (front, testy).
+# Kolejność = układ kafli: rząd 1 efekty (oszczędności na 2 kolumny, CO₂, odbiory, anomalie), rząd 2 obsługa.
+KPI = [("oszczednosci", "Oszczędności wobec planu", "zł", "wiecej"), ("co2", "CO₂ mniej niż w planie", "kg", "wiecej"),
+       ("wywozy", "Odbiory", "szt.", "mniej"), ("anomalie", "Anomalie ekipy", "szt.", "mniej"),
+       ("koszt", "Koszt odbiorów", "zł", "mniej"), ("zapelnienie", "Zapełnienie przy odbiorze", "%", "wiecej"),
+       ("zgloszenia", "Zgłoszenia", "szt.", "mniej"), ("czas_reakcji", "Średni czas reakcji", "h", "mniej"),
+       ("sla_2h", f"Obsłużone w ≤ {SLA_H} h", "%", "wiecej")]
+KPI_OPIS = {"zapelnienie": "Średnie zapełnienie kosza w chwili odbioru: im wyższe, tym mniej pustych przejazdów.",
+            "sla_2h": f"Norma MPO dla interwencji: {SLA_H} h od zgłoszenia. Liczone ze zgłoszeń zamkniętych albo otwartych "
                       f"dłużej niż {SLA_H} h.",
             "anomalie": f"Odbiory potwierdzone w aplikacji kierowcy dalej niż {ANOMALY_M} m od kosza."}
+BEFORE_KPI = ("zapelnienie", "sla_2h", "czas_reakcji")  # kafle z wartością „przed wdrożeniem” (_before_rollout)
+
+
+def _period(f):
+    """Okres filtra jako daty: {od, do (włącznie), dni}."""
+    od = f.od.date()
+    return {"od": od.isoformat(), "do": max(od, (f.do - timedelta(seconds=1)).date()).isoformat(), "dni": round(f.days, 2)}
+
+
+def _savings_detail(f, now, t, pl, a):
+    """Kafel oszczędności: skąd liczba (plan vs rzeczywistość, stawki) i przeliczenie liniowe na dzień, miesiąc, rok."""
+    zl, visits, km = savings(t, pl, a)
+    period, mniej = _period(f), round(visits)
+    stop_min = a.get("stop_min", 3)
+    hours = mniej * stop_min / 60
+    daily = zl / f.days if f.days else 0.0
+    q = Point.query
+    if f.district:
+        q = q.filter(Point.district == f.district)
+    if f.fraction:
+        q = q.filter(Point.fraction == f.fraction)
+    visit, per_km = a["cost_per_visit"], a["cost_per_km"]
+    vc = visit_cost_parts()
+    parts = ({"osoby": vc["crew_size"], "zl_osoba_h": vc["crew_pln_h"], "pojazd_zl_h": vc["vehicle_pln_h"], "zl_h": vc["per_hour"]}
+             if visit == vc["cost"] else None)  # None = stawka nadpisana w konfiguracji (COST_PER_VISIT_PLN)
+    crew = f"{vc['crew_size']} {plural(vc['crew_size'], 'osoba', 'osoby', 'osób')}"
+    how = (f"założenie: ok. {pl_num(vc['stop_min'])} min postoju × ({crew} × {pl_num(vc['crew_pln_h'])} zł/h "
+           f"+ pojazd {pl_num(vc['vehicle_pln_h'])} zł/h) = {pl_num(visit, 2)} zł, szczegóły: /metodologia#koszt-odbioru"
+           if parts else "stawka z konfiguracji")
+    word = plural(mniej, "odbiór", "odbiory", "odbiorów")
+    more = f"{pl_num(abs(mniej))} {word} {'mniej' if mniej >= 0 else 'więcej'}"
+    span = pl_range(date.fromisoformat(period["od"]), date.fromisoformat(period["do"]))
+    return {
+        "okres": period, "dziennie": _num(daily), "miesiac": _num(daily * 30), "rok": _num(daily * 365),
+        "odbiory_mniej": mniej, "km_mniej": _num(km, 1), "godziny_ekip": _num(hours, 2),
+        "plan": {"odbiory": round(pl["wywozy"]), "km": _num(pl["km"], 1)},
+        "faktycznie": {"odbiory": int(t["wywozy"]), "km": _num(t["km"], 1)},
+        "skladniki": {"odbiory_zl": _num(visits * visit), "km_zl": _num(km * per_km)},
+        "stawki": {"odbior_zl": visit, "km_zl": per_km, "postoj_min": stop_min, "odbior_rozpisanie": parts},
+        "kosze": q.count(), "baza": baseline_label(),
+        "plan_opis": (f"Plan to liczba odbiorów i km, jaka byłaby bez Trash Fairy: średnia dzienna z okresu {baseline_label()} "
+                      "(przed pierwszym wdrożeniem, te same filtry), poprawiona o zmianę w dzielnicach bez projektów "
+                      "(grupa kontrolna) i pomnożona przez liczbę dni okresu. Oszczędność to odbiory mniej × "
+                      f"{pl_num(visit, 2)} zł ({how}) plus km mniej × {pl_num(per_km, 2)} zł (założenie); opłata za tony "
+                      "odpadów jest w planie i w rzeczywistości taka sama, więc jej nie liczymy."),
+        "podpis": f"{more} · {pl_num(hours, 1)} h pracy ekip · {span}",
+    }
+
+
+def _before_rollout(f, now, slug):
+    """(wartości 3 KPI „przed wdrożeniem”, okno Filters) albo (None, None). Całe miasto: okres bazowy planu. Dzielnica
+    z projektem (albo filtr projektu): okno „przed” tego projektu (project_windows). Dzielnica bez projektu (grupa
+    kontrolna): brak — porównanie zimy z wrześniem pokazałoby sezonowość, nie efekt. Bez korekty sezonu."""
+    if not f.district:
+        w = _baseline(f)
+    else:
+        if f.district in control_districts(now):
+            return None, None
+        pr = (Project.query.filter_by(slug=slug).first() if slug else
+              Project.query.filter(Project.district == f.district, Project.start <= now.date()).order_by(Project.start).first())
+        windows = pr and project_windows(pr, now)
+        if not windows:
+            return None, None
+        w = replace(f, od=windows[0].od, do=windows[0].do)
+    t = totals(w, now)
+    return {"zapelnienie": _num(t["zapelnienie"], 1), "sla_2h": _num(sla_pct(t), 1),
+            "czas_reakcji": _num(t["czas_reakcji"], 1)}, w
 
 
 @bp.get("/dashboard/kpi")
@@ -151,10 +225,12 @@ def kpi():
     now = clock.now()
     f, meta = parse_filters(now)
     a = money_assumptions()
-    cur = _kpi_values(totals(f, now), plan(f, now), a)
+    t, pl = totals(f, now), plan(f, now)
+    cur = _kpi_values(t, pl, a)
     prev_f = f.previous()
     # poprzedni okres sprzed początku historii nie ma pełnych danych → zmiana_pct = null
     prev = _kpi_values(totals(prev_f, now), plan(prev_f, now), a) if prev_f.od >= HISTORY_START else None
+    before, bw = _before_rollout(f, now, meta["filtry"]["projekt"])
     months = last_months(now)
     series, plans = monthly(f, now, months), monthly_plan(f, now, months)
     trends = {m: _kpi_values(series[m], plans[m], a) for m in months}
@@ -164,13 +240,23 @@ def kpi():
                 "zmiana_pct": _change(cur[kid], prev[kid]) if prev else None, "lepiej_gdy": better,
                 "trend": [trends[m][kid] for m in months]}
         if kid == "oszczednosci":
-            item["kursy"] = cur["kursy"]
+            item.update(_savings_detail(f, now, t, pl, a))
         if kid in KPI_OPIS:
             item["opis"] = KPI_OPIS[kid]
+        if kid == "co2":
+            item["opis"] = (f"Z tych samych km mniej co w oszczędnościach × {pl_num(a['co2_per_km'], 2)} kg CO₂/km "
+                            "(założenie: diesel).")
+        if kid in BEFORE_KPI:
+            item["przed_wdrozeniem"] = before[kid] if before else None
         if kid == "anomalie" and cur["anomalie_pct"] is not None:
-            item["podpis"] = f"{cur['anomalie_pct']:g}".replace(".", ",") + f"% wywozów · próg {ANOMALY_M} m"
+            item["podpis"] = f"{cur['anomalie_pct']:g}".replace(".", ",") + f"% odbiorów · próg {ANOMALY_M} m"
         out.append(item)
-    return {"meta": {**meta, "miesiace": months}, "kpi": out}
+    baza = {"od": BASELINE[0].isoformat(), "do": (BASELINE[1] - timedelta(days=1)).isoformat(), "etykieta": baseline_label()}
+    # okno wartości „przed wdrożeniem” (null = dzielnica bez projektu); surowe średnie, bez korekty sezonu — do podpisu
+    przed = bw and {"od": bw.od.date().isoformat(), "do": (bw.do - timedelta(days=1)).date().isoformat(),
+                    "etykieta": f"{pl_range(bw.od.date(), (bw.do - timedelta(days=1)).date())}, bez korekty sezonu"}
+    return {"meta": {**meta, "miesiace": months, "wdrozenie": f"{WDROZENIE:%Y-%m}", "baza": baza, "przed_wdrozeniem": przed},
+            "kpi": out}
 
 
 def _frakcje(f, now):
@@ -255,9 +341,9 @@ def _jakosc(f, now):
                     "sla_ocenione": int(r.get("sla_ocenione", 0)), "wywozy": int(r.get("wywozy", 0)),
                     "anomalie": int(r.get("anomalie", 0)), "anomalie_pct": _pct(r.get("anomalie", 0), r.get("wywozy", 0), 2),
                     "trafnosc_pct": _pct(hit, n), "trafnosc_rozstrzygniete": n})
-    return {"dzielnice": out, "norma_h": SLA_H, "prog_m": ANOMALY_M,
-            "trafnosc_zrodlo": "Symulacja obszaru demo (72 punkty, Stare Miasto i Grzegórzki): zgłoszenie trafne, "
-                               "gdy przy odbiorze kosz był zapełniony co najmniej w 75%."}
+    return {"dzielnice": out, "norma_h": SLA_H, "prog_m": ANOMALY_M, "trafnosc_etykieta": "Trafność przycisków (symulacja)",
+            "trafnosc_zrodlo": "Symulacja obszaru demo (72 punkty, Stare Miasto i Grzegórzki), nie pomiar z miasta: "
+                               "zgłoszenie trafne, gdy przy odbiorze kosz był zapełniony co najmniej w 75%."}
 
 
 def _anomalie(f, now):
@@ -297,6 +383,36 @@ def repairs():
          "zgloszen": it["presses"], "komentarz": it["note"] or ""} for it in items]}
 
 
+@bp.get("/dashboard/rekomendacje")
+@_cached_json
+def recommendations_view():
+    """Rekomendacje z danych (reguły): pojemność i częstotliwość (app/recommendations.py), miejsca podrzucania odpadów
+    (app/dumping.py), sugestie ekip „Tu przydałby się kosz” i punkty zaangażowania ekipy (app/crew_points.py).
+    Okna czasu są stałe (reguły), okres filtra nie ma znaczenia; filtr dzielnicy działa na listy koszy."""
+    now = clock.now()
+    f, meta = parse_filters(now)
+    recs = recommendations(now, misuse_overview(now)["recommendations"])
+    suggestions = cp.need_bin_suggestions(now, recs)
+    points = cp.crew_points(now, suggestions)
+    sites = dumping.dumping_sites(now)
+    where = {p.id: (p.district, p.address or "") for p in Point.query.filter(Point.id.in_({r["point_id"] for r in recs}))} \
+        if recs else {}
+    rekomendacje = [{"kosz_id": r["point_id"], "kosz": r["name"], "adres": where[r["point_id"]][1],
+                     "dzielnica": where[r["point_id"]][0], "rodzaj": r["type"], "etykieta": r["label"][:1].upper() + r["label"][1:],
+                     "powod": r["reason"], "efekt": r["impact"]} for r in recs]
+    if f.district:
+        rekomendacje, sites, suggestions = ([x for x in xs if x["dzielnica"] == f.district]
+                                            for xs in (rekomendacje, sites, suggestions))
+    return {"meta": {**meta,
+                     "okna_dni": {"rekomendacje": WINDOW.days, "podrzucanie": dumping.WINDOW_DAYS, "ekipy": cp.WINDOW_DAYS},
+                     "progi_podrzucania": {"tablica": dumping.SIGN_AT, "kontrola": dumping.PATROL_AT,
+                                           "fotopulapka": dumping.CAMERA_AT, "jeden_dzien_udzial": dumping.WEEKDAY_SHARE},
+                     "poziomy_podrzucania": {k: sum(s["poziom"] == k for s in sites) for k in dumping.LEVELS},
+                     "zasada": "Decyzje to reguły w kodzie; AI tylko opisuje zdjęcia. Zdjęcia dokumentują miejsce i czas, "
+                               "nie ludzi. Fotopułapkę i kontrolę zleca gmina, nie system."},
+            "rekomendacje": rekomendacje, "podrzucanie": sites, "sugestie_ekip": suggestions, "punkty_ekip": points}
+
+
 def _project_trend(pr, now, months):
     series = monthly(Filters(od=now, do=now, district=pr.district), now, months)
     return [_num(metric_value(pr.metric, series[m], month_days(m, now)), 2) for m in months]
@@ -307,7 +423,8 @@ def _project(pr, now, months):
     return {"id": pr.id, "slug": pr.slug, "nazwa": pr.name, "dzielnica": pr.district, "status": pr.status,
             "status_etykieta": STATUS_PL[pr.status], "postep_pct": pr.progress_pct, "budzet": pr.budget_pln,
             "wykorzystano": pr.spent_pln, "start": pr.start.isoformat(), "koniec": pr.end.isoformat(),
-            "efekt_etykieta": pr.effect_label, "efekt_wartosc": pr.effect_value, "efekt_jednostka": unit,
+            "efekt_etykieta": pr.effect_label if pr.effect_value is None else effect_label(pr.metric, pr.effect_value),
+            "efekt_wartosc": pr.effect_value, "efekt_jednostka": unit,
             "miara": pr.metric, "ikona": pr.icon, "trend": _project_trend(pr, now, months)}
 
 
@@ -334,17 +451,20 @@ def project(slug):
     months = last_months(now)
     series = monthly(Filters(od=now, do=now, district=pr.district), now, months)
     windows = project_windows(pr, now)
-    summary = None
+    summary = why = None
     if windows:
-        summary = {name: {k: _num(metric_value(k, totals(w, now), w.days), 2) for k in PROJECT_METRICS} | {
-            "od": w.od.isoformat(), "do": w.do.isoformat()} for name, w in zip(("przed", "po"), windows)}
+        tw = [totals(w, now) for w in windows]
+        summary = {name: {k: _num(metric_value(k, t, w.days), 2) for k in PROJECT_METRICS} | {
+            "od": w.od.isoformat(), "do": w.do.isoformat()} for name, w, t in zip(("przed", "po"), windows, tw)}
+        why = cost_explanation(*tw, money_assumptions(), [w.days for w in windows])
     przed_po = {"start": f"{pr.start:%Y-%m}", "koniec": f"{pr.end:%Y-%m}", "miesiace": months,
                 "koszt": [_num(series[m]["koszt"]) for m in months],
                 "wywozy": [int(series[m]["wywozy"]) for m in months],
                 "zapelnienie": [_num(series[m]["zapelnienie"], 1) for m in months],
                 "czas_reakcji": [_num(series[m]["czas_reakcji"], 1) for m in months],
-                "podsumowanie": summary}
+                "podsumowanie": summary, "koszt_wyjasnienie": why}
     return {"meta": {**meta, "miesiace": months}, "projekt": {**_project(pr, now, months), "przed_po": przed_po}}
+
 
 
 EXPORTS = {  # nazwa pliku → (źródło, kolumna czasu, nagłówki CSV)

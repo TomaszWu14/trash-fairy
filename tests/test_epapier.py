@@ -156,7 +156,7 @@ def test_png_etag_and_state_keys(client, demo):
 
 def test_qr_targets_redirect_to_app_pages(client, demo):
     p = calm_bin()
-    assert f"/zglos/{p.id}?qr=" in client.get(f"/kosz/{p.id}/zglos").headers["Location"]
+    assert f"/zglos/{p.id}" in client.get(f"/kosz/{p.id}/zglos").headers["Location"]  # token: tests/test_qr_rotacja.py
     assert client.get(f"/kosz/{p.id}/status").headers["Location"].endswith(f"/panel/{p.id}")
     assert client.get("/przyjaciele").status_code == 301
     for target, path in epaper_render.QR_TARGETS.items():

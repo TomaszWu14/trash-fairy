@@ -12,7 +12,7 @@ from sqlalchemy import func
 from . import db
 from .geo import distance_m
 from .history import CAPACITY_L
-from .models import Emptying, Point
+from .models import Emptying, Point, StopIssue
 
 DEPOT = {"name": "Baza MPO, ul. Nowohucka 1", "lat": 50.0702786, "lon": 20.0056628}  # OSM way/79814148
 DETOUR = 1.3
@@ -26,6 +26,23 @@ FLEETS = {
                 "capacity_l": 40_000, "max_vehicles": 3},
 }
 RECENT_EMPTYING = timedelta(hours=24)  # „opróżniony X h temu” w powodzie pominięcia
+# „Dodaj do kursu” z panelu dyspozytora (decyzja człowieka, app/dyspozytor_api.py): wpisy StopIssue, nie zgłoszenia mieszkańców
+DISPATCH, DISPATCH_UNDO = "dyspozytor", "dysp_cofnij"
+DISPATCH_WINDOW = timedelta(hours=24)  # dodanie, którego nikt nie zrealizował w dobę, wygasa
+DISPATCH_REASON = "dodany przez dyspozytora"
+
+
+def dispatched_ids(now, last_emptying=None):
+    """Kosze dodane do kursu przez dyspozytora: ostatni wpis „dodaj”/„cofnij” z 24 h to „dodaj”, a po nim nie było opróżnienia."""
+    if last_emptying is None:
+        last_emptying = dict(db.session.query(Emptying.point_id, func.max(Emptying.at))
+                             .filter(Emptying.at <= now).group_by(Emptying.point_id).all())
+    latest = {}
+    for i in (StopIssue.query.filter(StopIssue.kind.in_((DISPATCH, DISPATCH_UNDO)), StopIssue.at > now - DISPATCH_WINDOW,
+                                     StopIssue.at <= now).order_by(StopIssue.at, StopIssue.id)):
+        latest[i.point_id] = i
+    return {pid for pid, i in latest.items()
+            if i.kind == DISPATCH and (last_emptying.get(pid) is None or last_emptying[pid] < i.at)}
 
 
 def road_m(a, b):
@@ -47,7 +64,8 @@ def select_reason(kind, state, crossing, last_emptying, run_at, following):
     if state == "bad":
         return "do opróżnienia teraz"
     if crossing is not None and crossing < following:
-        return f"85% ok. {crossing:%H:%M}, a kolejny kurs dopiero {following:%d.%m %H:%M}"
+        from .state import time_label  # state importuje routes: import w funkcji
+        return f"85% ok. {crossing:%H:%M}, a kolejny kurs dopiero {time_label(following, run_at)}"
     if last_emptying is None or run_at - last_emptying >= FLEETS[kind]["safety"]:
         return f"bezpiecznik: nieopróżniany od {FLEETS[kind]['safety'].days} dni"
     return None
@@ -55,11 +73,11 @@ def select_reason(kind, state, crossing, last_emptying, run_at, following):
 
 def skip_reason(kind, level, crossing, last_emptying, now, following):
     """Dlaczego punkt NIE jedzie na najbliższy kurs: te same dane co select_reason, odwrotna strona reguły. Nie AI."""
+    from .state import time_label  # „jutro 06:00” jak na panelu, nie „04.10 06:00”
     if crossing is None:
         parts = [f"poziom {level}%, bez 85% w prognozie 24 h"]
     else:
-        at = f"{crossing:%H:%M}" if crossing.date() == now.date() else f"{crossing:%d.%m %H:%M}"
-        parts = [f"poziom {level}%, 85% dopiero ok. {at} — po kolejnym kursie ({following:%d.%m %H:%M})"]
+        parts = [f"poziom {level}%, 85% dopiero ok. {time_label(crossing, now)} — po kolejnym kursie ({time_label(following, now)})"]
     if last_emptying is not None and now - last_emptying < RECENT_EMPTYING:
         hours = int((now - last_emptying).total_seconds() // 3600)
         parts.append(f"opróżniony {hours} h temu" if hours else "opróżniony przed chwilą")
@@ -125,6 +143,7 @@ def plan_routes(now, states):
     last_emptying = dict(db.session.query(Emptying.point_id, func.max(Emptying.at))
                          .filter(Emptying.at <= now).group_by(Emptying.point_id).all())
     points = Point.live_query().order_by(Point.id).all()
+    dispatched = dispatched_ids(now, last_emptying)
     out = []
     for kind, fleet in FLEETS.items():
         run_at, following = next_runs(kind, now)
@@ -135,7 +154,8 @@ def plan_routes(now, states):
                 continue
             crossing = datetime.fromisoformat(s["crossing"]) if s.get("crossing") else None
             level = round(s.get("value") or 0)
-            reason = select_reason(kind, s["state"], crossing, last_emptying.get(p.id), run_at, following)
+            reason = DISPATCH_REASON if p.id in dispatched else select_reason(kind, s["state"], crossing,
+                                                                               last_emptying.get(p.id), run_at, following)
             if reason:
                 chosen.append((p, reason, level))
             else:
@@ -145,8 +165,13 @@ def plan_routes(now, states):
         demands = (0,) + tuple(round(min(100, max(0, lvl)) / 100 * CAPACITY_L[kind]) for _, _, lvl in chosen)
         routes = []
         for v, (order, meters) in enumerate(solve_fleet(coords, demands, fleet["capacity_l"], fleet["max_vehicles"]), 1):
+            if dispatched & {chosen[i - 1][0].id for i in order}:  # decyzja dyspozytora: dodane kosze jadą pierwsze, reszta jak z solvera
+                order = tuple(sorted(order, key=lambda i: chosen[i - 1][0].id not in dispatched))
+                path = [0, *order, 0]
+                meters = sum(road_m(coords[a], coords[b]) for a, b in zip(path, path[1:]))
             stops = [{"id": chosen[i - 1][0].id, "name": chosen[i - 1][0].name, "lat": coords[i][0], "lon": coords[i][1],
-                      "order": n, "reason": chosen[i - 1][1], "vehicle": v} for n, i in enumerate(order, 1)]
+                      "order": n, "reason": chosen[i - 1][1], "vehicle": v, "dispatcher": chosen[i - 1][0].id in dispatched}
+                     for n, i in enumerate(order, 1)]
             routes.append({"vehicle": v, "km": round(meters / 1000, 1), "stops": stops,
                            "path": [[DEPOT["lat"], DEPOT["lon"]]] + [[s["lat"], s["lon"]] for s in stops]
                            + [[DEPOT["lat"], DEPOT["lon"]]]})

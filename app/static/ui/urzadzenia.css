@@ -6,6 +6,7 @@
 
 /* filtry: chipy statusu z liczbą */
 .u-chips { display: flex; gap: var(--s2); flex-wrap: wrap; }
+.u-filters > .u-chips, .u-filters > #u-clear { order: 2; }  /* ikonka podpowiedzi (order 1) na końcu pierwszego wiersza, nie pod chipami */
 .chip-f { position: relative; }
 .chip-f input { position: absolute; opacity: 0; inset: 0; cursor: pointer; margin: 0; }
 .chip-f span { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 var(--s3); border-radius: var(--r-pill);
@@ -34,23 +35,34 @@
 .u-skel { cursor: default; gap: var(--s3); min-height: 210px; }
 .u-top { display: flex; align-items: flex-start; gap: var(--s3); min-width: 0; }
 .u-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r-md); flex: none; background: var(--brand-soft); color: var(--brand); }
-.u-ico.t-czujnik { background: var(--surface-2); border: 1px solid var(--line); color: var(--st-progress); }
+.u-ico.t-czujnik { background: var(--st-progress-soft); color: var(--st-progress); }
 .u-name { display: grid; min-width: 0; }
-.u-name b { font-size: var(--fs-md); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.u-name span { font-size: var(--fs-xs); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.u-name b { font-size: var(--fs-md); line-height: 1.3; }
+.u-name span { font-size: var(--fs-xs); color: var(--ink-3); }
+.u-name b, .u-name span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }  /* numer kosza i ulica widoczne; pełne w title */
 .u-status { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); flex-wrap: wrap; }
 .u-type { font-size: var(--fs-xs); color: var(--ink-3); font-weight: 600; }
 
-/* bateria: obrys z biegunem, wypełnienie wg poziomu + procent + słowo */
-.batt-row { display: flex; align-items: center; gap: var(--s2); }
-.batt-row > b { font-size: var(--fs-lg); font-weight: 800; letter-spacing: -.02em; min-width: 44px; }
-.batt { --c: var(--fill-ok); position: relative; flex: 1; height: 22px; margin-right: 5px; padding: 3px; border: 1.5px solid var(--line-strong); border-radius: 6px; background: var(--surface); }
-.batt::after { content: ""; position: absolute; right: -5px; top: 6px; width: 3px; height: 8px; border-radius: 0 2px 2px 0; background: var(--line-strong); }
-.batt > i { display: block; height: 100%; border-radius: 3px; background: var(--c); transform-origin: left; transform: scaleX(var(--p, 0)); animation: bar-in 800ms var(--ease) both; }
-.batt.lvl-warn { --c: var(--fill-warn); } .batt.lvl-full { --c: var(--fill-full); }
-.batt-l { font-size: var(--fs-xs); font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); margin-left: auto; }
-.batt-l.lvl-ok { background: var(--fill-ok-soft); color: var(--fill-ok-ink); } .batt-l.lvl-warn { background: var(--fill-warn-soft); color: var(--fill-warn-ink); }
-.batt-l.lvl-full { background: var(--fill-full-soft); color: var(--fill-full-ink); }
+/* bateria: ikona z 5 segmentami i biegunem (nie pasek, ten jest dla zapełnienia kosza) + procent + słowo.
+   Kolor stanu procentu i słowa tylko przy niskiej/krytycznej; z ostatniego sygnału (is-old): szaro + podpis słowami. */
+.batt-row { --c: var(--fill-ok); display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2); }
+.batt-row.lvl-warn { --c: var(--fill-warn); --c-ink: var(--fill-warn-ink); --c-soft: var(--fill-warn-soft); }
+.batt-row.lvl-full { --c: var(--fill-full); --c-ink: var(--fill-full-ink); --c-soft: var(--fill-full-soft); }
+.batt-row.is-old { --c: var(--ink-3); --c-ink: var(--ink-3); }
+.batt-k { font-size: var(--fs-xs); font-weight: 600; color: var(--ink-3); margin-right: 2px; }
+.batt { position: relative; display: inline-flex; gap: 3px; flex: none; height: 24px; padding: 3px; margin-right: 4px;
+        border: 2px solid var(--ink-3); border-radius: 6px; }
+.batt::after { content: ""; position: absolute; right: -6px; top: 5px; width: 3px; height: 10px; border-radius: 0 2px 2px 0; background: var(--ink-3); }
+.batt > i { width: 8px; border-radius: 2px; background: var(--line); }  /* puste gniazda: widać skalę 5 kresek */
+.batt > i.on { background: var(--c); animation: batt-in 320ms var(--ease) both; }
+.batt > i.on:nth-child(2) { animation-delay: 60ms; } .batt > i.on:nth-child(3) { animation-delay: 120ms; }
+.batt > i.on:nth-child(4) { animation-delay: 180ms; } .batt > i.on:nth-child(5) { animation-delay: 240ms; }
+@keyframes batt-in { from { opacity: 0; } }
+.batt-row > b { font: 700 var(--fs-lg)/1.2 var(--font-display); letter-spacing: -.01em; color: var(--c-ink, var(--ink)); }
+.batt-row.is-old > b { color: var(--ink-3); }
+.batt-l { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding: 2px 8px; border-radius: var(--r-pill);
+          font-size: var(--fs-xs); font-weight: 700; background: var(--c-soft, var(--surface-2)); color: var(--c-ink); }
+.batt-old { flex-basis: 100%; font-size: var(--fs-xs); }
 .u-left { display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--ink-2); }
 .u-left .i { color: var(--ink-3); }
 .u-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line); margin-top: auto; }
@@ -63,8 +75,9 @@ dialog.u-modal { width: min(94vw, 960px); }
 .u-modal .modal-h p.u-mid { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
 .u-modal .modal-h h2 { font-size: var(--fs-lg); margin-top: 2px; }
 .u-modal .modal-b { max-height: 78vh; overflow: auto; display: grid; gap: var(--s5); }
-.u-mh { display: flex; align-items: center; gap: var(--s4); flex-wrap: wrap; }
+.u-mh { display: flex; align-items: flex-start; gap: var(--s4); flex-wrap: wrap; }  /* plakietka w linii baterii, nie między nią a podpisem */
 .u-mh .batt-row { flex: 1; min-width: 240px; max-width: 360px; }
+.u-mh .batt-l { margin-left: 0; }  /* w oknie słowo stoi przy procencie, nie w połowie nagłówka */
 .u-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s4); }
 .u-cols section { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--s4) var(--s5); }
 .u-cols h3, .u-chart h3 { display: flex; align-items: center; gap: var(--s2); font-size: var(--fs-md); font-weight: 750; }
@@ -75,7 +88,7 @@ dialog.u-modal { width: min(94vw, 960px); }
 .u-dl dt { color: var(--ink-3); font-weight: 600; } .u-dl dd { margin: 0; color: var(--ink); font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .u-dl code { font: 600 var(--fs-sm)/1 var(--font); letter-spacing: .02em; padding: 2px 6px; border-radius: 6px; white-space: nowrap; background: var(--surface); border: 1px solid var(--line); }
 .t-bad { color: var(--fill-full-ink); }
-.u-chart .chart-h b { font-size: var(--fs-xl); font-weight: 800; }
+.u-chart .chart-h b { font: 700 var(--fs-xl)/1.2 var(--font-display); }
 .u-chart-b { height: 180px; margin-top: var(--s2); position: relative; }
 .u-more { justify-self: center; margin-top: calc(-1 * var(--s4)); }
 .u-actions { display: flex; align-items: center; gap: var(--s4); flex-wrap: wrap; font-size: var(--fs-xs); }

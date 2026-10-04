@@ -78,6 +78,10 @@ def test_list_kpi_and_urgency_order(client):
     assert ranks == sorted(ranks) and items[0]["status"] != "ok"
     found = {i["status"] for i in items}
     assert {"brak_sygnalu", "bateria_krytyczna", "autotest", "wymiana_30", "ok"} <= found
+    # J-14: krytyczna bateria to też wymiana teraz, nawet gdy z wieku zostałoby jej ponad 30 dni
+    assert k["do_wymiany_30_dni"] == sum(i["dni_do_wymiany"] <= devices.REPLACE_WITHIN_DAYS
+                                         or i["bateria_pct"] < devices.CRITICAL_BATTERY for i in items)
+    assert k["do_wymiany_30_dni"] >= sum(i["status"] in ("bateria_krytyczna", "wymiana_30") for i in items)
     assert all(len(i["odczyty_dni"]) == 7 and i["odczyty_7d"] == sum(i["odczyty_dni"]) for i in items)
     panel = next(i for i in items if i["typ"] == "panel")
     from app.models import Device

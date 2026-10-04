@@ -208,6 +208,33 @@ class PointAward(db.Model):
     kind = db.Column(db.String(10), nullable=False)  # bin / shelter
 
 
+class DumpReport(db.Model):
+    """Zgłoszenie dzikiego wysypiska (app/wysypiska.py): położenie jest treścią zgłoszenia, nie ma kosza.
+
+    parent_id: zgłoszenie dołączone do otwartego wysypiska (50 m, 72 h). Wiersz bez parent_id to samo wysypisko:
+    na nim liczymy potwierdzenia, status AI i uprzątnięcie. Zdjęcie bez EXIF usuwamy po 7 dniach (photo_path → None),
+    media_type zostaje jako ślad, że zdjęcie było (punkty)."""
+    id = db.Column(db.Integer, primary_key=True)
+    at = db.Column(db.DateTime, nullable=False, index=True)  # zegar demo
+    wall_at = db.Column(db.DateTime, nullable=False)  # prawdziwy czas UTC (retencja zdjęć, analiza w toku)
+    lat = db.Column(db.Float, nullable=False)
+    lon = db.Column(db.Float, nullable=False)
+    kinds = db.Column(db.JSON, nullable=False, default=list)  # klucze wysypiska.KINDS
+    qty = db.Column(db.Integer)  # szacunek worków/sztuk 1–100; None = „nie wiem”
+    note = db.Column(db.String(280))
+    photo_path = db.Column(db.String(255))
+    media_type = db.Column(db.String(20))
+    ai = db.Column(db.JSON)  # opis zdjęcia od AI: {"status": "pending"|"done"|"error", ...}; None = bez zdjęcia
+    status = db.Column(db.String(16), nullable=False, default="do_weryfikacji")  # reguła: w_toku / zweryfikowane / do_weryfikacji
+    source = db.Column(db.String(10), nullable=False, default="resident")  # resident / crew
+    client = db.Column(db.String(64))  # HMAC identyfikatora telefonu (niezależność potwierdzeń)
+    resident_id = db.Column(db.Integer, index=True)  # bez klucza obcego: reset demo kasuje mieszkańców
+    parent_id = db.Column(db.Integer, index=True)
+    confirmations = db.Column(db.Integer, nullable=False, default=1)  # niezależne zgłoszenia (różne telefony), tylko wysypisko
+    cleared_at = db.Column(db.DateTime)  # „Uprzątnięte” przez ekipę (zegar demo), tylko wysypisko
+    cleared_by = db.Column(db.String(32))  # HMAC telefonu, który oznaczył „Uprzątnięte” (bez punktów za własne zgłoszenie)
+
+
 class Device(db.Model):
     """Fizyczny przycisk z wyświetlaczem e-papierowym przy punkcie (stan symulowany w demo)."""
     point_id = db.Column(db.Integer, db.ForeignKey("point.id"), primary_key=True)

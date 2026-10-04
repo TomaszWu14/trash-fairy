@@ -23,8 +23,8 @@ def _report(client, pid=18, **kw):
     return client.post("/api/zgloszenia", json=body)
 
 
-@pytest.mark.parametrize("path", ["/", "/panel/18", "/zglos", "/zglos/18", "/kierowca", "/kierowca/kosz/18", "/dashboard",
-                                  "/metodologia", "/dostepnosc", "/prywatnosc", "/api/docs"])
+@pytest.mark.parametrize("path", ["/", "/panel/18", "/zglos", "/zglos/18", "/kierowca", "/kierowca/kosz/18", "/dyspozytor",
+                                  "/dashboard", "/metodologia", "/dostepnosc", "/prywatnosc", "/api/docs"])
 def test_every_screen_renders_without_login(client, demo, path):
     r = client.get(path)
     assert r.status_code == 200
@@ -32,7 +32,7 @@ def test_every_screen_renders_without_login(client, demo, path):
     assert 'lang="pl"' in html and "Dane demonstracyjne" in html
 
 
-@pytest.mark.parametrize("old, new", [("/telefony", "/"), ("/dyspozytor", "/dashboard"), ("/program", "/"), ("/logowanie", "/"),
+@pytest.mark.parametrize("old, new", [("/telefony", "/"), ("/program", "/"), ("/logowanie", "/"),
                                       ("/epapier/18", "/panel/18"), ("/ekipa", "/kierowca")])
 def test_old_addresses_redirect_to_new_screens(client, demo, old, new):
     r = client.get(old)
@@ -41,22 +41,22 @@ def test_old_addresses_redirect_to_new_screens(client, demo, old, new):
 
 def test_qr_on_bin_and_jury_link_carry_scan_token(client, demo):
     assert f"qr={qr_token(18)}" in client.get("/jury").headers["Location"]
-    assert f"qr={qr_token(7)}" in client.get("/kosz/7/zglos").headers["Location"]
+    assert "qr=" not in client.get("/kosz/7/zglos").headers["Location"]  # stały adres: token tylko dla kosza demo
     assert f"/zglos/18?qr={qr_token(18)}" in client.get("/panel/18").get_data(as_text=True)
 
 
-def test_report_needs_qr_scan_and_location_near_bin(client, demo):
+def test_report_needs_qr_scan_of_this_bin_but_not_location(client, demo):
     k = _bin(client)
     no_qr = client.post("/api/zgloszenia", json={"kosz": 18, "typ": "przepelniony", "lat": k["lat"], "lon": k["lon"]})
     assert no_qr.status_code == 403 and no_qr.json["kod"] == "brak_skanu_qr"
     wrong_qr = _report(client, qr=qr_token(17))
     assert wrong_qr.status_code == 403 and wrong_qr.json["kod"] == "brak_skanu_qr"
-    no_geo = client.post("/api/zgloszenia", json={"kosz": 18, "typ": "przepelniony", "qr": qr_token(18)})
-    assert no_geo.status_code == 403 and no_geo.json["kod"] == "brak_lokalizacji"
-    far = _report(client, lat=k["lat"] + 0.01)  # ok. 1,1 km na północ
-    assert far.status_code == 403 and far.json["kod"] == "za_daleko"
     bad = _report(client, typ="kot")
     assert bad.status_code == 400 and set(bad.json) == {"blad", "kod"}
+    # położenia nie sprawdzamy (jury testuje zdalnie): ważny token wystarcza, nawet bez lat/lon albo z daleka
+    no_geo = client.post("/api/zgloszenia", json={"kosz": 18, "typ": "przepelniony", "qr": qr_token(18), "klient": "bez-gps"})
+    assert no_geo.status_code == 201
+    assert _report(client, lat=k["lat"] + 0.01, klient="daleko").status_code == 201
 
 
 def test_report_lifecycle_przyjete_w_realizacji_zrealizowane(client, demo):
@@ -157,10 +157,11 @@ def test_second_scenario_run_without_reset_starts_as_przyjete(client, demo):
 
 
 @pytest.mark.parametrize("bad", [{"lat": "nan"}, {"lat": "inf"}, {"dokladnosc": "nan", "lat": 0, "lon": 0}, {"typ": ["x"]},
-                                 {"komentarz": 5}])
-def test_report_input_cannot_bypass_geofence_or_crash(client, demo, bad):
-    r = _report(client, **bad)
-    assert r.status_code in (400, 403) or (r.status_code == 201 and "komentarz" in bad)
+                                 {"komentarz": 5}, {"qr": ["x"]}, {"qr": "ż" * 12}])
+def test_report_odd_input_never_crashes(client, demo, bad):
+    r = _report(client, **bad)  # dawne pola położenia są ignorowane; zły typ albo kod QR to 4xx, nigdy 500
+    expected = 400 if "typ" in bad else 403 if "qr" in bad else 201
+    assert r.status_code == expected, r.json
 
 
 def test_non_object_json_and_huge_ids_and_extreme_dates_are_4xx(client, demo):
@@ -172,3 +173,18 @@ def test_non_object_json_and_huge_ids_and_extreme_dates_are_4xx(client, demo):
     assert client.get("/api/kosze?blisko=inf,0").status_code == 400
     for q in ("do=0001-01-01", "od=0001-01-01", "do=9999-12-31"):
         assert client.get(f"/api/dashboard/kpi?{q}").json["kod"] == "nieprawidlowa_data"
+
+
+def test_panel_next_pickup_only_when_bin_is_on_route(client, demo):
+    # J-08: termin odbioru tylko dla kosza na najbliższym kursie; inaczej panel mówi „gdy będzie potrzebny”, bez obietnic
+    bins = [_bin(client, p.id) for p in Point.query.filter_by(kind="bin").order_by(Point.id).limit(25)]
+    assert all((k["nastepny_odbior"] is not None) == k["trasa"]["na_trasie"] for k in bins)
+    assert {k["trasa"]["na_trasie"] for k in bins} == {True, False}  # oba przypadki w danych demo
+
+
+def test_forecast_says_when_to_empty_not_threshold(client, demo):
+    # J-30: „Do opróżnienia ok. HH:MM” zamiast „Przewidywane 85%”; próg zostaje w regułach
+    texts = {k["prognoza"] for k in client.get("/api/kosze").json["kosze"]}
+    assert texts and not any("85%" in t or "Przewidywane" in t for t in texts)
+    assert any(t.startswith("Do opróżnienia") for t in texts)
+    assert "Przewidywane" not in client.get("/panel/18").get_data(as_text=True)

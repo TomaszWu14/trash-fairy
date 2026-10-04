@@ -51,7 +51,8 @@ def _sim_start():
 @click.command("cleanup-photos")
 def cleanup_photos_command():
     """Usuwa pliki zdjęć starszych niż 7 dni (wyniki analiz zostają w bazie). Do crona."""
-    click.echo(f"Usunięto {photos.cleanup()} zdjęć.")
+    from . import wysypiska
+    click.echo(f"Usunięto {photos.cleanup() + wysypiska.cleanup()} zdjęć.")
 
 
 @click.command("karnet")

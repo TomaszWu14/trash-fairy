@@ -5,9 +5,9 @@ import pytest
 from sqlalchemy import func
 
 from app import clock, comparison, create_app, db, forecast, methodology, state
-from app.dashboard import Filters, pickup_totals, project_effect
+from app.dashboard import Filters, pickup_totals, project_effect, project_windows
 from app.events import import_events
-from app.history import FRACTIONS, PROJECTS, generate_history
+from app.history import FRACTIONS, HISTORY_START, PROJECTS, generate_history
 from app.models import Emptying, Pickup, Point, Press, Project, Report, ReportHistory
 from app.osm_import import import_city_points, import_points, load_cache
 from app.reports import record_press
@@ -57,7 +57,7 @@ def test_slide_numbers_unchanged_with_city_points():
     q = forecast.forecast_quality(hour_floor(DEMO_NOW))
     assert (q["mae"], q["naive_mae"]) == (2.4, 7.1)
     city = methodology.city_scale(r)
-    assert (city["careful"]["pln_year"], city["full"]["pln_year"]) == (1_470_000, 2_780_000)
+    assert (city["careful"]["pln_year"], city["full"]["pln_year"]) == (4_100_000, 7_800_000)  # odbiór 12 zł (decyzja 2)
 
 
 def test_city_points_after_live_with_district_fraction_address():
@@ -87,11 +87,12 @@ def test_history_covers_all_points_for_twelve_months():
 def test_kpi_shape_and_synthetic_label(client):
     d = client.get("/api/dashboard/kpi").json
     assert d["meta"]["syntetyczne"] is True and d["meta"]["etykieta"] == "Ostatnie 30 dni"
-    assert [k["id"] for k in d["kpi"]] == ["koszt", "wywozy", "zapelnienie", "zgloszenia", "czas_reakcji", "sla_2h",
-                                           "oszczednosci", "co2", "anomalie"]
+    assert [k["id"] for k in d["kpi"]] == ["oszczednosci", "co2", "wywozy", "anomalie", "koszt", "zapelnienie",
+                                           "zgloszenia", "czas_reakcji", "sla_2h"]
     assert all(len(k["trend"]) == 12 and k["lepiej_gdy"] in ("mniej", "wiecej") for k in d["kpi"])
     kpi = {k["id"]: k for k in d["kpi"]}
-    assert kpi["wywozy"]["wartosc"] > 0 and "kursy" in kpi["oszczednosci"]
+    assert kpi["wywozy"]["wartosc"] > 0 and "odbiory_mniej" in kpi["oszczednosci"]
+    assert all("kursy" not in k for k in d["kpi"])  # słownik: „kurs” to przejazd śmieciarki, nie odbiór
 
 
 def _kpi(client, query=""):
@@ -182,6 +183,32 @@ def test_projects_effects_computed_from_history(client):
     pp = detail["przed_po"]
     assert pp["start"] == "2026-07" and len(pp["koszt"]) == len(pp["wywozy"]) == 12
     assert pp["podsumowanie"]["po"]["czas_reakcji"] < pp["podsumowanie"]["przed"]["czas_reakcji"]
+    # J-16: czemu koszt nie spada razem z odbiorami — składniki sumują się do kosztu, zdanie z liczbami z kodu
+    why = client.get("/api/projekty/odbiory-na-zadanie-stare-miasto").json["projekt"]["przed_po"]["koszt_wyjasnienie"]
+    assert why["odbiory_pct"] < 0 and why["zdanie"].startswith("Odbiorów mniej o ") and "opłata za tony" in why["zdanie"]
+    # zmiany słowem, bez znaku („spadł o 6%”, nie „zmienił się o −6%”), dwa zdania
+    assert "−" not in why["zdanie"] and "+" not in why["zdanie"] and why["zdanie"].count(". ") == 1
+    assert f"koszt {'spadł' if why['koszt_pct'] < 0 else 'wzrósł'} o " in why["zdanie"]
+    s = Project.query.filter_by(slug="odbiory-na-zadanie-stare-miasto").one()
+    after = project_windows(s, DEMO_NOW)[1]
+    assert sum(why["po"].values()) == pytest.approx(float(pickup_totals(after, DEMO_NOW)["koszt"]), abs=0.05)
+    assert projects["odbiory-na-zadanie-stare-miasto"]["efekt_etykieta"].endswith("% odbiorów")
+
+
+def test_before_windows_stay_inside_history(client):
+    """Okno „przed” nie wychodzi przed początek historii (Podgórze: start 1.03.2026), a koszt porównujemy dziennie."""
+    pr = Project.query.filter_by(slug="edukacja-segregacji-podgorze").one()
+    before, after = project_windows(pr, DEMO_NOW)
+    assert before.od >= HISTORY_START and before.do == after.od and before.days < after.days
+    why = client.get(f"/api/projekty/{pr.slug}").json["projekt"]["przed_po"]["koszt_wyjasnienie"]
+    assert abs(why["odbiory_pct"]) < 20 and "miesięcznie" in why["zdanie"]
+    # „przed wdrożeniem”: dzielnica kontrolna nic, dzielnica z projektem — okno „przed” projektu, całe miasto — baza planu
+    deb = client.get("/api/dashboard/kpi?dzielnica=D%C4%99bniki").json
+    assert deb["meta"]["przed_wdrozeniem"] is None
+    assert all(k.get("przed_wdrozeniem") is None for k in deb["kpi"])
+    kr = client.get("/api/dashboard/kpi?projekt=optymalizacja-tras-krowodrza").json["meta"]["przed_wdrozeniem"]
+    assert kr["do"] == "2026-07-31" and "bez korekty sezonu" in kr["etykieta"]
+    assert client.get("/api/dashboard/kpi").json["meta"]["przed_wdrozeniem"]["od"] == "2025-11-01"
 
 
 def test_live_emptying_counts_immediately(client):
@@ -229,7 +256,7 @@ def test_live_report_counts_and_simulated_does_not(client):
 
 def test_last_30_days_show_rollout_effect(client):
     kpi = {k["id"]: k for k in client.get("/api/dashboard/kpi").json["kpi"]}
-    assert kpi["oszczednosci"]["wartosc"] > 0 and kpi["oszczednosci"]["kursy"] > 0
+    assert kpi["oszczednosci"]["wartosc"] > 0 and kpi["oszczednosci"]["odbiory_mniej"] > 0
     sm = {k["id"]: k for k in client.get("/api/dashboard/kpi?dzielnica=Stare%20Miasto&okres=rok").json["kpi"]}
     trend = sm["czas_reakcji"]["trend"]
     assert max(trend[6:11]) < min(trend[:6])  # po wdrożeniu (05.2026) reakcja szybsza w każdym miesiącu
@@ -259,7 +286,7 @@ def test_quality_numbers_on_history(client):
     kpi = {k["id"]: k for k in client.get("/api/dashboard/kpi?okres=kwartal").json["kpi"]}
     sla, anomalies = kpi["sla_2h"], kpi["anomalie"]
     assert 0 < sla["wartosc"] < 100 and len(sla["trend"]) == 12 and sla["opis"]
-    assert anomalies["wartosc"] > 0 and "% wywozów" in anomalies["podpis"]
+    assert anomalies["wartosc"] > 0 and "% odbiorów" in anomalies["podpis"]
     assert 2 <= 100 * anomalies["wartosc"] / kpi["wywozy"]["wartosc"] <= 4.5  # FAR_ANOMALY_SHARE = 3%
     j = client.get("/api/dashboard/wykresy/jakosc?okres=kwartal").json
     rows = {r["dzielnica"]: r for r in j["dzielnice"]}

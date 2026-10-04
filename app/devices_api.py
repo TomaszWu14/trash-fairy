@@ -36,7 +36,9 @@ def device_list():
     items = devices.overview(now, kind, district)
     n = len(items)
     kpi = {"lacznie": n, "aktywne": sum(i["online"] for i in items),
-           "do_wymiany_30_dni": sum(i["dni_do_wymiany"] <= devices.REPLACE_WITHIN_DAYS for i in items),
+           # krytyczna bateria (< 15%) to też wymiana teraz, choć z wieku zostałoby jej np. 40 dni
+           "do_wymiany_30_dni": sum(i["dni_do_wymiany"] <= devices.REPLACE_WITHIN_DAYS
+                                    or i["bateria_pct"] < devices.CRITICAL_BATTERY for i in items),
            "bez_sygnalu": sum(not i["online"] for i in items), "odczyty_24h": sum(i["odczyty_24h"] for i in items),
            "srednia_bateria": round(sum(i["bateria_pct"] for i in items) / n) if n else None,
            "wg_typu": devices.counts_by_kind(kind, district)}

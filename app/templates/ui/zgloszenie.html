@@ -2,17 +2,22 @@
 {% from "ui/_ui.html" import icon %}
 {% block title %}Zgłoszenie {{ nr }}{% endblock %}
 {% block m_content %}
-<a class="back" href="{{ url_for('ui.report_pick') }}">{{ icon('arrow-left', 'i-sm') }}Zgłoś inny kosz</a>
-<section class="m-card rise" id="m-status" data-nr="{{ nr }}">
-  <div class="m-head">
-    <div><p class="eyebrow">Twoje zgłoszenie</p><h1 class="m-h1 num">{{ nr }}</h1></div>
-    <span class="badge neutral" id="st-badge"><span class="skel" style="width:80px;height:12px"></span></span>
+<a class="back" href="{{ url_for('ui.report_pick') }}">{{ icon('arrow-left', 'i-sm') }}Twoje zgłoszenia</a>
+<section class="m-card m-status rise" id="m-status" data-nr="{{ nr }}">
+  {# H1 = status (kształt + znak + słowo); numer zgłoszenia w nadtytule #}
+  {# aria-live tylko na tytule: czytnik ogłasza zmianę statusu, a nie każde odświeżenie danych #}
+  <div class="m-st-head" data-help="zgloszenie.status" data-help-at="corner">
+    <span class="m-st-ico" id="st-ico" aria-hidden="true"><span class="skel" style="width:56px;height:56px"></span></span>
+    <div class="m-st-txt"><p class="eyebrow">Zgłoszenie <span class="num">{{ nr }}</span></p>
+      <h1 class="m-h1" id="st-title" aria-live="polite"><span class="skel" style="width:150px;height:28px"></span></h1>
+      <p class="m-st-lead" id="st-lead"></p></div>
   </div>
-  <div class="m-bin" id="st-bin"><span class="skel" style="width:48px;height:56px"></span><span class="skel" style="flex:1;height:44px"></span></div>
+  <div class="m-bin" id="st-bin" data-help="zgloszenie.kosz"><span class="skel" style="width:48px;height:56px"></span><span class="skel" style="flex:1;height:44px"></span></div>
   <div id="st-ai"></div>
-  <ol class="timeline" id="st-steps" aria-label="Postęp zgłoszenia">
+  <ol class="timeline" id="st-steps" data-help="zgloszenie.postep" aria-label="Postęp zgłoszenia">
     {% for t in ['Przyjęte', 'W realizacji', 'Zrealizowane'] %}<li><span class="tl-dot"></span><div><b>{{ t }}</b><span class="skel" style="width:120px;height:12px;margin-top:4px"></span></div></li>{% endfor %}
   </ol>
+  <p class="m-pts-chip" id="st-pts" hidden></p>
   <p class="hint" id="st-note">Status odświeża się sam co kilka sekund.</p>
 </section>
 <section class="m-card empty" id="st-missing" hidden>

@@ -40,7 +40,7 @@ def test_safety_3_days_for_bins_and_7_for_shelters():
 def test_skip_reason_explains_points_left_for_later():
     now = RUN - timedelta(minutes=30)
     late = skip_reason("bin", 42, FOLLOWING + timedelta(hours=2), now - timedelta(hours=3), now, FOLLOWING)
-    assert late == "poziom 42%, 85% dopiero ok. 04.10 08:00 — po kolejnym kursie (04.10 06:00) · opróżniony 3 h temu"
+    assert late == "poziom 42%, 85% dopiero ok. jutro 08:00 — po kolejnym kursie (jutro 06:00) · opróżniony 3 h temu"
     calm = skip_reason("bin", 10, None, now - timedelta(days=1, hours=2), now, FOLLOWING)
     assert calm == "poziom 10%, bez 85% w prognozie 24 h · bezpiecznik za 2 dni"
     assert skip_reason("shelter", 5, None, now - timedelta(days=6, hours=1), now, FOLLOWING).endswith("bezpiecznik za 1 dzień")

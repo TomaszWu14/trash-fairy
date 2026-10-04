@@ -80,6 +80,10 @@ def create_app(config=None):
     app.register_blueprint(open_api_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(devices_bp)
+    from .wysypiska_api import bp as wysypiska_bp
+    app.register_blueprint(wysypiska_bp)  # dzikie wysypiska + punkty mieszkańca
+    from .dyspozytor_api import bp as dyspozytor_bp
+    app.register_blueprint(dyspozytor_bp)  # panel dyspozytora: pilne kosze, trasy, „Dodaj do kursu”
 
     @app.errorhandler(404)
     def not_found(_e):
@@ -125,7 +129,7 @@ def _add_missing_columns():
                                ("point", "fraction", "VARCHAR(20) NOT NULL DEFAULT 'zmieszane'"),
                                ("point", "address", "VARCHAR(160)"), ("point", "snapshot_fill", "INTEGER"),
                                ("photo_analysis", "bin_visible", "BOOLEAN"), ("photo_analysis", "condition", "VARCHAR(20)"),
-                               ("photo_analysis", "people", "BOOLEAN")]:
+                               ("photo_analysis", "people", "BOOLEAN"), ("dump_report", "cleared_by", "VARCHAR(32)")]:
         if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
             db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
             db.session.commit()

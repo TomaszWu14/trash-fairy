@@ -2,22 +2,45 @@
 {% from "ui/_ui.html" import icon %}
 {% block title %}Zgłoś kosz{% endblock %}
 {% block m_content %}
-<section class="m-card m-intro rise">
-  <h1>Zgłoś problem z koszem</h1>
-  <p>Zeskanuj kod QR na panelu kosza. Zgłoszenie przyjmujemy tylko przy koszu, więc trafia tam, gdzie naprawdę jest problem.</p>
+<section class="m-card m-intro rise" aria-labelledby="m-intro-h" data-help="zglos.sposoby" data-help-at="corner">
+  <h1 id="m-intro-h">Zgłoś problem z koszem</h1>
+  <p>Podejdź do kosza i wybierz jeden ze sposobów.</p>
+  <ul class="m-ways">
+    <li><span class="m-tile" aria-hidden="true">{{ icon('hand') }}</span><span><b>Przycisk na panelu kosza</b><span>Bez telefonu, jedno naciśnięcie</span></span></li>
+    <li><span class="m-tile" aria-hidden="true">{{ icon('qr-code') }}</span><span><b>Kod QR z ekranu panelu</b><span>Status zgłoszenia i punkty w telefonie</span></span></li>
+  </ul>
   <button class="btn btn-primary btn-xl m-scan" type="button" data-scan>{{ icon('scan-line', 'i-lg') }}Zeskanuj kod QR</button>
 </section>
 
-<section class="m-card rise" aria-labelledby="near-h">
-  <div class="m-head">
-    <h2 id="near-h">Kosze w pobliżu</h2>
-    <button class="btn btn-ghost btn-sm" type="button" data-locate>{{ icon('locate-fixed', 'i-sm') }}Moje położenie</button>
-  </div>
-  <div class="m-map" id="m-map" role="region" aria-label="Mapa koszy w pobliżu"></div>
-  <p class="hint m-pos" id="m-pos">Położenie przyjęte w demo: Rynek Główny. Możesz użyć prawdziwego GPS.</p>
-  <ul class="m-list" id="m-list" aria-live="polite">
-    {% for _ in range(4) %}<li class="m-row"><span class="skel" style="width:32px;height:38px"></span><span class="skel" style="flex:1;height:36px"></span></li>{% endfor %}
-  </ul>
+<a class="m-card m-link rise" href="{{ url_for('wysypiska.page') }}">
+  <span class="m-tile m-tile-lg" aria-hidden="true">{{ icon('map-pin', 'i-lg') }}</span>
+  <div class="m-link-txt"><h2>Dzikie wysypisko poza koszem?</h2>
+    <p>Worki przed ogródkami albo gabaryty pod wiatą. Zaznaczasz miejsce na mapie, bez kodu QR.</p></div>
+  {{ icon('chevron-right', 'm-link-chev') }}
+</a>
+
+<section class="m-card rise" aria-labelledby="mine-h" data-help="zglos.twoje_zgloszenia">
+  <h2 class="m-h2" id="mine-h">Twoje zgłoszenia</h2>
+  <ul class="m-list" id="m-mine"></ul>
+  <div class="m-empty" id="m-mine-empty"><span class="m-tile" aria-hidden="true">{{ icon('message-square-text') }}</span>
+    <p>Nie masz jeszcze zgłoszeń. Zgłoś problem przy koszu: zeskanuj kod QR na jego panelu.</p></div>
+</section>
+
+<section class="m-card m-points rise" id="m-points" aria-labelledby="m-pts-h" data-help="zglos.punkty">
+  <h2 class="m-h2" id="m-pts-h">Twoje punkty</h2>
+  <p class="m-pts-sum" id="m-pts-sum" aria-live="polite"><span class="skel" style="width:120px;height:44px"></span></p>
+  <p class="m-pts-empty" id="m-pts-empty" hidden>Pierwsze punkty dostaniesz, gdy ekipa MPO potwierdzi Twoje zgłoszenie.</p>
+  <div class="m-pts-badges" id="m-pts-badges"></div>
+  <ul class="m-list" id="m-pts-list"></ul>
+  <h3 class="eyebrow m-sub">Za co są punkty</h3>
+  <ul class="m-rules" id="m-pts-rules"></ul>
+  {# tylko najbliższa nagroda z paskiem; cały katalog (propozycja) zwinięty, żeby karta nie dominowała ekranu #}
+  <div class="m-sub m-sub-row" data-help="zglos.nagroda"><h3 class="eyebrow">Najbliższa nagroda</h3><span class="badge neutral">Propozycja</span></div>
+  <div class="m-rewards" id="m-pts-next"></div>
+  <details class="m-more m-rewards-all">
+    <summary>{{ icon('coins', 'i-sm') }}<span class="m-more-t"><span id="m-pts-all-t">Wszystkie nagrody</span><small>propozycja do ustalenia z miastem</small></span>{{ icon('chevron-down', 'i-sm m-more-chev') }}</summary>
+    <div class="m-more-b"><ul class="m-list" id="m-pts-rewards"></ul><p class="hint" id="m-pts-note"></p></div>
+  </details>
 </section>
 
 <dialog class="modal" id="scan-dialog" aria-labelledby="scan-h">
@@ -26,8 +49,15 @@
   <div class="modal-b m-scan-b">
     <div class="m-viewfinder" aria-hidden="true"><span></span>{{ icon('qr-code', 'i-xl') }}</div>
     <p>Skieruj aparat telefonu na kod QR na panelu kosza. Kod otworzy zgłoszenie dla tego kosza.</p>
-    <p class="hint">Na tym urządzeniu nie mamy aparatu. W demo możesz udać skan kodu z panelu kosza nr {{ demo_bin_id }}.</p>
-    <a class="btn btn-primary" href="{{ url_for('ui.report', point_id=demo_bin_id, qr=demo_qr) }}">{{ icon('qr-code') }}Symuluj skan kodu kosza nr {{ demo_bin_id }}</a>
+    {# demo: kosz z panelem losowany w przeglądarce z listy serwera (mieszkaniec.js); bez JS kosz demo #}
+    {% set pool = (scan_bins | selectattr('losuj') | list) or scan_bins %}
+    {% set sb = (pool | selectattr('id', 'equalto', demo_bin_id) | first) or (pool | first) or {'id': demo_bin_id, 'qr': demo_qr} %}
+    <div class="m-sim">
+      <p class="hint">Bez aparatu? W demo udajesz skan kodu z panelu wylosowanego kosza.</p>
+      <a class="btn btn-primary" id="scan-sim" href="{{ url_for('ui.report', point_id=sb.id, qr=sb.qr) }}">{{ icon('qr-code') }}<span>Symuluj skan kodu kosza nr <span class="num" id="scan-sim-n">{{ sb.id }}</span></span></a>
+      <button class="btn btn-ghost btn-sm" type="button" id="scan-roll" hidden>{{ icon('refresh-cw') }}Losuj inny</button>
+    </div>
   </div>
 </dialog>
+<script type="application/json" id="scan-bins">{{ scan_bins | tojson }}</script>
 {% endblock %}

@@ -4,6 +4,7 @@
 {% block title %}{{ bin.nazwa }} · trasa{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='ui/mapa.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='ui/kierowca.css') }}">
 {% endblock %}
 {% block content %}
@@ -11,31 +12,42 @@
   <a class="back" href="{{ url_for('ui.driver') }}">{{ icon('arrow-left', 'i-sm') }}Wróć do trasy</a>
   <div class="k-grid">
     <section class="card k-nav-card">
-      <div class="k-navbar" id="k-navbar" hidden aria-live="polite">
+      <div class="k-navbar" id="k-navbar" hidden aria-live="polite" data-help="kierowca_kosz.nawigacja">
         <span class="k-nav-i" id="k-nav-i">{{ icon('navigation') }}</span>
         <div><b id="k-nav-t">Prowadzenie do kosza</b><span id="k-nav-s">Liczymy trasę…</span></div>
       </div>
       <div id="k-map" class="k-map-big" role="region" aria-label="Mapa dojazdu do kosza"></div>
     </section>
     <section class="card k-detail rise">
-      <div class="k-detail-h" id="k-head">
+      <div class="k-detail-h" id="k-head" data-help="kierowca_kosz.stan">
         <span class="skel" style="width:64px;height:74px"></span><span class="skel" style="flex:1;height:64px"></span>
       </div>
-      <div id="k-reports"></div>
-      <div class="k-level">
+      <div id="k-reports" data-help="kierowca_kosz.zgloszenia"></div>
+      <div class="k-level" data-help="kierowca_kosz.poziom">
         <p class="label" id="k-level-l">Ile było w koszu?</p>
         <div class="k-levels" role="radiogroup" aria-labelledby="k-level-l">
           {% for l in [0, 25, 50, 75, 100] %}<label class="k-lv"><input type="radio" name="poziom" value="{{ l }}"><span class="num">{{ l }}%</span></label>{% endfor %}
         </div>
       </div>
-      <div class="k-actions">
+      <div class="k-photo" id="k-photo" data-help="kierowca_kosz.zdjecie">
+        <label class="k-photo-pick" for="k-photo-in">{{ icon('camera', 'i-lg') }}
+          <span><b>Zrób zdjęcie kosza</b><small id="k-photo-req">Opcjonalnie, dowód odbioru. Tylko kosz: bez ludzi i tablic.</small></span></label>
+        <input class="sr-only" type="file" id="k-photo-in" accept="image/*" capture="environment">
+        <div class="k-photo-prev" id="k-photo-prev" hidden>
+          <img id="k-photo-img" alt="Podgląd zdjęcia kosza" width="72" height="72">
+          <span><b>Zdjęcie dołączone</b><small>Wyślemy je razem z „Opróżniono”.</small></span>
+          <button class="btn btn-ghost btn-sm" type="button" id="k-photo-del" aria-label="Usuń zdjęcie">{{ icon('x') }}</button>
+        </div>
+      </div>
+      <div class="k-actions" data-help="kierowca_kosz.akcje">
         <button class="btn k-act k-go" type="button" data-akcja="jade">{{ icon('navigation', 'i-lg') }}<span>Jadę</span></button>
         <button class="btn k-act k-ok" type="button" data-akcja="oprozniono">{{ icon('check-check', 'i-lg') }}<span>Opróżniono</span></button>
         <button class="btn k-act k-pr" type="button" data-problem>{{ icon('triangle-alert', 'i-lg') }}<span>Problem</span></button>
       </div>
-      <div class="k-doneok" id="k-doneok" hidden>
+      <div class="k-doneok" id="k-doneok" role="status" hidden data-help="kierowca_kosz.dowod">
         <img src="{{ url_for('static', filename='ui/ill/sukces.svg') }}" alt="" width="120" height="96">
-        <b>Opróżniono</b><span>Zgłoszenia mieszkańców przy tym koszu są zamknięte.</span>
+        <b>Opróżniono</b><span id="k-done-msg"></span>
+        <p class="k-proof" id="k-proof" aria-live="polite" hidden></p>
         <a class="btn btn-primary" id="k-next" href="{{ url_for('ui.driver') }}">Następny kosz{{ icon('arrow-right') }}</a>
       </div>
     </section>
@@ -49,10 +61,13 @@
                          ('damaged', 'wrench', 'Kosz uszkodzony'), ('overflow', 'package', 'Odpady obok kosza')] %}
     <button class="btn k-prob" type="button" data-problem-kind="{{ k }}">{{ icon(ico) }}{{ t }}</button>
     {% endfor %}
+    <button class="btn k-prob" type="button" data-problem-kind="need_bin">{{ icon('trash-2') }}Tu przydałby się kosz</button>
+    <a class="btn k-prob" href="{{ url_for('wysypiska.page', ekipa=1) }}">{{ icon('map-pin') }}Dzikie wysypisko w pobliżu</a>
   </div>
 </dialog>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}" defer></script>
+<script src="{{ url_for('static', filename='ui/mapa.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/kierowca.js') }}" defer></script>
 {% endblock %}

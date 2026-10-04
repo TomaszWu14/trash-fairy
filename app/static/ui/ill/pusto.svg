@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" fill="none">
-  <ellipse cx="100" cy="140" rx="64" ry="8" fill="#E4E7EE"/>
-  <rect x="62" y="34" width="76" height="10" rx="5" fill="#0D1126"/>
-  <path d="M66 50h68l-7 80a6 6 0 0 1-6 5.5H79a6 6 0 0 1-6-5.5z" fill="#fff" stroke="#CFD4DF" stroke-width="2.5"/>
-  <path d="M86 66v52M100 66v52M114 66v52" stroke="#E4E7EE" stroke-width="4" stroke-linecap="round"/>
-  <g transform="translate(150 40)" fill="#F5B83D"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g><g transform="translate(50 76) scale(.6)" fill="#8B6CFF"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g>
+  <ellipse cx="100" cy="140" rx="64" ry="8" fill="#8F99B0" fill-opacity=".3"/>
+  <rect x="62" y="34" width="76" height="10" rx="5" fill="#8F99B0"/>
+  <path d="M66 50h68l-7 80a6 6 0 0 1-6 5.5H79a6 6 0 0 1-6-5.5z" fill="#8F99B0" fill-opacity=".14" stroke="#8F99B0" stroke-width="2.5"/>
+  <path d="M86 66v52M100 66v52M114 66v52" stroke="#8F99B0" stroke-width="4" stroke-linecap="round"/>
+  <g transform="translate(150 40)" fill="#FFC247"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g><g transform="translate(50 76) scale(.6)" fill="#B48CFF"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g>
 </svg>

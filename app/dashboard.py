@@ -1,9 +1,10 @@
 """Agregacje panelu miasta — wyłącznie zapytania GROUP BY w bazie.
 
 Odbiory = Pickup (historia syntetyczna, wszystkie punkty, 12 miesięcy) UNION ALL Emptying z source="crew" (kierowca
-na żywo; masa i koszt tą samą formułą z app/history.py). Zgłoszenia = ReportHistory UNION ALL Report z naciśnięciem
-na żywo (Press.wall_at IS NOT NULL). Symulowane Emptying/Report (stały harmonogram — baza porównania silnika) się NIE
-liczą; akcje z demo od razu zmieniają liczniki panelu.
+na żywo). Koszt obu liczony w zapytaniu formułą history.cost_pln z bieżących założeń (methodology.money_assumptions),
+nie z kolumny Pickup.cost_pln: zmiana stawki działa bez ponownego seedowania i zgadza się z oszczędnościami.
+Zgłoszenia = ReportHistory UNION ALL Report z naciśnięciem na żywo (Press.wall_at IS NOT NULL). Symulowane
+Emptying/Report (stały harmonogram — baza porównania silnika) się NIE liczą; akcje z demo od razu zmieniają liczniki panelu.
 """
 from dataclasses import dataclass, replace
 from datetime import date, datetime, timedelta
@@ -11,7 +12,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy import Integer, and_, case, cast, extract, func, literal, or_, select, union_all
 
 from . import db
-from .history import CAPACITY_L, FRACTIONS, KM_PER_VISIT, WDROZENIE, cost_pln, mass_kg
+from .history import CAPACITY_L, COST_PER_TONNE_PLN, FRACTIONS, HISTORY_START, KM_PER_VISIT, WDROZENIE, cost_pln, mass_kg
 from .methodology import money_assumptions
 from .models import Emptying, Pickup, Point, Press, Report, ReportHistory
 
@@ -76,7 +77,8 @@ def pickups(now):
                    cost_pln(mass, km, a).label("cost_pln"), km.label("km"), Emptying.level.label("fill_pct"),
                    literal(1).label("on_demand"), Emptying.far_m)
             .join(Point, Point.id == Emptying.point_id).where(Emptying.source == "crew", Emptying.at <= now))
-    hist = (select(Pickup.point_id, Point.district, Pickup.fraction, Pickup.at, Pickup.mass_kg, Pickup.cost_pln, Pickup.km,
+    hist = (select(Pickup.point_id, Point.district, Pickup.fraction, Pickup.at, Pickup.mass_kg,
+                   cost_pln(Pickup.mass_kg, Pickup.km, a).label("cost_pln"), Pickup.km,
                    Pickup.fill_pct, case((Pickup.on_demand, 1), else_=0).label("on_demand"), Pickup.far_m)
             .join(Point, Point.id == Pickup.point_id).where(Pickup.at <= now))
     return union_all(hist, live).subquery("odbiory")
@@ -233,7 +235,7 @@ def repair_queue(now, district=None):
 # --- plan ---
 # Plan = dzienna średnia z miesięcy przed pierwszym wdrożeniem (BASELINE) dla tych samych filtrów × sezonowość grupy
 # kontrolnej (dzielnice, w których żaden projekt jeszcze nie działał): plan(okres) = baza/dzień × dni × indeks, gdzie
-# indeks = (kontrola/dzień w okresie) / (kontrola/dzień w BASELINE). Planujemy kursy i km; oszczędności = kursy × stawka
+# indeks = (kontrola/dzień w okresie) / (kontrola/dzień w BASELINE). Planujemy odbiory i km; oszczędności = odbiory × stawka
 # + km × stawka (jak methodology.money), a koszt wg planu = koszt rzeczywisty + oszczędności — masy odpadów system
 # nie zmniejsza, więc opłata za tony jest w obu taka sama.
 PLAN_KEYS = ("wywozy", "km")
@@ -283,10 +285,74 @@ def monthly_plan(f, now, months):
 
 
 def savings(actual, planned, a):
-    """(zł, kursy, km) zaoszczędzone wobec planu — wizyty × stawka + km × stawka (methodology.money_assumptions)."""
+    """(zł, odbiory mniej, km mniej) wobec planu — odbiory × stawka + km × stawka (methodology.money_assumptions)."""
     visits = planned["wywozy"] - (actual["wywozy"] or 0)
     km = planned["km"] - float(actual["km"] or 0)
     return visits * a["cost_per_visit"] + km * a["cost_per_km"], visits, km
+
+
+def cost_parts(t, a):
+    """Koszt odbiorów z sum `t` rozbity na składniki history.cost_pln: wizyty przy koszach, km, opłata za tony."""
+    return {"odbiory_zl": int(t["wywozy"] or 0) * a["cost_per_visit"], "km_zl": float(t["km"] or 0) * a["cost_per_km"],
+            "tony_zl": float(t["masa"] or 0) * COST_PER_TONNE_PLN / 1000.0}
+
+
+def _pct_change(after, before):
+    return 100 * (after - before) / before if before else None
+
+
+def _moved(v, up="wzrósł", down="spadł", same="nie zmienił się"):
+    """Zmiana w % słowem, bez znaku: „spadł o 6%”, „wzrósł o 2,1%”."""
+    return f"{down if v < 0 else up} o {pl_num(abs(v), 1)}%" if round(abs(v), 1) else same
+
+
+def cost_explanation(before, after, a, days):
+    """Czemu koszt nie spada razem z liczbą odbiorów (sumy `totals` przed i po starcie projektu, `days` = (dni przed,
+    dni po)): składniki history.cost_pln i zdanie z liczbami. Okna mogą mieć różną długość (project_windows), więc
+    porównujemy średnie dzienne, a zmianę w zł podajemy na 30 dni. None, gdy brak danych w którymś oknie."""
+    d_b, d_a = days
+    if not (before["wywozy"] and after["wywozy"] and before["koszt"] and before["masa"] and d_b and d_a):
+        return None
+    pb, pa = cost_parts(before, a), cost_parts(after, a)
+    rate = lambda t, k, d: float(t[k]) / d
+    service = 30 * ((pa["odbiory_zl"] + pa["km_zl"]) / d_a - (pb["odbiory_zl"] + pb["km_zl"]) / d_b)
+    visits = _pct_change(rate(after, "wywozy", d_a), rate(before, "wywozy", d_b))
+    cost = _pct_change(rate(after, "koszt", d_a), rate(before, "koszt", d_b))
+    mass = _pct_change(rate(after, "masa", d_a), rate(before, "masa", d_b))
+    share = 100 * pa["tony_zl"] / float(after["koszt"])
+    text = (f"Odbiorów {'mniej' if visits < 0 else 'więcej'} o {pl_num(abs(visits), 1)}% na dzień, a dzienny koszt "
+            f"{_moved(cost)}. {pl_num(share)}% kosztu to opłata za tony odpadów, na którą liczba odbiorów nie wpływa "
+            f"(masa odpadów na dzień {_moved(mass, 'wzrosła', 'spadła', 'bez zmian')}); wizyty przy koszach i przejazdy "
+            f"kosztują o {pl_num(abs(service))} zł {'mniej' if service < 0 else 'więcej'} miesięcznie.")
+    rnd = lambda p: {k: round(v, 2) for k, v in p.items()}
+    return {"zdanie": text, "przed": rnd(pb), "po": rnd(pa), "dni": {"przed": round(d_b, 2), "po": round(d_a, 2)},
+            "odbiory_pct": round(visits, 1), "koszt_pct": round(cost, 1), "masa_pct": round(mass, 1),
+            "udzial_ton_pct": round(share, 1), "wizyty_i_km_zl_30_dni": round(service, 2)}
+
+
+def plural(n, one, few, many):
+    """Odmiana po liczbie: 1 odbiór, 2–4 odbiory, 5+ odbiorów (12–14 też „many”)."""
+    n = abs(int(n))
+    return one if n == 1 else few if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else many
+
+
+def pl_num(v, nd=0):
+    """Liczba po polsku: twarda spacja tysięcy, przecinek dziesiętny, bez końcowych zer."""
+    s = f"{v:,.{nd}f}".replace(",", "\u00a0").replace(".", ",")
+    return s.rstrip("0").rstrip(",") if "," in s else s
+
+
+def pl_range(od, do):
+    """Zakres dat po polsku: 1–30.09.2026, 3.09–2.10.2026, 3.12.2025–2.01.2026."""
+    if (od.year, od.month) == (do.year, do.month):
+        return f"{od.day}–{do.day}.{do:%m.%Y}"
+    if od.year == do.year:
+        return f"{od.day}.{od:%m}–{do.day}.{do:%m.%Y}"
+    return f"{od.day}.{od:%m.%Y}–{do.day}.{do:%m.%Y}"
+
+
+def baseline_label():
+    return pl_range(BASELINE[0], BASELINE[1] - timedelta(days=1))
 
 
 def last_months(now, n=12):
@@ -324,26 +390,35 @@ def metric_value(metric, t, days):
     raise ValueError(metric)
 
 
-# (jednostka zmiany, dopełniacz do etykiety)
-PROJECT_METRICS = {"wywozy": ("%", "wywozów"), "puste_wywozy": ("p.p.", "pustych wywozów"),
-                   "udzial_zmieszanych": ("p.p.", "udziału zmieszanych"), "koszt_wywozu": ("%", "kosztu wywozu"),
-                   "km_na_wywoz": ("%", "km na wywóz"),
+# (jednostka zmiany, dopełniacz do etykiety). Odbiór = opróżnienie kosza; klucze miar bez zmian (zgodność danych).
+PROJECT_METRICS = {"wywozy": ("%", "odbiorów"), "puste_wywozy": ("p.p.", "pustych odbiorów"),
+                   "udzial_zmieszanych": ("p.p.", "udziału zmieszanych"), "koszt_wywozu": ("%", "kosztu odbioru"),
+                   "km_na_wywoz": ("%", "km na odbiór"),
                    "czas_reakcji": ("%", "czasu reakcji")}
 
 
+def effect_label(metric, value):
+    """Etykieta efektu projektu, np. „−13,2% odbiorów”. Panel liczy ją z wartości przy każdym zapytaniu, więc zmiana
+    słownictwa nie wymaga ponownego generowania historii."""
+    unit, noun = PROJECT_METRICS[metric]
+    sign = "−" if value < 0 else "+"
+    return f"{sign}{abs(value):g}".replace(".", ",") + f"{'%' if unit == '%' else ' p.p.'} {noun}"
+
+
 def project_windows(project, now):
-    """(przed, po): „po” = od startu do końca (najdalej do teraz), „przed” = tyle samo dni tuż przed startem."""
+    """(przed, po): „po” = od startu do końca (najdalej do teraz), „przed” = tyle samo dni tuż przed startem, przycięte
+    do początku historii (dni bez danych zaniżałyby „przed”); okna mogą więc mieć różną długość — porównuj średnie dzienne."""
     start = datetime.combine(project.start, datetime.min.time())
     end = min(datetime.combine(project.end + timedelta(days=1), datetime.min.time()), now)
     if end <= start:
         return None
-    after = Filters(od=start, do=end, district=project.district)
-    return after.previous(), after
+    n = max(min(end - start, start - HISTORY_START), timedelta(0))
+    return Filters(od=start - n, do=start, district=project.district), Filters(od=start, do=end, district=project.district)
 
 
 def project_effect(project, now):
     """(wartość zmiany, etykieta) z historii dzielnicy przed i po starcie projektu."""
-    unit, noun = PROJECT_METRICS[project.metric]
+    unit = PROJECT_METRICS[project.metric][0]
     windows = project_windows(project, now)
     if windows is None:
         return None, f"Start {project.start:%m.%Y} — efekt po wdrożeniu"
@@ -351,6 +426,4 @@ def project_effect(project, now):
     if before is None or after is None:
         return None, "Za mało danych do oceny efektu"
     value = round(after - before, 1) if unit == "p.p." else round(100 * (after - before) / before, 1)
-    sign = "−" if value < 0 else "+"
-    number = f"{abs(value):g}".replace(".", ",")
-    return value, f"{sign}{number}{'%' if unit == '%' else ' p.p.'} {noun}"
+    return value, effect_label(project.metric, value)

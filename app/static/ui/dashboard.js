@@ -1,4 +1,5 @@
-// Dashboard miasta: filtry globalne (w adresie strony), KPI ze sparkline, wykresy ECharts, mapa, projekty, szczegóły w modalu.
+// Dashboard miasta: filtry globalne (w adresie strony), KPI ze sparkline, wykresy ECharts, projekty, szczegóły w modalu.
+// Mapa koszy na żywo jest w panelu dyspozytora (/dyspozytor).
 (() => {
   const TF = window.TF, { api, esc, icon, num, zl, C } = TF;
   const form = document.getElementById('d-filters');
@@ -49,27 +50,53 @@
     if (k.zmiana_pct == null) return '<span class="delta flat">bez porównania</span>';
     const up = k.zmiana_pct > 0, good = (k.lepiej_gdy === 'mniej') !== up;
     if (Math.abs(k.zmiana_pct) < 0.5) return `<span class="delta flat">bez zmian</span>`;
-    return `<span class="delta ${good ? 'good' : 'bad'}">${icon(up ? 'trending-up' : 'trending-down')}${up ? '+' : '−'}${num(Math.abs(k.zmiana_pct), 1)}%</span>`;
+    const word = `${good ? 'lepiej' : 'gorzej'} niż w poprzednim okresie`;
+    return `<span class="delta ${good ? 'good' : 'bad'}" title="${word}">${icon(up ? 'trending-up' : 'trending-down')}${up ? '+' : '−'}${num(Math.abs(k.zmiana_pct), 1)}%<span class="sr-only">, ${word}</span></span>`;
   };
+  const plain = (k, v) => k.jednostka === '%' ? `${num(v)}%` : k.jednostka === 'h' ? `${num(v, 1)} h` : num(v);
+  const sub = (k, meta) => k.podpis ? `<p class="kpi-sub">${esc(k.podpis)}</p>`
+    : k.przed_wdrozeniem != null ? `<p class="kpi-sub" title="${esc(meta.przed_wdrozeniem?.etykieta || '')}">przed wdrożeniem: śr. ${plain(k, k.przed_wdrozeniem)}</p>` : '';
+  // oszczędności: zł z wybranego okresu, przeliczenie liniowe i rozwijane „Jaki to plan?” (pola z /api/dashboard/kpi)
+  const short = v => v == null ? '–' : v >= 1e4 ? `${num(v / 1000, 1)} tys.` : v < 10 ? v.toLocaleString('pl-PL', { maximumFractionDigits: 2 }) : num(v);  // zł w nagłówku
+  const savingsTile = (k, n) => {
+    const per = !!k.kosze, s = k.skladniki || {}, st = k.stawki || {};
+    const rows = [['Dziennie', k.dziennie], ['Miesiąc', k.miesiac], ['Rok', k.rok]];
+    const opis = esc(k.plan_opis || '').replace('szczegóły: /metodologia#koszt-odbioru', 'szczegóły: <a href="/metodologia#koszt-odbioru">jak liczymy koszt odbioru</a>');
+    return `<article class="card kpi rise kpi-oszczednosci" data-help="dashboard.kpi_oszczednosci">
+      <div class="sv-main"><header class="kpi-h">${icon('coins')}${esc(k.etykieta)}</header>
+        <p class="kpi-v num" data-kpi="oszczednosci">${fmt(k)}</p>${k.podpis ? `<p class="kpi-sub">${esc(k.podpis)}</p>` : ''}
+        <div class="kpi-f kpi-f-big">${delta(k)}${TF.spark(k.trend.slice(0, n), 220, 72)}</div></div>
+      <div class="sv-side"><table class="sv-t"><caption class="sr-only">Oszczędności w złotych, przeliczenie liniowe</caption>
+        <thead><tr><td aria-hidden="true">zł</td><th scope="col">Razem</th>${per ? '<th scope="col">Na 1 kosz</th>' : ''}</tr></thead>
+        <tbody>${rows.map(([l, v]) => `<tr><th scope="row">${l}</th><td class="num">${short(v)}</td>${per ? `<td class="num">${short(v / k.kosze)}</td>` : ''}</tr>`).join('')}</tbody></table>
+      <p class="sv-note">Przeliczenie liniowe z wybranego okresu${per ? `, ${num(k.kosze)} ${TF.plural(k.kosze, ['kosz', 'kosze', 'koszy'])}` : ''} · dane demonstracyjne</p></div>
+      <details class="sv-plan"><summary>${icon('circle-help', 'i-sm')}Jaki to plan?${icon('chevron-down', 'i-sm')}</summary>
+        <dl class="sv-dl"><div><dt>Plan</dt><dd class="num">${num(k.plan?.odbiory)} odbiorów · ${num(k.plan?.km)} km</dd></div>
+          <div><dt>Faktycznie</dt><dd class="num">${num(k.faktycznie?.odbiory)} odbiorów · ${num(k.faktycznie?.km)} km</dd></div>
+          <div><dt>Oszczędność</dt><dd class="num">${num(k.odbiory_mniej)} odb. × ${num(st.odbior_zl)} zł = ${zl(s.odbiory_zl)} · ${num(k.km_mniej, 1)} km × ${num(st.km_zl)} zł = ${zl(s.km_zl)}</dd></div></dl>
+        <p>${opis}</p></details></article>`;
+  };
+  const BIG = ['co2', 'wywozy', 'anomalie'];  // rząd efektów obok oszczędności: wyższy kafel, szeroka linia trendu
   function renderKpis(d) {
     document.getElementById('d-period').textContent = `${d.meta.etykieta || ''}${d.meta.od ? ` · ${new Date(d.meta.od).toLocaleDateString('pl-PL')} – ${new Date(d.meta.do).toLocaleDateString('pl-PL')}` : ''}`;
-    document.getElementById('d-kpis').innerHTML = d.kpi.map(k => `<article class="card kpi rise kpi-${k.id}" title="${esc(k.opis || '')}">
+    const n = TF.fullMonths(d.meta).miesiace?.length;  // sparkline bez niepełnego bieżącego miesiąca
+    const osz = d.kpi.find(k => k.id === 'oszczednosci'), vsPlan = (v, unit = '') => v == null ? null
+      : `${num(Math.abs(v))}${unit} ${v >= 0 ? 'mniej' : 'więcej'} niż w planie`;  // podpis z tych samych liczb co „Jaki to plan?”
+    const PLAN_SUB = { co2: vsPlan(osz?.km_mniej, ' km'), wywozy: vsPlan(osz?.odbiory_mniej) };
+    d.kpi.forEach(k => { if (!k.podpis && k.przed_wdrozeniem == null && PLAN_SUB[k.id]) k.podpis = PLAN_SUB[k.id]; });
+    document.getElementById('d-kpis').innerHTML = d.kpi.map(k => k.id === 'oszczednosci' ? savingsTile(k, n) : `<article class="card kpi rise kpi-${k.id}" data-help="dashboard.kpi_${esc(k.id)}" title="${esc(k.opis || '')}">
       <header class="kpi-h">${icon(KPI_ICON[k.id] || 'circle-dot')}${esc(k.etykieta)}</header>
-      <p class="kpi-v num" data-kpi="${esc(k.id)}">${fmt(k)}</p>${k.podpis ? `<p class="kpi-sub">${esc(k.podpis)}</p>` : ''}
-      <div class="kpi-f">${delta(k)}${TF.spark(k.trend)}</div>${k.id === 'oszczednosci' && k.kursy != null ? `<p class="kpi-sub">${num(k.kursy)} kursów mniej niż w planie</p>` : ''}</article>`).join('');
-    document.getElementById('d-kpis').insertAdjacentHTML('beforeend', '<p class="kpi-note">Zmiana wobec poprzedniego okresu tej samej długości. Wykresy: pełne miesiące.</p>');
+      <p class="kpi-v num" data-kpi="${esc(k.id)}">${fmt(k)}</p>${sub(k, d.meta)}
+      ${BIG.includes(k.id) ? `<div class="kpi-f kpi-f-big">${delta(k)}${TF.spark(k.trend.slice(0, n), 220, 72)}</div>` : `<div class="kpi-f">${delta(k)}${TF.spark(k.trend.slice(0, n))}</div>`}</article>`).join('');
+    const pw = d.meta.przed_wdrozeniem;
+    document.getElementById('d-kpis').insertAdjacentHTML('beforeend', `<p class="kpi-note">Zmiana wobec poprzedniego okresu tej samej długości. Wykresy i linie trendu: pełne miesiące.${pw ? ` „Przed wdrożeniem”: ${esc(pw.etykieta)}.` : ''}</p>`);
     if (!counted) d.kpi.forEach(k => k.wartosc != null && TF.countUp(document.querySelector(`[data-kpi="${k.id}"]`), k.wartosc, v => fmt(k, v)));
     counted = true;  // tylko przy wejściu: odświeżenia pollingiem nie liczą od zera
   }
   let counted = false;
 
   // ---------- wykresy ----------
-  const fullMonths = d => {  // bieżący miesiąc demo jest niepełny: pokazujemy tylko pełne miesiące
-    const now = new Date(TF.clock || Date.now()), cur = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const n = d.miesiace?.[d.miesiace.length - 1] === cur && now.getDate() < 28 ? d.miesiace.length - 1 : d.miesiace?.length;
-    const cut = {}; Object.keys(d).forEach(k => cut[k] = Array.isArray(d[k]) && d[k].length === d.miesiace.length ? d[k].slice(0, n) : d[k]);
-    return cut;
-  };
+  const fullMonths = TF.fullMonths;  // charts.js: bez niepełnego bieżącego miesiąca
   const chart = id => st.charts[id] || (st.charts[id] = TF.chart(document.getElementById(`ch-${id}`)));
   const tip = { trigger: 'axis', axisPointer: { type: 'line', lineStyle: { color: C.line } } };
 
@@ -79,13 +106,13 @@
     TF.chartEmpty(el, empty); if (empty) return chart('koszty').clear();
     const labels = d.miesiace.map(TF.monthLabel), w = d.miesiace.indexOf(d.wdrozenie);
     chart('koszty').setOption({
-      animation: TF.anim, tooltip: { ...tip, valueFormatter: v => v == null ? '–' : zl(v) },
+      animation: TF.anim, tooltip: { ...tip, valueFormatter: v => v == null ? '–' : zl(v) }, grid: { right: 24 },
       legend: { data: ['Rzeczywiste', 'Plan (budżet)'] },
       xAxis: { type: 'category', data: labels, boundaryGap: false },
       yAxis: { type: 'value', scale: true, min: v => Math.floor(v.min * 0.92 / 5000) * 5000, axisLabel: { formatter: v => `${num(v / 1000)} tys.` } },
       series: [
         { name: 'Rzeczywiste', type: 'line', data: d.rzeczywiste, smooth: .3, symbol: 'circle', symbolSize: 6, lineStyle: { width: 3, color: C.brand },
-          itemStyle: { color: C.brand }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(91,61,245,.22)' }, { offset: 1, color: 'rgba(91,61,245,0)' }]) },
+          itemStyle: { color: C.brand }, areaStyle: { opacity: .25, color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: C.brand }, { offset: 1, color: C.surface }]) },
           markLine: w >= 0 ? { symbol: 'none', silent: true, lineStyle: { color: C.ink2, type: [4, 4] }, label: { formatter: 'Wdrożenie Trash Fairy', color: C.ink2, fontWeight: 600, position: 'insideEndTop' },
                                data: [{ xAxis: labels[w] }] } : undefined },
         { name: 'Plan (budżet)', type: 'line', data: d.plan, smooth: .3, symbol: 'none', lineStyle: { width: 2, type: [6, 4], color: C.ink3 }, itemStyle: { color: C.ink3 } },
@@ -101,10 +128,10 @@
     c.setOption({
       animation: TF.anim, tooltip: { trigger: 'item', formatter: p => `${p.name}<br><b>${num(p.value, 1)} t</b> · ${num(p.percent, 1)}%` },
       legend: { bottom: 0, top: 'auto', left: 'center' },
-      graphic: [{ type: 'text', left: 'center', top: '38%', style: { text: `${num(total, 0)} t`, font: `800 22px ${C.font}`, fill: C.ink, textAlign: 'center' } },
-                { type: 'text', left: 'center', top: '50%', style: { text: 'odpadów', font: `500 12px ${C.font}`, fill: C.ink3, textAlign: 'center' } }],
+      graphic: [{ type: 'text', left: 'center', top: '38%', style: { text: `${num(total, 0)} t`, font: `700 22px ${C.display}`, fill: C.ink, textAlign: 'center' } },
+                { type: 'text', left: 'center', top: '50%', style: { text: 'odpadów', font: `500 13px ${C.font}`, fill: C.ink3, textAlign: 'center' } }],
       series: [{ type: 'pie', radius: ['52%', '74%'], center: ['50%', '45%'], avoidLabelOverlap: true, label: { show: false }, padAngle: 2,
-                 itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+                 itemStyle: { borderRadius: 6, borderColor: C.surface, borderWidth: 2 },
                  emphasis: { scale: true, scaleSize: 6 },
                  data: rows.map(r => ({ name: r.etykieta, value: r.masa_t, key: r.frakcja, itemStyle: { color: C.frac[r.frakcja], opacity: sel && sel !== r.frakcja ? .3 : 1 } })) }],
     }, true);
@@ -118,8 +145,8 @@
     const c = chart('dzielnice'), sel = form.elements.dzielnica.value;
     c.setOption({
       animation: TF.anim,
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: v => miara === 'koszt' ? zl(v) : `${num(v)} ${TF.plural(Math.round(v), ['wywóz', 'wywozy', 'wywozów'])}` },
-      legend: {}, xAxis: { type: 'category', data: d.dzielnice, axisLabel: { interval: 0, color: C.ink2, fontWeight: 600 } },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: v => miara === 'koszt' ? zl(v) : `${num(v)} ${TF.plural(Math.round(v), ['odbiór', 'odbiory', 'odbiorów'])}` },
+      legend: {}, grid: { top: 56 }, xAxis: { type: 'category', data: d.dzielnice, axisLabel: { interval: 0, color: C.ink2, fontWeight: 600, rotate: el.clientWidth < 560 ? 40 : 0 } },
       yAxis: { type: 'value', axisLabel: { formatter: v => miara === 'koszt' ? `${num(v / 1000)} tys.` : num(v) } },
       series: d.serie.map(s => ({ name: s.etykieta, type: 'bar', stack: 'f', barMaxWidth: 44, data: s[miara].map((v, i) => ({ value: v, itemStyle: { opacity: sel && sel !== d.dzielnice[i] ? .3 : 1 } })),
                                   itemStyle: { color: C.frac[s.frakcja], borderRadius: 0 }, emphasis: { focus: 'series' } })),
@@ -136,7 +163,7 @@
       animation: TF.anim, tooltip: tip, legend: {},
       xAxis: { type: 'category', data: d.miesiace.map(TF.monthLabel) },
       yAxis: [{ type: 'value', name: '', axisLabel: { formatter: v => num(v) } }, { type: 'value', axisLabel: { formatter: v => `${num(v)} h` }, splitLine: { show: false } }],
-      series: [{ name: 'Zgłoszenia', type: 'bar', data: d.liczba, barMaxWidth: 18, itemStyle: { color: C.series[2], borderRadius: [4, 4, 0, 0] } },
+      series: [{ name: 'Zgłoszenia', type: 'bar', data: d.liczba, barMaxWidth: 18, itemStyle: { color: C.soft, borderColor: C.brand, borderWidth: 1, borderRadius: [4, 4, 0, 0] } },
                { name: 'Czas reakcji (h)', type: 'line', yAxisIndex: 1, data: d.czas_reakcji_h, smooth: .3, symbolSize: 6, lineStyle: { width: 3, color: C.brand },
                  itemStyle: { color: C.brand }, tooltip: { valueFormatter: v => v == null ? '–' : `${num(v, 1)} h` } }],
     }, true);
@@ -151,42 +178,23 @@
       xAxis: { type: 'category', data: [...Array(24).keys()], splitArea: { show: false }, axisLabel: { interval: 2, color: C.ink3 } },
       yAxis: { type: 'category', data: DNI, inverse: true, axisLabel: { color: C.ink2, fontWeight: 600 } },
       visualMap: { min: 0, max, calculable: false, orient: 'horizontal', left: 'center', bottom: 0, itemWidth: 10, itemHeight: 120,
-                   inRange: { color: ['#F4F2FF', '#C9BCFF', '#8B6CFF', '#5B3DF5', '#2E1A9E'] }, textStyle: { color: C.ink3 }, text: ['więcej', 'mniej'] },
-      series: [{ type: 'heatmap', data: rows.map(r => [r[1], r[0], r[2]]), itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 3 } }],
+                   inRange: { color: [C.soft, C.brand] }, textStyle: { color: C.ink3 }, text: ['więcej', 'mniej'] },  // więcej = mocniejszy akcent w obu motywach
+      series: [{ type: 'heatmap', data: rows.map(r => [r[1], r[0], r[2]]), itemStyle: { borderColor: C.surface, borderWidth: 2, borderRadius: 3 } }],
     }, true);
   }
-  let map, mapLayer;
-  function rMapa(d) {
-    if (!map) {
-      map = L.map('ch-mapa', { zoomControl: false, scrollWheelZoom: false }).setView([50.06, 19.96], 12);
-      L.control.zoom({ position: 'bottomright' }).addTo(map); map.attributionControl.setPrefix(false);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, className: 'tiles-soft', attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
-      mapLayer = L.layerGroup().addTo(map);
-    }
-    mapLayer.clearLayers();
-    const kosze = d.kosze || [], hot = d.goraco || [], maxw = Math.max(1, ...hot.map(h => h[2]));
-    TF.chartEmpty(document.getElementById('ch-mapa'), !kosze.length, 'Dla tych filtrów nie ma koszy na mapie.');
-    hot.forEach(([lat, lon, w]) => L.circle([lat, lon], { radius: 120 + 380 * (w / maxw), stroke: false, fillColor: C.full, fillOpacity: .08 + .22 * (w / maxw), interactive: false }).addTo(mapLayer));
-    const COL = { ok: C.ok, warn: C.warn, full: C.full };
-    kosze.forEach(k => L.circleMarker([k.lat, k.lon], { radius: k.live ? 6 : 5, weight: 1.5, color: '#fff', fillColor: COL[TF.lvl(k.zapelnienie)], fillOpacity: 1 })
-      .bindTooltip(`<b>${esc(k.nazwa)}</b><br>${esc(k.adres || '')}<br>${esc(TF.FRAKCJE[k.frakcja] || '')} · ${num(k.zapelnienie)}%`)
-      .on('click', () => details('kosz', k)).addTo(mapLayer));
-    if (kosze.length && !st.mapFitted) { map.fitBounds(L.latLngBounds(kosze.map(k => [k.lat, k.lon])).pad(0.05)); st.mapFitted = true; }
-    cache.mapa = kosze;
-  }
-
   // ---------- jakość obsługi i kolejka napraw (tabele, bez ECharts) ----------
   const pct = (v, nd = 1) => v == null ? '–' : `${num(v, nd)}%`;
   const when = iso => new Date(iso).toLocaleString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   function rJakosc(d) {
     const rows = d.dzielnice || [], box = document.getElementById('ch-jakosc');
-    box.innerHTML = `<table class="dtable q-table"><thead><tr><th scope="col">Dzielnica</th><th scope="col">Zgłoszenia w ≤ ${d.norma_h} h</th>
-      <th scope="col" class="n">Anomalie ekipy</th><th scope="col" class="n">Trafność zgłoszeń<span aria-hidden="true">*</span></th></tr></thead><tbody>${rows.map(r => `<tr>
+    const L = [`Zgłoszenia w ≤ ${d.norma_h} h`, 'Anomalie ekipy', 'Trafność przycisków (symulacja)'];  // data-l: etykieta kolumny w kartach na telefonie
+    box.innerHTML = `<table class="dtable q-table"><thead><tr><th scope="col">Dzielnica</th><th scope="col">${L[0]}</th>
+      <th scope="col" class="n">${L[1]}</th><th scope="col" class="n">${L[2]}<span aria-hidden="true">*</span></th></tr></thead><tbody>${rows.map(r => `<tr>
       <th scope="row">${esc(r.dzielnica)}</th>
-      <td><div class="q-sla"><b class="num">${pct(r.sla_2h_pct)}</b><div class="bar" aria-hidden="true"><i style="--p:${((r.sla_2h_pct || 0) / 100).toFixed(3)}"></i></div></div>
+      <td data-l="${L[0]}"><div class="q-sla"><b class="num">${pct(r.sla_2h_pct)}</b><div class="bar" aria-hidden="true"><i style="--p:${((r.sla_2h_pct || 0) / 100).toFixed(3)}"></i></div></div>
         <small>z ${num(r.sla_ocenione)} ${TF.plural(r.sla_ocenione, ['zgłoszenia', 'zgłoszeń', 'zgłoszeń'])}</small></td>
-      <td class="n"><b class="num">${num(r.anomalie)}</b><small>${pct(r.anomalie_pct, 1)} z ${num(r.wywozy)} ${TF.plural(r.wywozy, ['wywozu', 'wywozów', 'wywozów'])}</small></td>
-      <td class="n">${r.trafnosc_pct == null ? '<small>brak danych</small>' : `<b class="num">${pct(r.trafnosc_pct)}</b><small>z ${num(r.trafnosc_rozstrzygniete)} rozstrzygniętych</small>`}</td></tr>`).join('')}</tbody></table>`;
+      <td class="n" data-l="${L[1]}"><b class="num">${num(r.anomalie)}</b><small>${pct(r.anomalie_pct, 1)} z ${num(r.wywozy)} ${TF.plural(r.wywozy, ['odbioru', 'odbiorów', 'odbiorów'])}</small></td>
+      <td class="n" data-l="${L[2]}*">${r.trafnosc_pct == null ? '<small>brak danych</small>' : `<b class="num">${pct(r.trafnosc_pct)}</b><small>z ${num(r.trafnosc_rozstrzygniete)} sprawdzeń w symulacji</small>`}</td></tr>`).join('')}</tbody></table>`;
     document.getElementById('q-note').textContent = `Dane demonstracyjne. Norma: odbiór w ≤ ${d.norma_h} h od zgłoszenia (liczone zgłoszenia zamknięte albo otwarte dłużej niż ${d.norma_h} h). `
       + `Anomalia: odbiór potwierdzony dalej niż ${d.prog_m} m od kosza. * ${d.trafnosc_zrodlo}`;
   }
@@ -207,6 +215,53 @@
         <span>Zgłoszono ${esc(when(x.zgloszono))} · termin ${esc(when(x.termin))}</span>
         ${x.komentarz ? `<q>${esc(x.komentarz)}</q>` : ''}</div>
       <span class="badge ${x.po_terminie ? 'full' : 'ok'}">${icon(x.po_terminie ? 'triangle-alert' : 'clock')}${esc(x.status)}</span></li>`).join('')}</ul>`;
+  }
+
+  // ---------- rekomendacje z danych (reguły: recommendations.py, dumping.py, wysypiska.py, crew_points.py) ----------
+  const REC = [['compactor', 'full'], ['bigger', 'warn'], ['less_often', 'ok'], ['shelter_intervention', null]];
+  const LADDER = [['tablica', 'Tablica i edukacja', 'newspaper'], ['kontrola', 'Straż Miejska', 'shield-check'], ['fotopulapka', 'Fotopułapka', 'camera']];
+  const LVL_ST = { tablica: 'warn', kontrola: 'full', fotopulapka: 'full' };
+  const day = iso => new Date(iso).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+  const rkHead = (ico, t, sub, big = '') => `<header class="rk-h"><span class="rk-ico">${icon(ico)}</span><div><h3>${t}</h3><p>${sub}</p></div>${big}</header>`;
+  const rkBig = (n, word) => `<b class="rk-big num">${num(n)}<small>${word}</small></b>`;
+  const rkEmpty = (t, ico = 'info') => `<p class="rk-empty">${icon(ico, 'i-sm')}${t}</p>`;
+  function rRek(r, w) {
+    const box = document.getElementById('d-recs');
+    if (!r) { box.innerHTML = `<div class="card empty rk-fail"><img src="/static/ui/ill/pusto.svg" alt=""><h3>Nie udało się wczytać rekomendacji</h3><p>Spróbujemy ponownie przy następnej zmianie danych.</p></div>`; return; }
+    cache.rek = r;
+    const recs = r.rekomendacje || [], okna = r.meta.okna_dni || {};
+    const cap = `<article class="card rk" data-help="dashboard.rek_pojemnosc">${rkHead('package', 'Pojemność i częstotliwość', `Zapełnienie przy odbiorach z ${num(okna.rekomendacje)} dni`, rkBig(recs.length, TF.plural(recs.length, ['kosz', 'kosze', 'koszy'])))}
+      ${recs.length ? `<ul class="rk-list">${REC.map(([kind, s]) => {
+        const xs = recs.filter(x => x.rodzaj === kind), x = xs[0];
+        return x ? `<li>${s ? TF.stateIcon(s, 'rk-st') : `<span class="rk-st rk-alt">${icon('building-2', 'i-sm')}</span>`}<div><b>${esc(x.etykieta)}<span class="rk-c num">${num(xs.length)}</span></b>
+          <small>${xs.length > 1 ? 'np. ' : ''}${esc(x.kosz)}: ${esc(x.powod)}</small><small class="rk-eff">${esc(x.efekt)}</small></div></li>` : '';
+      }).join('')}</ul>` : rkEmpty('Żaden kosz nie wymaga zmiany pojemności ani częstotliwości odbioru.', 'circle-check-big')}</article>`;
+    const sites = r.podrzucanie || [], lv = r.meta.poziomy_podrzucania || {}, pr = r.meta.progi_podrzucania || {};
+    const dump = `<article class="card rk" data-help="dashboard.rek_podrzucanie">${rkHead('flag', 'Miejsca podrzucania odpadów', `Odpady obok koszy z ${num(okna.podrzucanie)} dni · reakcja rośnie z liczbą sygnałów`, rkBig(sites.length, TF.plural(sites.length, ['miejsce', 'miejsca', 'miejsc'])))}
+      <ol class="rk-ladder" aria-label="Drabinka reakcji">${LADDER.map(([k, t, ico], i) => `<li class="${lv[k] ? 'on' : ''}"><small>Krok ${i + 1} · od ${num(pr[k])} sygnałów</small>
+        <span>${icon(ico, 'i-sm')}${t}</span><b class="num">${num(lv[k] || 0)}<small> ${TF.plural(lv[k] || 0, ['miejsce', 'miejsca', 'miejsc'])}</small></b></li>`).join('')}</ol>
+      ${sites.length ? `<ul class="rk-list">${sites.slice(0, 3).map(x => `<li>${TF.stateIcon(LVL_ST[x.poziom] || 'warn', 'rk-st')}<div><b>${esc(x.kosz)}</b>
+        <small>${esc(x.dzielnica)} · ${esc(x.poziom_etykieta)}</small><small>${esc(x.uzasadnienie)} Zdjęcia: ${num(x.zdjecia)}.</small></div></li>`).join('')}</ul>`
+        : rkEmpty(`W ${num(okna.podrzucanie)} dniach nie było sygnałów odpadów obok koszy.`, 'circle-check-big')}
+      <p class="rk-note">Kontrolę Straży Miejskiej i fotopułapkę zleca gmina, nie system.</p></article>`;
+    const wl = w?.wysypiska || [], open = wl.filter(x => x.status !== 'uprzatniete'), days = w?.okres_dni ?? 90;
+    const places = (w?.miejsca || []).filter(s => s.poziom);
+    // pusta karta (zero wysypisk / zero punktów): bez kafli „0 / 0 / 0” i wielkiego „0”, niższa, nie rozciąga się do sąsiada
+    const wild = `<article class="card rk${wl.length ? '' : ' rk-compact'}" data-help="dashboard.rek_wysypiska">${rkHead('trash', 'Dzikie wysypiska', `Zgłoszenia mieszkańców i ekip MPO z ${num(days)} dni`)}
+      ${wl.length ? `<div class="rk-stats"><div><b class="num">${num(open.length)}</b><span>otwarte</span></div><div><b class="num">${num(wl.length - open.length)}</b><span>uprzątnięte</span></div>
+        <div><b class="num">${num(places.length)}</b><span>${TF.plural(places.length, ['miejsce', 'miejsca', 'miejsc'])} z drabinką</span></div></div>` : ''}
+      ${wl.length ? `<ul class="rk-list">${wl.slice(0, 3).map(x => `<li>${x.status === 'uprzatniete' ? TF.stateIcon('ok', 'rk-st') : `<span class="rk-st rk-dump">${icon('trash', 'i-sm')}</span>`}
+        <div><b>${esc(x.numer)} · ${esc(x.etykieta)}</b><small>${esc((x.rodzaje || []).join(', ') || 'rodzaj nieznany')}${x.ilosc ? ` · ${num(x.ilosc)} worków lub sztuk` : ''} · ${day(x.zgloszono)}</small></div></li>`).join('')}</ul>`
+        : rkEmpty(w ? `W ${num(days)} dniach nikt nie zgłosił dzikiego wysypiska.` : 'Nie udało się wczytać wysypisk.')}
+      <p class="rk-note">Położenie z pinezki albo GPS, bez danych osobowych; uprzątnięcie potwierdza ekipa.</p></article>`;
+    const p = r.punkty_ekip || {}, poz = p.pozycje || [];
+    const crew = `<article class="card rk${p.suma ? '' : ' rk-compact'}" data-help="dashboard.rek_punkty">${rkHead('users', 'Punkty ekip', `Trasa ${esc(p.trasa || '–')} · ${num(p.okres_dni)} dni`, p.suma ? rkBig(p.suma, 'pkt') : '')}
+      ${poz.length ? `<ul class="rk-list">${poz.slice(0, 3).map(x => `<li><span class="rk-pts num">+${num(x.punkty)}</span><div><b>${esc(x.kosz)}</b><small>${esc(x.opis)} · ${day(x.data)}</small></div></li>`).join('')}</ul>`
+        : rkEmpty('Brak punktów w tym okresie: ekipa dostaje je tylko za potwierdzone sygnały.')}
+      <details class="rk-rules"><summary>Za co są punkty${icon('chevron-down', 'i-sm')}</summary>
+        <ul>${(p.zasady || []).map(z => `<li><b class="num">+${num(z.punkty)}</b><span>${esc(z.za)}</span></li>`).join('')}</ul></details>
+      <p class="rk-note">${esc(p.uwaga || 'O premii decyduje regulamin MPO.')}</p></article>`;
+    box.innerHTML = cap + dump + wild + crew;
   }
 
   // ---------- projekty ----------
@@ -232,7 +287,7 @@
   dlg.querySelector('[data-close]').addEventListener('click', () => dlg.close());
   const table = (head, rows) => `<table class="dtable"><thead><tr>${head.map(h => `<th class="${h.n ? 'n' : ''}">${h.t}</th>`).join('')}</tr></thead>
     <tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td class="${head[i].n ? 'n' : ''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  function details(kind, item) {
+  function details(kind) {
     const h = document.getElementById('d-modal-h'), b = document.getElementById('d-modal-b');
     if (kind === 'koszty' && cache.koszty) {
       h.textContent = 'Koszty miesięczne: rzeczywiste i plan';
@@ -251,11 +306,13 @@
         list.map(a => [`<b>${esc(a.kosz)}</b><br><small>${esc(a.adres || '')}</small>`, esc(a.dzielnica || ''), esc(when(a.data)), `${num(a.odleglosc_m)} m`]))}
         <p class="q-note">Najnowsze ${num(list.length)} w wybranym okresie. Dane demonstracyjne.</p>`
         : '<div class="empty"><img src="/static/ui/ill/sukces.svg" alt=""><h3>Brak anomalii w tym okresie</h3></div>';
-    } else if (kind === 'kosz') {
-      h.textContent = item.nazwa;
-      b.innerHTML = table([{ t: 'Pole' }, { t: 'Wartość' }], [['Adres', esc(item.adres || '–')], ['Dzielnica', esc(item.dzielnica)],
-        ['Frakcja', TF.frac(item.frakcja)], ['Zapełnienie teraz', `${TF.fillBadge(item.zapelnienie)} <b class="num">${num(item.zapelnienie)}%</b>`],
-        ['Dane operacyjne', item.live ? 'na żywo (scenariusz demo)' : 'historia miejska (syntetyczna)']]);
+    } else if (kind === 'rekomendacje' && cache.rek) {
+      h.textContent = 'Rekomendacje z danych: wszystkie kosze';
+      const list = cache.rek.rekomendacje || [];
+      b.innerHTML = list.length ? `${table([{ t: 'Kosz' }, { t: 'Rekomendacja' }, { t: 'Powód' }, { t: 'Efekt' }],
+        list.map(x => [`<b>${esc(x.kosz)}</b><br><small>${esc(x.dzielnica || '')}${x.adres ? ` · ${esc(x.adres)}` : ''}</small>`, esc(x.etykieta), esc(x.powod), esc(x.efekt)]))}
+        <p class="q-note">Reguły z app/recommendations.py, okno ${num(cache.rek.meta.okna_dni?.rekomendacje)} dni. Dane demonstracyjne.</p>`
+        : '<div class="empty"><img src="/static/ui/ill/sukces.svg" alt=""><h3>Brak rekomendacji dla tych filtrów</h3></div>';
     } else return;
     dlg.showModal();
   }
@@ -263,20 +320,26 @@
   document.getElementById('d-print').addEventListener('click', () => window.print());
 
   // ---------- ładowanie ----------
-  const NAMES = ['koszty', 'frakcje', 'dzielnice', 'zgloszenia', 'heatmapa', 'mapa', 'jakosc', 'anomalie'];
-  const NO_ECHARTS = ['mapa', 'jakosc', 'anomalie'];
-  const RENDER = { koszty: rKoszty, frakcje: rFrakcje, dzielnice: rDzielnice, zgloszenia: rZgloszenia, heatmapa: rHeat, mapa: rMapa,
+  const NAMES = ['koszty', 'frakcje', 'dzielnice', 'zgloszenia', 'heatmapa', 'jakosc', 'anomalie'];
+  const NO_ECHARTS = ['jakosc', 'anomalie'];
+  const RENDER = { koszty: rKoszty, frakcje: rFrakcje, dzielnice: rDzielnice, zgloszenia: rZgloszenia, heatmapa: rHeat,
                    jakosc: rJakosc, anomalie: d => { cache.anomalie = d; } };
   let seq = 0;
   async function load() {
     const my = ++seq, q = params().toString(), qs = q ? `?${q}` : '';
     try {
-      const [kpi, naprawy, ...charts] = await Promise.all([api(`/api/dashboard/kpi${qs}`), api(`/api/naprawy${qs}`),
+      const [kpi, naprawy, rek, wys, ...charts] = await Promise.all([api(`/api/dashboard/kpi${qs}`), api(`/api/naprawy${qs}`),
+        api(`/api/dashboard/rekomendacje${qs}`).catch(() => null), api('/api/wysypiska').catch(() => null),  // bez nich reszta działa
         ...NAMES.map(n => api(`/api/dashboard/wykresy/${n}${qs}`))]);
       if (my !== seq) return;  // nowszy filtr wygrywa
+      cache.wys = wys;
+      // odświeżenie przebudowuje karty: rozwinięte „Jaki to plan?” i „Za co są punkty” zostają otwarte
+      const open = [...document.querySelectorAll('#d-kpis details[open], #d-recs details[open]')].map(x => x.className);
       renderKpis(kpi);
+      rRek(rek, wys);
+      document.querySelectorAll('#d-kpis details, #d-recs details').forEach(x => { if (open.includes(x.className)) x.open = true; });
       rNaprawy(naprawy);
-      NO_ECHARTS.forEach(n => RENDER[n](charts[NAMES.indexOf(n)]));  // mapa (Leaflet) i tabele nie czekają na ECharts
+      NO_ECHARTS.forEach(n => RENDER[n](charts[NAMES.indexOf(n)]));  // tabele nie czekają na ECharts
       try { await TF.echarts; } catch (_) {
         TF.echarts = TF.loadEcharts();  // kolejna zmiana danych albo filtr spróbuje wczytać wykresy jeszcze raz
         throw new Error('Nie udało się wczytać wykresów. Sprawdź połączenie, spróbujemy ponownie.');

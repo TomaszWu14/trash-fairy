@@ -4,13 +4,13 @@ import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent / "audit"
 PAIRS = [  # (perspektywa, zrzut przed, zrzut po, co się zmieniło)
-    ("Przegląd", "start-pokaz", "przeglad", "Jedna rola bez logowania, cztery perspektywy i scenariusz demo w 6 krokach zamiast widoku jury z 4 krokami."),
-    ("Panel na koszu", "epapier-18", "panel-18", "Kiosk 1280×800 czytelny z daleka: kosz-wskaźnik, termin odbioru, „Co tu wrzucać”, kod QR do zgłoszenia."),
-    ("Mieszkaniec: wybór kosza", "zglos-wybor", "zglos-wybor", "Mapa i najbliższe kosze, skan kodu QR."),
-    ("Mieszkaniec: zgłoszenie", "zglos-18", "zglos-18", "Trzy kroki, zgłoszenie tylko z kodem QR kosza i do 150 m, zdjęcie bez EXIF z weryfikacją AI."),
-    ("Kierowca: trasa", "kierowca-zalogowany", "kierowca", "Lista po priorytecie z powodem („2 zgłoszenia · 113%”), postęp kursu, prognoza 85%."),
+    ("Przegląd", "start-pokaz", "przeglad", "Jedna rola bez logowania, pięć perspektyw i losowany scenariusz demo (trzy warianty) zamiast widoku jury z 4 krokami."),
+    ("Panel kosza", "epapier-18", "panel-18", "Kiosk 1280×800 czytelny z daleka: kosz-wskaźnik, termin odbioru, „Co tu wrzucać”, kod QR do zgłoszenia."),
+    ("Mieszkaniec: wybór kosza", "zglos-wybor", "zglos-wybor", "Skan kodu QR z Panelu kosza i „Twoje zgłoszenia”, bez mapy i listy koszy."),
+    ("Mieszkaniec: zgłoszenie", "zglos-18", "zglos-18", "Zgłoszenie na jednym ekranie, tylko z dziennym kodem QR kosza; zdjęcie bez EXIF z weryfikacją AI."),
+    ("Kierowca: trasa", "kierowca-zalogowany", "kierowca", "Lista po priorytecie z powodem (liczba zgłoszeń i zapełnienie), postęp kursu, prognoza 85%."),
     ("Kierowca: kosz", None, "kierowca-kosz-18", "Nowy ekran: nawigacja w aplikacji, „Opróżniono” jednym dotknięciem, analiza AI zdjęcia."),
-    ("Dashboard miasta", "dyspozytor-zalogowany", "dashboard", "Zamiast panelu dyspozytora: KPI ze zmianą i trendem, koszty vs plan, frakcje, dzielnice, mapa, eksport CSV."),
+    ("Dashboard miasta", "dyspozytor-zalogowany", "dashboard", "KPI ze zmianą i trendem, koszty vs plan, frakcje, dzielnice, eksport CSV; mapa na żywo jest w panelu dyspozytora."),
     ("Projekt miejski", None, "dashboard-projekt", "Nowy ekran: efekt projektu liczony z historii przed i po starcie."),
     ("Urządzenia", None, "urzadzenia", "Nowy ekran: bateria, status i odczyty paneli i czujników (endpoint IoT POST /api/odczyty)."),
     ("Metodologia", "metodologia", "metodologia", "Założenia z kodu, skala Krakowa, koszt pilotażu i zwrot, rola AI."),
@@ -58,7 +58,7 @@ a:focus-visible, summary:focus-visible {{ outline:3px solid var(--brand); outlin
 <body><main>
 <h1>Przed i po przebudowie UI</h1>
 <p class="lead">Ta sama aplikacja przed audytem UX (sobota 3.10, wieczór: sześć ekranów, cztery arkusze CSS, logowanie) i po przebudowie
-(niedziela 4.10: jeden design system, cztery perspektywy, dashboard miasta i urządzenia). Kliknij zrzut, żeby otworzyć pełny rozmiar.
+(niedziela 4.10: jeden design system, pięć perspektyw z panelem dyspozytora, dashboard miasta i urządzenia). Kliknij zrzut, żeby otworzyć pełny rozmiar.
 Audyt: <code>audit/AUDYT-UX.md</code>, rundy poprawek: <code>audit/iteracje/</code>.</p>
 {''.join(sections)}
 </main></body></html>

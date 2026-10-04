@@ -1,4 +1,4 @@
-"""API perspektyw (panel na koszu, mieszkaniec, kierowca, demo). JSON wszędzie, jeden format błędu {"blad", "kod"}.
+"""API perspektyw (panel kosza, mieszkaniec, kierowca, demo). JSON wszędzie, jeden format błędu {"blad", "kod"}.
 
 Wspólny słownik statusów (audit/AUDYT-UX.md, sekcja 5):
 - kosz: poziom 0–100 → `ok` (< 50), `zapelnia_sie` (50–79), `pelny` (≥ 80); osobno `zgloszony` (świeże zgłoszenie mieszkańca);
@@ -8,21 +8,32 @@ Decyzje liczą reguły w kodzie; nic tu nie pyta AI.
 import hashlib
 import hmac
 import math
-from datetime import UTC, datetime
+import os
+import time
+from datetime import UTC, datetime, timedelta, timezone
+from datetime import time as dt_time
+from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, send_file
 
-from . import clock, db, osrm, photos, rate, traffic
+from . import clock, db, osrm, photos, rate, residents, traffic
+from .crew_points import confirmed_photo
+from .devices_api import device_token
 from .geo import distance_m
-from .models import Emptying, PhotoAnalysis, Point, Press, Report, StopIssue
+from .models import DeviceInfo, Emptying, PhotoAnalysis, Point, PointAward, Press, Report, Resident, StopIssue
 from .reports import resolve_reports, record_press
 from .routes import DEPOT, next_runs
 from .state import current_routes, data_version, point_states
 
 bp = Blueprint("api_pl", __name__, url_prefix="/api")
 
-GEO_RADIUS_M = 150          # zgłoszenie tylko z telefonu najwyżej 150 m od kosza (jak dotąd, decyzja 28)
-MAX_ACCURACY_M = 150        # słaby GPS w kamienicy nie blokuje zgłoszenia przy koszu, ale „5 km dokładności” nie wyłącza kontroli
+try:
+    WARSAW = ZoneInfo("Europe/Warsaw")  # doba kodu QR kosza = doba kalendarzowa w Krakowie
+except ZoneInfoNotFoundError:  # obraz bez tzdata: doba w UTC+1, kod zmienia się najwyżej godzinę „za wcześnie” latem
+    WARSAW = timezone(timedelta(hours=1))
+QR_GRACE_S = 3600           # wczorajszy kod działa jeszcze godzinę po północy: skan tuż przed północą nie przepada
+BUTTON_PRESSES_PER_MIN = 3  # przycisk na panelu: najwyżej 3 zgłoszenia na minutę z jednego kosza
 REPORT_GAP_S = 60           # ten sam telefon i ten sam kosz: nie częściej niż raz na minutę
 REPORTS_PER_IP_HOUR = 200   # wszystkie kosze z jednego IP: wysoko, bo sala HackYeah i jury wychodzą przez jeden NAT
 RESET_GAP_S = 20            # ręczny reset demo najwyżej raz na 20 s (wszystkie workery)
@@ -35,7 +46,7 @@ TYPY = {  # typ zgłoszenia → (rodzaj w silniku, etykieta)
 }
 KIND_LABEL = {kind: label for kind, label in TYPY.values()} | {None: "Przycisk na koszu"}
 PROBLEMY = {"no_access": "Nie da się podjechać", "damaged": "Kosz uszkodzony", "blocked": "Zablokowany dojazd",
-            "overflow": "Odpady obok kosza"}
+            "overflow": "Odpady obok kosza", "need_bin": "Tu przydałby się kosz"}
 AI_DEPRIORITIZE_CONFIDENCE = 0.8  # zdjęcie „W porządku” z tą pewnością obniża priorytet zgłoszenia; nigdy go nie odrzuca
 SKIPPED_LIMIT = 30          # ile pominiętych koszy pokazujemy kierowcy (najpełniejsze)
 FRAKCJE = {"papier": "Papier", "metale_tworzywa": "Metale i tworzywa", "szklo": "Szkło", "bio": "Bio", "zmieszane": "Zmieszane"}
@@ -59,10 +70,30 @@ def poziom_stan(level):
     return "pelny" if level >= 80 else "zapelnia_sie" if level >= 50 else "ok"
 
 
-def qr_token(point_id):
-    """Token z kodu QR na panelu kosza: bez niego nie ma zgłoszenia (wymaganie: skan QR + bycie przy koszu)."""
+def _local(at=None):
+    """Zegar ŚCIENNY w Krakowie, nie zegar demo: kod QR to zabezpieczenie, nie może stać razem ze scenariuszem."""
+    return datetime.fromtimestamp(time.time() if at is None else at, WARSAW)
+
+
+def qr_token(point_id, at=None):
+    """Token z kodu QR na panelu kosza, inny każdego dnia (doba w Krakowie): bez niego nie ma zgłoszenia mieszkańca.
+    Zdjęcie kodu nie pozwala zgłaszać jutro ani z innego kosza; położenia telefonu nie sprawdzamy (decyzja w DECYZJE.md)."""
     key = current_app.config["SECRET_KEY"].encode()
-    return hmac.new(key, f"kosz:{point_id}".encode(), hashlib.sha256).hexdigest()[:12]
+    return hmac.new(key, f"kosz:{point_id}:{_local(at).date().isoformat()}".encode(), hashlib.sha256).hexdigest()[:12]
+
+
+def qr_valid(point_id, token):
+    """Kod z dziś albo, przez pierwszą godzinę po północy, z wczoraj. Porównanie bajtów: znaki spoza ASCII nie dają 500."""
+    now, token = time.time(), str(token or "").encode()
+    return any(hmac.compare_digest(token, qr_token(point_id, now - back).encode()) for back in (0, QR_GRACE_S))
+
+
+def qr_seconds_left(at=None):
+    """Sekundy do najbliższej północy w Krakowie (panel przeładowuje się wtedy z nowym kodem). Przez timestamp: zmiana czasu
+    w marcu i październiku nie przesuwa wyniku o godzinę."""
+    now = _local(at)
+    midnight = datetime.combine(now.date() + timedelta(days=1), dt_time.min, WARSAW)
+    return max(1, round(midnight.timestamp() - now.timestamp()))
 
 
 def numer(report_id):
@@ -135,6 +166,55 @@ def _ai_ok(reports):
     return round(pa.confidence, 2)
 
 
+def crew_photo_required():
+    """Pilotaż: odbiór tylko ze zdjęciem kosza (env REQUIRE_CREW_PHOTO=1; domyślnie zdjęcie opcjonalne)."""
+    flag = current_app.config.get("REQUIRE_CREW_PHOTO", os.environ.get("REQUIRE_CREW_PHOTO", ""))
+    return str(flag).strip().lower() in ("1", "true", "tak", "yes")
+
+
+def _crew_photo(point_id, at):
+    """Zdjęcie kosza od ekipy zrobione przy odbiorze o czasie `at` (zapisane z tym samym czasem zegara demo)."""
+    return (PhotoAnalysis.query.filter_by(point_id=point_id, source="crew", at=at)
+            .order_by(PhotoAnalysis.id.desc()).first())
+
+
+def crew_photo_status(pa):
+    """Dowód odbioru dla kierowcy: reguła crew_points.confirmed_photo, AI tylko opisuje zdjęcie. None = bez zdjęcia."""
+    if pa is None:
+        return None
+    if pa.status == "pending" and datetime.now(UTC).replace(tzinfo=None) - pa.wall_at <= photos.PENDING_MAX:
+        return {"status": "w_toku", "etykieta": "Sprawdzamy zdjęcie", "id": pa.id}
+    if confirmed_photo(pa):
+        return {"status": "potwierdzone", "etykieta": "Potwierdzone zdjęciem", "id": pa.id}
+    return {"status": "do_weryfikacji", "etykieta": "Do weryfikacji", "id": pa.id}
+
+
+def public_crew_photo(pa):
+    """Zdjęcie ekipy pokazujemy mieszkańcowi tylko potwierdzone regułą i gdy analiza wprost nie wykryła osób ani tablic."""
+    return (pa is not None and pa.source == "crew" and confirmed_photo(pa) and pa.people is False
+            and bool(pa.photo_path) and Path(pa.photo_path).exists())
+
+
+def _dowod(r, done_at):
+    """Dowód wykonania usługi przy zgłoszeniu: zdjęcie kosza od ekipy przy odbiorze, które rozstrzygnęło zgłoszenie."""
+    if done_at is None:
+        return None
+    pa = _crew_photo(r.point_id, done_at)
+    if pa is None:
+        return {"etykieta": "Zrealizowane, bez zdjęcia ekipy", "potwierdzone": False, "zdjecie": None}
+    if not confirmed_photo(pa):
+        return {"etykieta": "Zdjęcie ekipy w weryfikacji", "potwierdzone": False, "zdjecie": None}
+    return {"etykieta": "Zrealizowane, potwierdzone zdjęciem ekipy", "potwierdzone": True,
+            "zdjecie": f"/api/odbiory/zdjecie/{pa.id}" if public_crew_photo(pa) else None}
+
+
+def _punkty(r, p):
+    """Punkty programu mieszkańców za trafne zgłoszenie (residents.POINTS) i czy konto demo już je dostało."""
+    awarded = (db.session.query(PointAward.id).join(Resident, Resident.id == PointAward.resident_id)
+               .filter(PointAward.report_id == r.id, Resident.nick == residents.DEMO_RESIDENT[0]).first())
+    return {"za_trafne": residents.POINTS.get(p.kind, residents.POINTS["bin"]), "przyznane": awarded is not None}
+
+
 def _route_status(p, now):
     """Czy kosz jedzie na najbliższy kurs swojej floty i dlaczego (tak albo nie). Reguły z app/routes.py."""
     fleet = next(f for f in current_routes(now) if f["kind"] == p.kind)
@@ -148,17 +228,23 @@ def _report_texts(reports):
     ids = [r.id for r in reports]
     if not ids:
         return []
-    return [{"typ": KIND_LABEL.get(p.kind, "Zgłoszenie"), "komentarz": p.note, "o": p.at.isoformat(), "ai": _ai(p)}
-            for p in Press.query.filter(Press.report_id.in_(ids)).order_by(Press.at.desc()).limit(10)]
+    out = [{"typ": KIND_LABEL.get(p.kind, "Zgłoszenie"), "komentarz": p.note, "o": p.at.isoformat(), "ai": _ai(p)}
+           for p in Press.query.filter(Press.report_id.in_(ids)).order_by(Press.at.desc()).limit(10)]
+    # zgłoszenia bez wierszy Press (seed, symulacja): wpis zastępczy, żeby lista nie przeczyła zgloszenia_liczba
+    with_press = {rid for (rid,) in db.session.query(Press.report_id).filter(Press.report_id.in_(ids)).distinct()}
+    out += [{"typ": KIND_LABEL[None], "komentarz": None, "o": r.first_at.isoformat(), "ai": None, "osob": r.presses}
+            for r in reports if r.id not in with_press]
+    return sorted(out, key=lambda z: z["o"], reverse=True)[:10]
 
 
 def prognoza(s, now):
-    """Prognoza przekroczenia 85% z silnika (state.crossing) jako krótki tekst dla panelu i kierowcy."""
+    """Prognoza przekroczenia 85% z silnika (state.crossing) jako krótki tekst dla panelu i kierowcy (J-30): przechodzień
+    pyta „kiedy trzeba opróżnić”, a próg 85% zostaje w regułach, nie na ekranie."""
     if not s.get("crossing"):
         return "Bez przepełnienia w ciągu 24 h"
     if datetime.fromisoformat(s["crossing"]) <= now:
-        return f"Powyżej 85% od ok. {s['crossing_label']}"
-    return f"Przewidywane 85% ok. {s['crossing_label']}"
+        return f"Do opróżnienia od ok. {s['crossing_label']}"
+    return f"Do opróżnienia ok. {s['crossing_label']}"
 
 
 def kosz_json(p, states, now, detail=False):
@@ -173,10 +259,14 @@ def kosz_json(p, states, now, detail=False):
         reports = _open_reports(p.id, now)
         last = _last_emptying(p.id, now)
         jade = _jade_at(p.id, reports[0].first_at) if reports else None
-        out.update(nastepny_odbior=run_at.isoformat(), zgloszenia=_report_texts(reports),
+        route = _route_status(p, now)
+        # J-08: termin odbioru tylko, gdy ten kosz jedzie na najbliższy kurs; inaczej None (panel: „gdy będzie potrzebny”)
+        out.update(nastepny_odbior=run_at.isoformat() if route["na_trasie"] else None, zgloszenia=_report_texts(reports),
                    zgloszenia_liczba=sum(r.presses for r in reports),
                    oprozniono=last.at.isoformat() if last else None, kierowca_w_drodze=jade is not None,
-                   pojemnosc_l=120 if p.kind == "bin" else 1100, trasa=_route_status(p, now))
+                   pojemnosc_l=120 if p.kind == "bin" else 1100, trasa=route,
+                   wymaga_zdjecia=crew_photo_required(),
+                   zdjecie_odbioru=crew_photo_status(_crew_photo(p.id, last.at) if last and last.source == "crew" else None))
     return out
 
 
@@ -225,47 +315,46 @@ def kosz(point_id):
     return jsonify(kosz=kosz_json(p, point_states(now), now, detail=True), meta=meta())
 
 
-def _accuracy(data):
-    try:
-        acc = float(data.get("dokladnosc") or 0)
-        return min(max(acc, 0.0), MAX_ACCURACY_M) if math.isfinite(acc) else 0.0
-    except (TypeError, ValueError):
-        return 0.0
+@bp.post("/kosze/<int:point_id>/przycisk")
+def przycisk(point_id):
+    """Przycisk na panelu kosza: naciśnięcie fizycznego przycisku = obecność przy koszu, więc bez kodu QR.
+    Body JSON: {"typ": klucz TYPY, "token": token urządzenia panelu} (ten sam HMAC co nagłówek w POST /api/odczyty).
+    W demo panel to strona WWW i ma token w HTML; prawdziwy panel liczy go sam z sekretu wgranego przy montażu."""
+    p = _point(point_id)
+    if p is None:
+        return blad("Nie ma takiego kosza.", "kosz_nie_istnieje", 404)
+    data = _json_body()
+    info = db.session.get(DeviceInfo, p.id)
+    token = str(data.get("token") or "").encode()
+    if info is None or info.kind != "panel" or not hmac.compare_digest(token, device_token(info.serial).encode()):
+        return blad("Ten panel nie jest zarejestrowany przy tym koszu. Zgłoś problem kodem QR z ekranu.", "zly_token_panelu", 403)
+    if not isinstance(data.get("typ"), str) or data["typ"] not in TYPY:
+        return blad("Wybierz, co jest nie tak z koszem.", "zly_typ")
+    if not rate.hit(f"btn:{p.id}", BUTTON_PRESSES_PER_MIN, 60):
+        return blad("Zgłoszenia z tego kosza już dotarły. Kolejne możesz wysłać za minutę.", "za_czesto", 429)
+    record_press(p.id, clock.now(), ip=request.remote_addr, wall_at=datetime.now(UTC).replace(tzinfo=None),
+                 source="button", kind=TYPY[data["typ"]][0])  # record_press zapisuje (commit)
+    clock.touch()
+    return jsonify(komunikat="Dziękujemy, zgłoszenie przyjęte.", meta=meta()), 201
 
 
 @bp.post("/zgloszenia")
 def zglos():
-    """Zgłoszenie mieszkańca: tylko z tokenem z kodu QR kosza i z położeniem do 150 m od kosza.
-    Pola: kosz, typ, qr, lat, lon, dokladnosc, komentarz?, symulacja?, zdjecie? (multipart)."""
+    """Zgłoszenie mieszkańca: tylko z dziennym tokenem z kodu QR tego kosza (qr_valid). Położenia nie sprawdzamy:
+    jury testuje zdalnie, a GPS w kamienicach bywa zawodny. Pola: kosz, typ, qr, komentarz?, zdjecie? (multipart);
+    lat/lon z dawnych klientów są ignorowane."""
     data = request.form if request.files or request.form else _json_body()
     p = _point(data.get("kosz"))
     if p is None:
         return blad("Nie ma takiego kosza.", "kosz_nie_istnieje", 404)
     if not isinstance(data.get("typ"), str) or data["typ"] not in TYPY:
         return blad("Wybierz, co jest nie tak z koszem.", "zly_typ")
-    if not hmac.compare_digest(str(data.get("qr") or ""), qr_token(p.id)):
-        return blad("Zeskanuj kod QR na koszu, żeby zgłosić problem.", "brak_skanu_qr", 403)
-    try:
-        lat, lon = float(data.get("lat")), float(data.get("lon"))
-        if not (math.isfinite(lat) and math.isfinite(lon) and abs(lat) <= 90 and abs(lon) <= 180):
-            raise ValueError
-    except (TypeError, ValueError):
-        return blad("Włącz udostępnianie lokalizacji: zgłoszenie przyjmujemy tylko przy koszu.", "brak_lokalizacji", 403)
-    dist = distance_m(lat, lon, p.lat, p.lon)
-    if not dist - _accuracy(data) <= GEO_RADIUS_M:  # „not <=”: NaN nigdy nie przechodzi kontroli
-        return blad(f"Jesteś {round(dist)} m od kosza. Podejdź bliżej (do {GEO_RADIUS_M} m), żeby zgłosić.", "za_daleko", 403)
-    raw = mt = None
-    upload = request.files.get("zdjecie")
-    if upload and upload.filename:  # zdjęcie sprawdzamy przed limitami: zły plik nie zużywa limitu
-        raw = upload.read(photos.MAX_BYTES + 1)
-        mt, error = photos.validate(raw)
-        if not error:
-            try:
-                raw = photos.strip_metadata(raw, mt)  # bez GPS i danych aparatu, zanim cokolwiek trafi na dysk
-            except Exception:  # sygnatura się zgadza, ale obrazu nie da się odczytać
-                error = "Nie udało się odczytać zdjęcia. Spróbuj innego pliku."
-        if error:
-            return blad(error, "zle_zdjecie")
+    if not qr_valid(p.id, data.get("qr")):
+        return blad("Kod QR jest nieaktualny albo z innego kosza. Zeskanuj kod z panelu tego kosza." if data.get("qr")
+                    else "Zeskanuj kod QR z panelu kosza, żeby zgłosić problem.", "brak_skanu_qr", 403)
+    raw, mt, error = photos.read_upload(request.files.get("zdjecie"))  # przed limitami: zły plik nie zużywa limitu
+    if error:
+        return blad(error, "zle_zdjecie")
     client = str(data.get("klient") or request.remote_addr)[:64]
     if not rate.hit(f"zgl:{client}:{p.id}", 1, REPORT_GAP_S):
         return blad("To zgłoszenie już dotarło. Kolejne z tego telefonu możesz wysłać za minutę.", "za_czesto", 429)
@@ -276,10 +365,13 @@ def zglos():
     photo_id = photos.save(p.id, clock.now(), raw, mt, source="resident").id if raw else None
     now = clock.now()
     kind = TYPY[data["typ"]][0]
+    # konto demo „Anna K.” z nagłówka perspektywy mieszkańca: TYLKO punkty za trafne zgłoszenie (residents.award czyta
+    # Press.resident_id po opróżnieniu). Nie przez record_press: wspólne konto jury podniosłoby wagę i „potwierdziło” zgłoszenie
+    resident_id = residents.demo_resident().id if data.get("konto") == "demo" else None
     report = record_press(p.id, now, ip=request.remote_addr, wall_at=datetime.now(UTC).replace(tzinfo=None),
                           source="qr", kind=kind)
     press = Press.query.filter_by(report_id=report.id).order_by(Press.id.desc()).first()
-    press.note, press.photo_id = note, photo_id
+    press.note, press.photo_id, press.resident_id = note, photo_id, resident_id
     db.session.commit()
     clock.touch()
     if photo_id:  # AI tylko opisuje zdjęcie; status weryfikacji liczy reguła (photos.verification)
@@ -310,7 +402,7 @@ def zgloszenie(nr):
                    kroki=[{"id": "przyjete", "etykieta": "Przyjęte", "o": r.first_at.isoformat()},
                           {"id": "w_realizacji", "etykieta": "W realizacji", "o": jade.isoformat() if jade else None},
                           {"id": "zrealizowane", "etykieta": "Zrealizowane", "o": done_at.isoformat() if done_at else None}],
-                   kosz=kosz_json(p, point_states(now), now), meta=meta())
+                   kosz=kosz_json(p, point_states(now), now), dowod=_dowod(r, done_at), punkty=_punkty(r, p), meta=meta())
 
 
 # ---------- kierowca ----------
@@ -331,12 +423,12 @@ def powod(k):
         conf = f"{k['ai_w_porzadku']:.2f}".replace(".", ",")
         return f"Zdjęcie: kosz w porządku (AI {conf}) · sprawdź przy okazji"
     if n:
-        return f"{n} {_plural(n, 'zgłoszenie', 'zgłoszenia', 'zgłoszeń')} · {k['poziom']}%"
+        return f"{n} {_plural(n, 'zgłoszenie', 'zgłoszenia', 'zgłoszeń')}"  # procent stoi obok w wierszu
     if k["poziom"] >= 80:
-        return f"Pełny {k['poziom']}%"
-    if k["prognoza"].startswith("Przewidywane"):
-        return k["prognoza"].replace("Przewidywane", "Prognoza")
-    return f"Według planu kursu · {k['poziom']}%"
+        return "Pełny"
+    if k["prognoza"].startswith("Do opróżnienia"):
+        return k["prognoza"]
+    return "Według planu kursu"
 
 
 def _priority(k):
@@ -398,8 +490,9 @@ def dojazd():
 
 @bp.post("/odbiory")
 def odbior():
-    """Akcje kierowcy jednym dotknięciem: `jade`, `oprozniono` (z poziomem zastanym), `problem` (z rodzajem)."""
-    data = request.form if request.form else _json_body()
+    """Akcje kierowcy jednym dotknięciem: `jade`, `oprozniono` (z poziomem zastanym, opcjonalnie zdjęcie kosza w multipart
+    jako dowód odbioru; w pilotażu REQUIRE_CREW_PHOTO obowiązkowe), `problem` (z rodzajem, także `need_bin`)."""
+    data = request.form if request.form or request.files else _json_body()
     p = _point(data.get("kosz"))
     if p is None:
         return blad("Nie ma takiego kosza.", "kosz_nie_istnieje", 404)
@@ -414,6 +507,11 @@ def odbior():
             level = None
         if level not in LEVELS:
             return blad("Wybierz, ile było w koszu: 0, 25, 50, 75 albo 100%.", "zly_poziom")
+        raw, mt, error = photos.read_upload(request.files.get("zdjecie"))  # walidacja i usunięcie EXIF przed zapisem
+        if error:
+            return blad(error, "zle_zdjecie")
+        if raw is None and crew_photo_required():
+            return blad("W pilotażu odbiór wymaga zdjęcia kosza.", "brak_zdjecia")
         far = None
         try:
             far = max(0, round(distance_m(float(data["lat"]), float(data["lon"]), p.lat, p.lon)))
@@ -425,13 +523,29 @@ def odbior():
         StopIssue.query.filter(StopIssue.point_id == p.id, StopIssue.kind == "jade").delete(synchronize_session=False)
         resolve_reports(e)
         msg = f"Opróżniono: {p.name}."
+        if raw:  # dowód dotyczy kosza; AI tylko opisuje zdjęcie, potwierdzenie liczy reguła (crew_points.confirmed_photo)
+            db.session.commit()
+            pa = photos.save(p.id, now, raw, mt, crew_level=level, source="crew")
+            photos.analyze_in_background(pa.id)
+            clock.touch()
+            return jsonify(ok=True, komunikat=msg + " Zdjęcie kosza zapisane.", zdjecie=crew_photo_status(pa), meta=meta()), 201
     elif akcja == "problem":
         if not isinstance(data.get("problem"), str) or data["problem"] not in PROBLEMY:
             return blad("Wybierz, jaki to problem.", "zly_problem")
         db.session.add(StopIssue(point_id=p.id, at=now, kind=data["problem"], note=str(data.get("notatka") or "").strip()[:200] or None))
-        msg = f"Zgłoszono problem: {PROBLEMY[data['problem']]}."
+        msg = ("Zapisano sugestię: tu przydałby się kosz. Sprawdzimy ją w danych." if data["problem"] == "need_bin"
+               else f"Zgłoszono problem: {PROBLEMY[data['problem']]}.")
     else:
         return blad("Nieznana akcja. Dozwolone: jade, oprozniono, problem.", "zla_akcja")
     db.session.commit()
     clock.touch()
     return jsonify(ok=True, komunikat=msg, meta=meta()), 201
+
+
+@bp.get("/odbiory/zdjecie/<int:photo_id>")
+def zdjecie_odbioru(photo_id):
+    """Zdjęcie kosza od ekipy (dowód odbioru) dla mieszkańca: tylko potwierdzone regułą i bez osób i tablic; inaczej 404."""
+    pa = db.session.get(PhotoAnalysis, photo_id) if 0 < photo_id < 2**31 else None
+    if not public_crew_photo(pa):
+        return blad("Nie ma publicznego zdjęcia tego odbioru.", "brak_zdjecia", 404)
+    return send_file(pa.photo_path, mimetype=pa.media_type, max_age=3600)
