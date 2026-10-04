@@ -20,7 +20,7 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/charts.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/projekt.js') }}" defer></script>
 {% endblock %}

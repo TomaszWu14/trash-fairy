@@ -127,3 +127,19 @@ def test_changes_version_moves_after_report(client, demo):
     v = client.get("/api/zmiany").json["wersja"]
     _report(client)
     assert client.get("/api/zmiany").json["wersja"] != v
+
+
+def test_pilot_roi_from_careful_variant_and_env(monkeypatch):
+    from app.methodology import pilot_roi
+    city = {"careful": {"pln_month": 100_000.0, "bins": 2000}}  # 50 zł na kosz miesięcznie
+    monkeypatch.setenv("COST_PANEL_PLN", "995")
+    roi = pilot_roi(city)
+    assert roi["saving_month"] == 2500 and roi["qr"]["net_month"] == 2200
+    assert roi["panel"]["setup"] == 50 * 1000 and roi["panel"]["payback_months"] == round(50_000 / 2200, 1)
+    monkeypatch.setenv("COST_HOSTING_MONTH_PLN", "3000")
+    assert pilot_roi(city)["qr"]["payback_months"] is None  # hosting droższy niż oszczędność: brak zwrotu, nie liczba ujemna
+
+
+def test_methodology_shows_pilot_and_ai_role(client, demo):
+    html = client.get("/metodologia").get_data(as_text=True)
+    assert 'id="pilotaz"' in html and "Zweryfikowane AI" in html and "EXIF" in html

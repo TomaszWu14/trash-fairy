@@ -9,9 +9,10 @@ Dane i składniki stron trzecich (każdy na własnej licencji):
   (https://www.openstreetmap.org/copyright). Pliki data/*.geojson, data/osrm_cache.json, app/static/img/krakow-basemap.svg.
 - Leaflet 1.9.4 — BSD-2-Clause (app/static/vendor/leaflet/LICENSE)
 - Leaflet.markercluster 1.5.3 — MIT (app/static/vendor/markercluster/LICENSE)
-- Chart.js 4.4.4 — MIT (app/static/vendor/chartjs/LICENSE.md)
+- Apache ECharts 5.6.1 — Apache License 2.0 (app/static/vendor/echarts/LICENSE)
+- Lucide 0.469.0 (ikony) — ISC (app/static/ui/LICENSE-lucide.txt)
 - qrcode-generator 1.4.4 — MIT, Kazuhiko Arase (app/static/vendor/qrcode/LICENSE)
-- IBM Plex Sans, Fraunces — SIL Open Font License 1.1 (app/static/fonts/OFL-*.txt)
+- Plus Jakarta Sans — SIL Open Font License 1.1 (app/static/fonts/OFL-plus-jakarta-sans.txt)
 - Biblioteki Pythona z requirements.txt (m.in. Flask BSD-3, SQLAlchemy MIT, OR-Tools Apache 2.0, anthropic MIT, Pillow HPND).
 - Open-Meteo (open-meteo.com) — dane pogodowe, CC BY 4.0.
 - Karnet Kraków (karnet.krakowculture.pl, Krakowskie Biuro Festiwalowe) — dane o wydarzeniach, cache w data/karnet.json.

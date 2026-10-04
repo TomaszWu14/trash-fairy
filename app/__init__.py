@@ -1,3 +1,4 @@
+import gzip
 import os
 
 from flask import Flask, jsonify, render_template, request
@@ -14,6 +15,32 @@ def database_url():
         if url.startswith(prefix):
             return "postgresql+psycopg://" + url[len(prefix):]
     return url
+
+
+_GZIP_TYPES = ("text/", "application/javascript", "application/json", "application/geo+json", "image/svg+xml")
+_gzip_cache = {}  # statyki: (ścieżka, ETag) → skompresowane bajty; echarts 1 MB → ok. 330 kB liczone raz na proces
+
+
+def _gzip(resp):
+    """Kompresja gzip tekstu ≥ 1 kB (Gunicorn i proxy Coolify nie kompresują). Lighthouse: echarts blokował dashboard."""
+    if (resp.status_code != 200 or "gzip" not in request.headers.get("Accept-Encoding", "")
+            or resp.headers.get("Content-Encoding") or not (resp.mimetype or "").startswith(_GZIP_TYPES)
+            or resp.is_streamed and not resp.direct_passthrough):
+        return resp
+    resp.direct_passthrough = False
+    data = resp.get_data()
+    if len(data) < 1024:
+        return resp
+    key = (request.path, resp.headers.get("ETag")) if request.path.startswith("/static/") else None
+    body = _gzip_cache.get(key) if key else None
+    if body is None:
+        body = gzip.compress(data, compresslevel=6)
+        if key:
+            _gzip_cache[key] = body
+    resp.set_data(body)
+    resp.headers["Content-Encoding"] = "gzip"
+    resp.headers["Vary"] = "Accept-Encoding"
+    return resp
 
 
 def create_app(config=None):
@@ -55,6 +82,8 @@ def create_app(config=None):
         if request.path.startswith("/api/"):
             return jsonify(blad="Coś poszło nie tak po naszej stronie. Spróbuj za chwilę.", kod="blad_serwera"), 500
         return render_template("ui/404.html", error=True), 500
+
+    app.after_request(_gzip)
     app.cli.add_command(seed_command)
     app.cli.add_command(cleanup_photos_command)
     app.cli.add_command(karnet_command)

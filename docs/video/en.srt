@@ -1,94 +1,113 @@
 1
-00:00:00,500 --> 00:00:05,000
+00:00:00,000 --> 00:00:05,000
 On Floriańska Street every bin is emptied
 three times a day, full or empty.
 
 2
-00:00:05,000 --> 00:00:09,500
+00:00:05,000 --> 00:00:10,500
 Kraków's 9,383 street bins
 run on a calendar,
 
 3
-00:00:09,500 --> 00:00:14,800
-and overflowing estate shelters
-push household bags onto the street.
+00:00:10,500 --> 00:00:15,000
+not on need.
 
 4
 00:00:15,000 --> 00:00:19,500
-Trash Fairy is a brain for MPO
-that needs no sensors.
+Trash Fairy is a waste collection brain.
+A resident scans the QR code on the bin.
 
 5
 00:00:19,500 --> 00:00:25,000
-It collects cheap signals: a button on the bin,
-reports from phones and data from drivers.
+We accept a report only from that bin's
+code and within 150 metres of it.
 
 6
-00:00:25,000 --> 00:00:29,000
-Step one:
-what is overflowing right now.
+00:00:25,000 --> 00:00:30,000
+Three steps, an optional photo. We strip
+EXIF, Claude Vision assesses the bin,
 
 7
-00:00:29,000 --> 00:00:35,500
-Step two: when each bin will cross 85%,
-with city events and the weather.
+00:00:30,000 --> 00:00:35,500
+and a rule assigns "AI verified"
+or "To be reviewed".
 
 8
-00:00:35,500 --> 00:00:42,000
-Step three: tomorrow morning's route,
-dozens of stops on real streets.
+00:00:35,500 --> 00:00:40,000
+AI never rejects a report.
 
 9
-00:00:42,000 --> 00:00:49,500
-Decisions are explicit rules in code.
-AI only describes.
+00:00:40,000 --> 00:00:44,000
+The panel on the bin reads from afar:
+fill level, next pickup
 
 10
-00:00:50,000 --> 00:00:54,500
-Now one bin, number 18,
-on three devices.
+00:00:44,000 --> 00:00:48,000
+and what goes in.
 
 11
-00:00:54,500 --> 00:01:00,000
-A resident scans the QR code and taps "Full".
-Two seconds later the bin shows "Reported".
+00:00:48,000 --> 00:00:53,000
+The driver sees bins by priority,
+each with a reason: how many reports
 
 12
-00:01:00,000 --> 00:01:07,500
-I move the clock one hour: the bin joins the route
-and the e-paper says "Crew on the way".
+00:00:53,000 --> 00:00:57,500
+and how full. The forecast says
+when the bin will cross 85%.
 
 13
-00:01:07,500 --> 00:01:13,500
-The driver taps "Emptied"
-and the report is closed.
+00:00:57,500 --> 00:01:03,000
+"On my way" navigates inside the app,
+no switching to maps.
 
 14
-00:01:13,500 --> 00:01:24,500
-Residents earn points
-only for reports that prove right.
+00:01:03,000 --> 00:01:08,000
+"Emptied" closes the report
+with one tap.
 
 15
-00:01:25,000 --> 00:01:31,500
-Over four simulated weeks, empty trips
-drop from 57 to 27 percent,
+00:01:08,000 --> 00:01:14,000
+The resident sees a timeline:
+received, in progress, done.
 
 16
-00:01:31,500 --> 00:01:36,500
-and shelter overflow
-from 338 hours to zero.
+00:01:14,000 --> 00:01:20,000
+The city dashboard, on demo data.
+Last 30 days: cost PLN 70.4k,
 
 17
-00:01:36,500 --> 00:01:44,500
-Across Kraków:
-PLN 1.5 to 2.8 million a year.
+00:01:20,000 --> 00:01:26,000
+minus 2.7%, PLN 4.1k saved
+and 668 fewer trips than planned.
 
 18
-00:01:45,000 --> 00:01:51,000
-Open code, synthetic data stated plainly,
-hardware only where it pays off.
+00:01:26,000 --> 00:01:31,000
+Old Town project:
+13% fewer pickups,
 
 19
-00:01:51,000 --> 00:01:59,500
+00:01:31,000 --> 00:01:36,500
+response time from 6.3 to 2.7 hours.
+
+20
+00:01:36,500 --> 00:01:42,000
+In simulation, empty trips
+drop from 57 to 27%,
+
+21
+00:01:42,000 --> 00:01:48,000
+shelter overflow
+from 338 hours to zero,
+
+22
+00:01:48,000 --> 00:01:54,000
+and across Kraków that's
+PLN 1.5 to 2.8 million a year.
+
+23
+00:01:54,000 --> 00:01:57,000
 Kraków doesn't need more bins.
+
+24
+00:01:57,000 --> 00:02:00,000
 It needs a fairy.

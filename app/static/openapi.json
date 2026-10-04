@@ -1,114 +1,1219 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Trash Fairy — otwarte API",
-    "version": "1.0.0",
-    "summary": "Stan i prognoza koszy, trasy MPO oraz warunki (pogoda, ruch) w obszarze demo Krakowa. Tylko odczyt.",
+    "title": "Trash Fairy — API",
+    "version": "1.1.0",
+    "summary": "Otwarte API /api/v1 (tylko odczyt, CORS) oraz API aplikacji: kosze, zgłoszenia, trasa kierowcy, dashboard miasta, urządzenia IoT.",
     "description": "Dane operacyjne są syntetyczne (meta.synthetic = true). Pozycje koszy: © OpenStreetMap contributors (ODbL 1.0). Bez kluczy, CORS *, odpowiedzi cache'owane 60 s.",
-    "license": {"name": "ODbL 1.0 (pozycje z OSM)", "identifier": "ODbL-1.0"}
+    "license": {
+      "name": "ODbL 1.0 (pozycje z OSM)",
+      "identifier": "ODbL-1.0"
+    }
   },
-  "servers": [{"url": "https://trashfairy.twapp.pl"}],
+  "servers": [
+    {
+      "url": "https://trashfairy.twapp.pl"
+    }
+  ],
   "paths": {
     "/api/v1/bins.geojson": {
       "get": {
         "summary": "Wszystkie kosze i altany ze stanem i godziną przekroczenia 85%",
-        "responses": {"200": {"description": "GeoJSON FeatureCollection", "content": {"application/geo+json": {"schema": {"$ref": "#/components/schemas/BinCollection"}}}}}
+        "responses": {
+          "200": {
+            "description": "GeoJSON FeatureCollection",
+            "content": {
+              "application/geo+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BinCollection"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Otwarte API v1"
+        ]
       }
     },
     "/api/v1/bins/{id}": {
       "get": {
         "summary": "Jeden kosz z prognozą godzinową na 24 h (przedział p20–p80)",
-        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
-          "200": {"description": "Kosz i prognoza", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BinDetail"}}}},
-          "404": {"description": "Nie ma takiego kosza", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
-        }
+          "200": {
+            "description": "Kosz i prognoza",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BinDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nie ma takiego kosza",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Otwarte API v1"
+        ]
       }
     },
     "/api/v1/routes": {
       "get": {
         "summary": "Trasy na najbliższy kurs dla dwóch flot (kosze, altany), kolejność odbioru",
-        "responses": {"200": {"description": "Trasy", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Routes"}}}}}
+        "responses": {
+          "200": {
+            "description": "Trasy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Routes"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Otwarte API v1"
+        ]
       }
     },
     "/api/v1/conditions": {
       "get": {
         "summary": "Pogoda (mnożnik prognozy) i ruch drogowy (mnożnik czasu przejazdu)",
-        "responses": {"200": {"description": "Warunki", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Conditions"}}}}}
+        "responses": {
+          "200": {
+            "description": "Warunki",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conditions"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Otwarte API v1"
+        ]
+      }
+    },
+    "/api/kosze": {
+      "get": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Kosze ze stanem, prognozą przekroczenia 85% i zgłoszeniami (lista do mapy i paneli)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/kosze/{id}": {
+      "get": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Jeden kosz: stan, prognoza, termin odbioru, otwarte zgłoszenia z analizą AI zdjęcia",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nie ma takiego kosza",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/zgloszenia": {
+      "post": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Zgłoszenie mieszkańca: tylko z tokenem QR kosza i do 150 m od niego; zdjęcie (multipart) bez EXIF idzie do analizy AI",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Złe dane albo zdjęcie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Za daleko od kosza albo zły kod QR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Za często (telefon, kosz, adres IP)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "kosz": 18,
+                "typ": "przepelniony",
+                "qr": "<token z kodu QR>",
+                "lat": 50.0614,
+                "lon": 19.9372,
+                "klient": "id-telefonu",
+                "komentarz": "Worki obok kosza"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zgloszenia/{nr}": {
+      "get": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Status zgłoszenia (przyjęte, w realizacji, zrealizowane) i wynik weryfikacji AI zdjęcia",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nie ma takiego zgłoszenia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "nr",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/trasa": {
+      "get": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Trasa kierowcy: przystanki po priorytecie z powodem („2 zgłoszenia · 113%”) i postępem kursu",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/odbiory": {
+      "post": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Kierowca oznacza kosz jako opróżniony albo zgłasza problem",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Złe dane",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "kosz": 18,
+                "akcja": "oproznione"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmiany": {
+      "get": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Wersja danych do odświeżania ekranów (polling co kilka sekund)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard/kpi": {
+      "get": {
+        "tags": [
+          "Dashboard miasta"
+        ],
+        "summary": "KPI miasta ze zmianą wobec poprzedniego okresu i trendem 12 miesięcy",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nieznany filtr",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "okres",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "od",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "do",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dzielnica",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "frakcja",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projekt",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/dashboard/wykresy/{nazwa}": {
+      "get": {
+        "tags": [
+          "Dashboard miasta"
+        ],
+        "summary": "Dane wykresu: koszty, frakcje, dzielnice, zgloszenia, heatmapa, mapa",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nieznany filtr",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nieznany wykres",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "nazwa",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "okres",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "od",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "do",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dzielnica",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "frakcja",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projekt",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/eksport/{nazwa}.csv": {
+      "get": {
+        "tags": [
+          "Dashboard miasta"
+        ],
+        "summary": "Eksport CSV (odbiory, zgloszenia) z filtrami dashboardu; separator „;”",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nieznany filtr",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nieznany eksport",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "nazwa",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "okres",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "od",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "do",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dzielnica",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "frakcja",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projekt",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/projekty": {
+      "get": {
+        "tags": [
+          "Dashboard miasta"
+        ],
+        "summary": "Projekty miejskie z efektem liczonym z historii przed i po starcie",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "okres",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "od",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "do",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dzielnica",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "frakcja",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projekt",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/urzadzenia": {
+      "get": {
+        "tags": [
+          "Urządzenia (IoT)"
+        ],
+        "summary": "Urządzenia na koszach: bateria, status, odczyty (filtry typ, dzielnica, status)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "typ",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dzielnica",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/urzadzenia/{id}": {
+      "get": {
+        "tags": [
+          "Urządzenia (IoT)"
+        ],
+        "summary": "Jedno urządzenie z serią odczytów z 7 dni",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Brak urządzenia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/odczyty": {
+      "post": {
+        "tags": [
+          "Urządzenia (IoT)"
+        ],
+        "summary": "Odczyt z urządzenia (czujnik: zapełnienie; panel: sygnał życia). Nagłówek X-Token-Urzadzenia = token wgrany przy montażu",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Wartość spoza zakresu 0–100",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nieznane urządzenie albo zły token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Częściej niż raz na 10 s",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Token-Urzadzenia",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "numer_seryjny": "TF-US-000133",
+                "zapelnienie": 64,
+                "autotest_ok": true
+              }
+            }
+          }
+        }
       }
     }
   },
   "components": {
     "schemas": {
       "Meta": {
-        "type": "object", "required": ["synthetic", "clock"],
+        "type": "object",
+        "required": [
+          "synthetic",
+          "clock"
+        ],
         "properties": {
-          "synthetic": {"type": "boolean", "description": "true: poziomy i trasy pochodzą z symulacji"},
-          "clock": {"type": "string", "format": "date-time", "description": "zegar scenariusza demo"},
-          "docs": {"type": "string"}, "license": {"type": "string"}
+          "synthetic": {
+            "type": "boolean",
+            "description": "true: poziomy i trasy pochodzą z symulacji"
+          },
+          "clock": {
+            "type": "string",
+            "format": "date-time",
+            "description": "zegar scenariusza demo"
+          },
+          "docs": {
+            "type": "string"
+          },
+          "license": {
+            "type": "string"
+          }
         }
       },
       "Bin": {
-        "type": "object", "required": ["id", "kind", "name", "level", "state"],
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "level",
+          "state"
+        ],
         "properties": {
-          "id": {"type": "integer"}, "kind": {"enum": ["bin", "shelter"]}, "name": {"type": "string"}, "area": {"type": "string"},
-          "capacity_l": {"type": "integer"},
-          "level": {"type": "integer", "minimum": 0, "maximum": 130, "description": "szacowane zapełnienie w %"},
-          "state": {"enum": ["ok", "warn", "bad"], "description": "ok < 60%, warn 60–85%, bad > 85% albo świeże zgłoszenie"},
-          "label": {"type": "string"}, "fresh": {"type": "boolean", "description": "zgłoszenie w ostatnich 15 min"},
-          "crossing": {"type": ["string", "null"], "format": "date-time", "description": "przewidywane przekroczenie 85% w ciągu 24 h"},
-          "next_run": {"type": "string", "format": "date-time"}
+          "id": {
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "bin",
+              "shelter"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "capacity_l": {
+            "type": "integer"
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 130,
+            "description": "szacowane zapełnienie w %"
+          },
+          "state": {
+            "enum": [
+              "ok",
+              "warn",
+              "bad"
+            ],
+            "description": "ok < 60%, warn 60–85%, bad > 85% albo świeże zgłoszenie"
+          },
+          "label": {
+            "type": "string"
+          },
+          "fresh": {
+            "type": "boolean",
+            "description": "zgłoszenie w ostatnich 15 min"
+          },
+          "crossing": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "przewidywane przekroczenie 85% w ciągu 24 h"
+          },
+          "next_run": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "BinCollection": {
         "type": "object",
         "properties": {
-          "type": {"const": "FeatureCollection"}, "meta": {"$ref": "#/components/schemas/Meta"},
-          "features": {"type": "array", "items": {"type": "object", "properties": {
-            "type": {"const": "Feature"},
-            "geometry": {"type": "object", "properties": {"type": {"const": "Point"}, "coordinates": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}}},
-            "properties": {"$ref": "#/components/schemas/Bin"}}}}
+          "type": {
+            "const": "FeatureCollection"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "Feature"
+                },
+                "geometry": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "Point"
+                    },
+                    "coordinates": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                },
+                "properties": {
+                  "$ref": "#/components/schemas/Bin"
+                }
+              }
+            }
+          }
         }
       },
       "BinDetail": {
         "type": "object",
         "properties": {
-          "meta": {"$ref": "#/components/schemas/Meta"},
-          "bin": {"allOf": [{"$ref": "#/components/schemas/Bin"}, {"type": "object", "properties": {"lat": {"type": "number"}, "lon": {"type": "number"}}}]},
-          "forecast": {"type": "array", "items": {"type": "object", "properties": {
-            "at": {"type": "string", "format": "date-time"}, "level": {"type": "integer"}, "low": {"type": "integer"}, "high": {"type": "integer"}}}}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
+          "bin": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Bin"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lon": {
+                    "type": "number"
+                  }
+                }
+              }
+            ]
+          },
+          "forecast": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "level": {
+                  "type": "integer"
+                },
+                "low": {
+                  "type": "integer"
+                },
+                "high": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
         }
       },
       "Routes": {
         "type": "object",
         "properties": {
-          "meta": {"$ref": "#/components/schemas/Meta"},
-          "depot": {"type": "object", "properties": {"name": {"type": "string"}, "lat": {"type": "number"}, "lon": {"type": "number"}}},
-          "fleets": {"type": "array", "items": {"type": "object", "properties": {
-            "kind": {"enum": ["bin", "shelter"]}, "label": {"type": "string"}, "run_at": {"type": "string", "format": "date-time"},
-            "km": {"type": "number"},
-            "stops": {"type": "array", "items": {"type": "object", "properties": {
-              "order": {"type": "integer"}, "id": {"type": "integer"}, "name": {"type": "string"}, "lat": {"type": "number"}, "lon": {"type": "number"}}}}}}}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
+          "depot": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "lat": {
+                "type": "number"
+              },
+              "lon": {
+                "type": "number"
+              }
+            }
+          },
+          "fleets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "bin",
+                    "shelter"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "run_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "km": {
+                  "type": "number"
+                },
+                "stops": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "order": {
+                        "type": "integer"
+                      },
+                      "id": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "lat": {
+                        "type": "number"
+                      },
+                      "lon": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "Conditions": {
         "type": "object",
         "properties": {
-          "meta": {"$ref": "#/components/schemas/Meta"},
-          "weather": {"type": "object", "properties": {
-            "available": {"type": "boolean"}, "temp_c": {"type": "number"}, "rain_mm": {"type": "number"},
-            "code": {"type": "integer", "description": "kod pogody WMO"}, "label": {"type": "string"},
-            "factor": {"type": "number", "description": "mnożnik tempa zapełniania: 0,8 deszcz, 1,25 ciepły suchy weekend, inaczej 1,0"},
-            "source": {"const": "Open-Meteo"}}},
-          "traffic": {"type": "object", "properties": {
-            "available": {"type": "boolean"}, "ratio": {"type": "number", "minimum": 1, "maximum": 3, "description": "prędkość swobodna / obecna, średnia z 8 punktów"},
-            "delay_min": {"type": "integer", "description": "opóźnienie dojazdu z bazy (ok. 6 km)"}, "label": {"type": "string"},
-            "source": {"const": "TomTom Traffic Flow"},
-            "samples": {"type": "array", "items": {"type": "object", "properties": {
-              "name": {"type": "string"}, "lat": {"type": "number"}, "lon": {"type": "number"}, "ratio": {"type": "number"}, "closed": {"type": "boolean"}}}}}}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
+          "weather": {
+            "type": "object",
+            "properties": {
+              "available": {
+                "type": "boolean"
+              },
+              "temp_c": {
+                "type": "number"
+              },
+              "rain_mm": {
+                "type": "number"
+              },
+              "code": {
+                "type": "integer",
+                "description": "kod pogody WMO"
+              },
+              "label": {
+                "type": "string"
+              },
+              "factor": {
+                "type": "number",
+                "description": "mnożnik tempa zapełniania: 0,8 deszcz, 1,25 ciepły suchy weekend, inaczej 1,0"
+              },
+              "source": {
+                "const": "Open-Meteo"
+              }
+            }
+          },
+          "traffic": {
+            "type": "object",
+            "properties": {
+              "available": {
+                "type": "boolean"
+              },
+              "ratio": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 3,
+                "description": "prędkość swobodna / obecna, średnia z 8 punktów"
+              },
+              "delay_min": {
+                "type": "integer",
+                "description": "opóźnienie dojazdu z bazy (ok. 6 km)"
+              },
+              "label": {
+                "type": "string"
+              },
+              "source": {
+                "const": "TomTom Traffic Flow"
+              },
+              "samples": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "lat": {
+                      "type": "number"
+                    },
+                    "lon": {
+                      "type": "number"
+                    },
+                    "ratio": {
+                      "type": "number"
+                    },
+                    "closed": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
-      "Error": {"type": "object", "properties": {"ok": {"const": false}, "message": {"type": "string"}}}
+      "Error": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "const": false
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
     }
   }
 }

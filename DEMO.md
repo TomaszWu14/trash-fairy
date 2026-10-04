@@ -20,3 +20,14 @@ a akcje ze scenariusza (zgłoszenie, odbiór) wchodzą do nich od razu. Czas rea
 pokazujemy to bez poprawiania, a trend roczny spada (8,6 h → 5,7 h w mieście).
 
 **Gdy coś pójdzie nie tak:** „Resetuj dane demo” na ekranie startowym; zgłoszenie z tego samego telefonu do tego samego kosza jest możliwe raz na minutę.
+
+## Ściągawka: trudne pytania
+
+- **Stack?** Python 3.12, Flask, SQLAlchemy, PostgreSQL 16, OR-Tools, Gunicorn, Docker (`docker compose up --build`). Front bez builda i bez CDN: Jinja, własny CSS, Leaflet, ECharts. Ponad 270 testów.
+- **Dlaczego reguły, a nie AI?** Decyzja o kursie śmieciarki musi być powtarzalna, sprawdzalna i do wytłumaczenia urzędnikowi. Reguły są jawne na `/metodologia`; AI tylko opisuje zdjęcia i wydarzenia, a jego odpowiedź po walidacji schematu jest wejściem dla reguły.
+- **RODO i zdjęcia?** EXIF (GPS, aparat) usuwamy przed zapisem i przed wysłaniem do modelu. Model ma zakaz opisywania osób i tablic; zdjęcie z osobą nie jest publiczne. IP zgłoszeń kasujemy po 24 h. Szczegóły: `/prywatnosc`.
+- **Ile kosztuje wdrożenie?** Start nie wymaga sprzętu: naklejka z kodem QR, aplikacje w przeglądarce, jeden kontener z bazą. Założenia oszczędności (4 zł za wizytę, 5 zł za km) i skalowanie na Kraków są na `/metodologia`; koszt paneli i czujników policzymy w pilotażu na realnych ofertach.
+- **Czy to się skaluje?** Kraków ma 9 383 kosze w harmonogramie MPO 08/2026; `methodology.city_scale` liczy z niego 1,5–2,8 mln zł/rok. Trasy liczymy osobno per rejon i flota, więc rośnie liczba rejonów, nie rozmiar jednego problemu.
+- **Konkurencja?** Systemy czujnikowe (np. Sensoneo, Enevo) wymagają kupna i utrzymania sprzętu na każdym koszu. My działamy od pierwszego dnia bez sprzętu, na tanich sygnałach, i przyjmujemy czujniki tam, gdzie się opłacają (moduł urządzeń już je rozróżnia).
+- **Co jest symulowane?** Poziomy zapełnienia, historia 12 miesięcy dashboardu (`app/history.py`), koszty, projekty, urządzenia i położenie mieszkańca w demo. Prawdziwe: kosze i frakcje z OSM, przebiegi OSRM, harmonogram MPO, Karnet, pogoda, reguły i trasy. Każdy ekran ma plakietkę „Dane demonstracyjne”.
+- **Co po hackathonie?** Pilotaż: Dzielnica I, 50 koszy, 3 miesiące, grupa testowa kontra kontrolna. Plan krok po kroku w `ROADMAPA.md`.

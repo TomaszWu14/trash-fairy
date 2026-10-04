@@ -112,7 +112,26 @@ def city_scale(result):
             "assumptions": a}
 
 
+PILOT_BINS = 50  # pilotaż w Dzielnicy I (ROADMAPA.md)
+
+
+def pilot_roi(city):
+    """Koszt pilotażu i zwrot wg jawnych założeń (env, do weryfikacji w pilotażu). Oszczędność na kosz z wariantu ostrożnego:
+    tam są kosze opróżniane codziennie lub częściej, jak w Dzielnicy I. Dwa warianty: same naklejki QR albo panele e-papier."""
+    a = {"qr": _env_float("COST_QR_STICKER_PLN", 5.0), "panel": _env_float("COST_PANEL_PLN", 600.0),
+         "hosting": _env_float("COST_HOSTING_MONTH_PLN", 300.0)}
+    per_bin = city["careful"]["pln_month"] / city["careful"]["bins"]
+    saving = PILOT_BINS * per_bin
+
+    def variant(per_bin_cost):
+        setup, net = PILOT_BINS * per_bin_cost, saving - a["hosting"]
+        return {"setup": round(setup), "net_month": round(net), "payback_months": round(setup / net, 1) if net > 0 else None}
+    return {"assumptions": a, "bins": PILOT_BINS, "saving_month": round(saving), "per_bin": round(per_bin, 1),
+            "qr": variant(a["qr"]), "panel": variant(a["qr"] + a["panel"])}
+
+
 def page_context(now):
     result = comparison.compare(simulation.DEMO_NOW)
-    return {"assumptions": assumptions(), "money": money(result), "result": result, "city": city_scale(result),
-            "quality": forecast.forecast_quality(simulation.hour_floor(now))}
+    city = city_scale(result)
+    return {"assumptions": assumptions(), "money": money(result), "result": result, "city": city, "roi": pilot_roi(city),
+            "quality": forecast.forecast_quality(simulation.hour_floor(now)), "verify_min": photos.VERIFY_MIN_CONFIDENCE}

@@ -111,3 +111,36 @@ def test_page_renders(client):
     r = client.get("/dashboard/urzadzenia")
     assert r.status_code == 200 and "Urządzenia" in r.get_data(as_text=True)
     assert 'href="/dashboard/urzadzenia"' in client.get("/dashboard").get_data(as_text=True)
+
+
+def _ok_device(kind):
+    return next(i for i in devices.overview(clock.now(), kind) if i["status"] == "ok")
+
+
+def test_reading_requires_device_token(client):
+    from app.devices_api import device_token
+    d = _ok_device("czujnik")
+    body = {"numer_seryjny": d["numer_seryjny"], "zapelnienie": d["ostatni_odczyt"]["wartosc"] or 0}
+    assert client.post("/api/odczyty", json=body).status_code == 401
+    assert client.post("/api/odczyty", json=body, headers={"X-Token-Urzadzenia": "x" * 24}).json["kod"] == "nieznane_urzadzenie"
+    bad = client.post("/api/odczyty", json=body | {"zapelnienie": 140}, headers={"X-Token-Urzadzenia": device_token(d["numer_seryjny"])})
+    assert bad.status_code == 400 and bad.json["kod"] == "zly_odczyt"
+    no_fill = client.post("/api/odczyty", json={"numer_seryjny": d["numer_seryjny"]},
+                          headers={"X-Token-Urzadzenia": device_token(d["numer_seryjny"])})
+    assert no_fill.status_code == 400  # czujnik bez zapełnienia to nie odczyt
+
+
+def test_sensor_and_panel_readings_update_device(client):
+    from app.devices_api import device_token
+    s = _ok_device("czujnik")
+    r = client.post("/api/odczyty", json={"numer_seryjny": s["numer_seryjny"], "zapelnienie": 37.4, "autotest_ok": True},
+                    headers={"X-Token-Urzadzenia": device_token(s["numer_seryjny"])})
+    assert r.status_code == 201 and r.json["urzadzenie"]["ostatni_odczyt"]["wartosc"] == 37
+    assert r.json["urzadzenie"]["ostatni_odczyt"]["czas"] == clock.now().isoformat()
+    again = client.post("/api/odczyty", json={"numer_seryjny": s["numer_seryjny"], "zapelnienie": 40},
+                        headers={"X-Token-Urzadzenia": device_token(s["numer_seryjny"])})
+    assert again.status_code == 429
+    p = _ok_device("panel")
+    r = client.post("/api/odczyty", json={"numer_seryjny": p["numer_seryjny"], "bateria": p["bateria_pct"]},
+                    headers={"X-Token-Urzadzenia": device_token(p["numer_seryjny"])})
+    assert r.status_code == 201 and r.json["urzadzenie"]["status"] == "ok"

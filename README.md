@@ -5,7 +5,13 @@
 
 **Demo:** https://trashfairy.twapp.pl · **Kod:** https://github.com/TomaszWu14/trash-fairy · [English below](#english)
 
-![Widok „Pokaz dla jury”: 4 kroki, mapa z trasą po ulicach i najbliższe przepełnienia](docs/img/pokaz.png)
+| | |
+|---|---|
+| ![Przegląd: cztery perspektywy, liczby z kodu i scenariusz demo w 6 krokach](docs/img/przeglad.png) | ![Dashboard miasta: KPI, koszty wobec planu, frakcje, dzielnice i mapa koszy](docs/img/dashboard.png) |
+| ![Telefon mieszkańca: zgłoszenie kosza w 3 krokach po zeskanowaniu kodu QR](docs/img/zglos.png) | ![Telefon kierowcy: trasa po priorytecie z postępem i przyciskami Jadę oraz Opróżniono](docs/img/kierowca.png) |
+| ![Panel na koszu (kiosk): zapełnienie widoczne z daleka, termin odbioru i kod QR](docs/img/panel.png) | ![Urządzenia na koszach: bateria, sygnał życia i status paneli oraz czujników](docs/img/urzadzenia.png) |
+
+Przed i po przebudowie każdej perspektywy: [`audit/PRZED-PO.html`](audit/PRZED-PO.html). Jak poprowadzić pokaz w 3 minuty: [`DEMO.md`](DEMO.md).
 
 ## Problem
 Kosze uliczne w centrum Krakowa (Planty, Rynek, Kazimierz) przepełniają się, zwłaszcza w weekendy i podczas wydarzeń.
@@ -23,6 +29,46 @@ kompaktor albo większy kosz. **Decyzje podejmują jawne reguły w kodzie, a AI 
 3. **Trasa:** OR-Tools dla dwóch flot (kosze, altany) z bazy MPO przy ul. Nowohuckiej 1; przebieg po ulicach z OSRM.
 4. **Efekt:** porównanie 4 tygodni ze stałym harmonogramem na tym samym przebiegu zapełniania.
 
+## Architektura
+
+```mermaid
+flowchart LR
+  subgraph S[Sygnały]
+    K[Panel na koszu / kiosk<br/>kod QR]
+    M[Mieszkaniec PWA<br/>zgłoszenie + zdjęcie]
+    D[Kierowca PWA<br/>Opróżniono / Problem]
+    U[Czujniki i panele<br/>urządzenia]
+    X[Open-Meteo · TomTom<br/>Karnet Kraków · OSM / OSRM]
+  end
+  subgraph F[Flask: blueprinty]
+    UI[ui<br/>ekrany perspektyw]
+    API[api_pl<br/>/api/*]
+    DA[dashboard_api<br/>dashboard miasta]
+    DV[devices_api<br/>urządzenia]
+    OA[open_api<br/>/api/v1]
+  end
+  subgraph R[Silnik reguł: decyzje]
+    ST[state.py<br/>stan i priorytet]
+    FC[forecast.py<br/>prognoza 7×24]
+    RT[routes.py<br/>trasy OR-Tools]
+    RP[reports.py<br/>scalanie zgłoszeń]
+    PV[photos.verification<br/>status zdjęcia]
+  end
+  L[app/llm.py · Claude<br/>Vision zdjęć, Karnet<br/>tylko opisuje]
+  DB[(PostgreSQL)]
+  K & M & D --> API
+  U --> DV
+  X --> R
+  UI --> API
+  API & DA & DV & OA --> R
+  M -. zdjęcie bez EXIF .-> L
+  L -. zwalidowany JSON .-> PV
+  R --> DB
+```
+
+Sygnały wchodzą przez blueprinty, ale każdą decyzję (stan, priorytet, prognoza, trasa, status zdjęcia) liczą reguły w kodzie.
+`app/llm.py` to jedyne miejsce z modelem: opisuje zdjęcia i wydarzenia, a jego odpowiedź po walidacji schematu jest tylko wejściem dla reguły.
+
 ## Wyniki (symulacja, 60 koszy i 12 altan, Stare Miasto, Kazimierz, Grzegórzki)
 
 | Co | Stały harmonogram | Trash Fairy |
@@ -36,6 +82,28 @@ kompaktor albo większy kosz. **Decyzje podejmują jawne reguły w kodzie, a AI 
 Kilometry altan rosną (+163 km w 4 tygodniach), bo śmieciarka jeździ wtedy, gdy trzeba, a nie co 3 dni. Pokazujemy to wprost;
 założenia i wzory są na stronie `/metodologia`, wyliczone ze stałych w kodzie.
 
+## Co prawdziwe, co symulowane
+
+| Prawdziwe | Symulowane |
+|---|---|
+| Położenia koszy i altan oraz frakcje z OpenStreetMap | Poziomy zapełnienia koszy |
+| Przebiegi po ulicach z OSRM | Historia 12 miesięcy na dashboardzie (deterministyczny generator `app/history.py`) |
+| Harmonogram oczyszczania MPO 08/2026 | Koszty, masy i projekty w dzielnicach |
+| Wydarzenia z Karnetu Kraków, pogoda z Open-Meteo | Urządzenia i ich telemetria (bateria, sygnał życia, autotest) |
+| Reguły, silnik prognozy i trasy OR-Tools | Położenie mieszkańca w demo (jury nie stoi przy koszu) |
+| Analiza zdjęć przez Claude Vision (gdy jest klucz API) | |
+| Zgłoszenia i odbiory wykonane w pokazie: zapisywane w bazie i od razu liczone na dashboardzie | |
+
+Każdy ekran z danymi syntetycznymi ma plakietkę **„Dane demonstracyjne”** z linkiem do `/metodologia`.
+
+## AI w przepływie
+
+1. Mieszkaniec dołącza zdjęcie do zgłoszenia.
+2. Serwer koduje obraz od nowa bez EXIF (GPS, model aparatu, czas), zanim go zapisze lub wyśle (`photos.strip_metadata`).
+3. Claude Vision przez `app/llm.py` ocenia wyłącznie kosz: czy jest widoczny, stan, zapełnienie 0/25/50/75/100% i pewność. Odpowiedź musi pasować do schematu JSON i przejść walidację.
+4. Reguła `photos.verification` (nie AI) nadaje status: **„Zweryfikowane AI”**, gdy kosz jest widoczny, stan zgadza się z typem zgłoszenia, a pewność ≥ 0,7; w każdym innym przypadku **„Do weryfikacji”** przez dyspozytora.
+5. AI nigdy nie odrzuca zgłoszenia. Bez klucza API albo przy błędzie zgłoszenie trafia „Do weryfikacji”, a aplikacja działa w pełni.
+
 ## Ekrany (jedna rola „Przegląd jury”, bez logowania)
 
 | Adres | Perspektywa | Co robi |
@@ -48,7 +116,8 @@ założenia i wzory są na stronie `/metodologia`, wyliczone ze stałych w kodzi
 | [`/metodologia`](https://trashfairy.twapp.pl/metodologia) | wszyscy | założenia, wzory i liczby wprost z kodu |
 
 Stare adresy (`/telefony`, `/dyspozytor`, `/epapier/<id>`, kody QR z naklejek) przekierowują do nowych ekranów.
-Audyt i przebudowa: `audit/AUDYT-UX.md`, zrzuty rund w `audit/iteracje/`, jak poprowadzić pokaz: `DEMO.md`.
+Pomocniczo: [`/dashboard/urzadzenia`](https://trashfairy.twapp.pl/dashboard/urzadzenia) (bateria, odczyty i status paneli oraz czujników).
+Audyt i przebudowa: `audit/AUDYT-UX.md`, zrzuty rund w `audit/iteracje/`, przed i po: [`audit/PRZED-PO.html`](audit/PRZED-PO.html), jak poprowadzić pokaz: [`DEMO.md`](DEMO.md).
 
 ## Integracje i otwarte API
 - **Pogoda (Open-Meteo, bez klucza):** mnożnik tempa zapełniania tylko na godziny przyszłe: deszcz ≥ 1 mm/h ×0,8, ciepły suchy weekend ×1,25.
@@ -60,17 +129,22 @@ Audyt i przebudowa: `audit/AUDYT-UX.md`, zrzuty rund w `audit/iteracje/`, jak po
 Każda integracja ma wyłącznik i bezpieczny stan bez sieci: brak danych oznacza mnożnik 1,0, a nie błąd.
 
 ## Uruchomienie
+Najprościej, jednym poleceniem (aplikacja + PostgreSQL 16, seed punktów i symulacji startuje sam):
+```bash
+docker compose up --build   # http://localhost:8080
+```
+Lokalnie bez Dockera (SQLite):
 ```bash
 python -m venv .venv && .venv/Scripts/activate      # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 flask --app app seed        # import punktów z data/*.geojson + 8 tygodni symulacji
 flask --app app run         # http://localhost:5000 (albo -p 5050)
-python -m pytest -q -n auto # 208 testów (pytest-xdist)
+python -m pytest -q -n auto # ponad 270 testów (pytest-xdist)
 ```
-Docker: `docker build -t trash-fairy . && docker run -p 8080:8080 trash-fairy` (z `-e DATABASE_URL=...` dla PostgreSQL).
+Sam obraz: `docker build -t trash-fairy . && docker run -p 8080:8080 trash-fairy` (z `-e DATABASE_URL=...` dla PostgreSQL).
 Zmienne środowiskowe: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `PUBLIC_URL` (adres w kodach QR), `SECRET_KEY`, `DATABASE_URL`,
 `TOMTOM_API_KEY`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SID`, `SMS_DEMO_FALLBACK=1`, `WEATHER_URL=""` (wyłącza pogodę).
-Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatni zapisany wynik.
+Bez klucza API aplikacja działa w pełni; zdjęcia trafiają „Do weryfikacji”, a opisy AI pokazują komunikat i ostatni zapisany wynik.
 
 ## Dane i źródła
 - **OpenStreetMap:** pozycje koszy, altan, lokali i przystanków; podkład mapy. © OpenStreetMap contributors, licencja ODbL 1.0.
@@ -78,8 +152,8 @@ Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatn
 - **Harmonogram oczyszczania MPO 08/2026** (9 383 kosze w Krakowie): częstotliwości opróżnień w Dzielnicy I, opis w `docs/kontekst-mpo.md`.
   Źródło: [mpo.krakow.pl/czystosc](https://mpo.krakow.pl/czystosc/), plik [harmonogram_oczyszczania_08_2026.xlsx](https://mpo.krakow.pl/wp/wp-content/uploads/2026/08/harmonogram_oczyszczania_08_2026.xlsx).
 - **Karnet Kraków** (karnet.krakowculture.pl, Krakowskie Biuro Festiwalowe): nazwy, miejsca, daty i współrzędne wydarzeń, cache w `data/karnet.json`. Wydarzenia służą tylko jako sygnał tłumu w prognozie.
-- **Wszystkie dane operacyjne** (poziomy zapełnienia, opróżnienia, zgłoszenia) są **syntetyczne**. Widok jury, panel i PWA kierowcy pokazują to na stałym pasku.
-- Biblioteki: Flask, SQLAlchemy, OR-Tools (Apache 2.0), anthropic (MIT), Leaflet i Leaflet.markercluster (BSD-2), Chart.js (MIT), qrcode-generator (MIT), Pillow (HPND), IBM Plex i Fraunces (SIL OFL 1.1); wszystko lokalnie, bez CDN.
+- **Dane operacyjne** (poziomy zapełnienia, historia odbiorów, koszty, urządzenia) są **syntetyczne**, patrz [Co prawdziwe, co symulowane](#co-prawdziwe-co-symulowane). Ekrany pokazują to plakietką „Dane demonstracyjne”.
+- Biblioteki: Flask, SQLAlchemy, OR-Tools (Apache 2.0), anthropic (MIT), Leaflet (BSD-2) i Leaflet.markercluster (MIT), Apache ECharts (Apache 2.0), qrcode-generator (MIT), Pillow (HPND), ikony Lucide (ISC), Plus Jakarta Sans (SIL OFL 1.1); wszystko lokalnie, bez CDN.
 
 ## Narzędzia AI
 - **Claude Code** (Anthropic, Claude Opus 5.5): pisanie kodu, testów i dokumentacji oraz materiałów (slajdy, scenariusz wideo, napisy w `docs/video/`) podczas HackYeah; każdy etap zaczynał się od planu
@@ -87,8 +161,8 @@ Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatn
 - **Claude Design** (kanwa projektowa): trzy kierunki wizualne (A/B/C) dla widoku jury, PWA mieszkańca, PWA kierowcy i e-papieru;
   wybrany kierunek C „Marka Trash Fairy”. Paczki projektowe w `docs/widok-c/`, `docs/zgloszenie/`, `docs/epapier/`.
 - **Claude API** (`anthropic`, model z `ANTHROPIC_MODEL`, domyślnie `claude-opus-5-5`) w działającej aplikacji, wyłącznie przez `app/llm.py`:
-  analiza zdjęć koszy (Vision, structured outputs, zakaz opisywania osób), godziny i skala wydarzeń z Karnetu, raport „Wróżka podpowiada” dla dyspozytora.
-- **Playwright i Lighthouse:** audyt UX (zrzuty 6 szerokości, poziomy scroll, wydajność i dostępność), wyniki w `docs/audit/RESULTS.md`.
+  analiza zdjęć ze zgłoszeń mieszkańców (Vision, schemat JSON, zakaz opisywania osób; status nadaje reguła, patrz [AI w przepływie](#ai-w-przepływie)), godziny i skala wydarzeń z Karnetu.
+- **Playwright i Lighthouse:** audyt UX (zrzuty 6 szerokości, poziomy scroll, wydajność i dostępność), wyniki w `audit/lighthouse/` (wcześniejsze rundy: `docs/audit/RESULTS.md`).
 
 ## Bezpieczeństwo AI
 - Każda treść z zewnątrz (opisy wydarzeń z Karnetu, zdjęcia, teksty od użytkowników) trafia do modelu wyłącznie jako dane
@@ -101,8 +175,10 @@ Bez klucza API aplikacja działa w pełni; opisy AI pokazują komunikat i ostatn
   zawsze przez escapowanie (Jinja autoescape, `esc()` w JS), bez `|safe` i bez klikalnych linków. Testy: `tests/test_ai_safety.py`.
 
 ## Dostępność
-UI po polsku, WCAG 2.1 AA: stan kosza to zawsze kolor + kształt + znak (✓, ↑, !), nigdy sam kolor; cele dotykowe w PWA kierowcy od 56 px;
-tryb ciemny w PWA; Lighthouse Accessibility 97–100 na wszystkich ekranach (`docs/audit/RESULTS.md`).
+UI po polsku, WCAG 2.1 AA: stan kosza to zawsze kolor + ikona + tekst, nigdy sam kolor; cele dotykowe w PWA kierowcy od 56 px;
+strony `/dostepnosc` i `/prywatnosc`. Raporty Lighthouse (desktop i telefon) dla `/` i `/dashboard` są w `audit/lighthouse/`.
+
+Lighthouse 12 (lokalnie, `audit/lighthouse/`): `/` wydajność 93 telefon / 100 desktop, `/dashboard` 94 desktop (na telefonie 67: 1 MB wykresów ECharts przy symulowanym słabym CPU; dashboard to narzędzie biurowe), dostępność, dobre praktyki i SEO 100 na obu. axe-core (WCAG 2.1 A/AA, `scripts/axe_check.py`): 0 naruszeń na 8 ekranach w 1366 px i 390 px.
 
 ## Licencja
 [GNU AGPL-3.0](LICENSE): kod można używać i zmieniać, także w sektorze publicznym, ale kto uruchomi zmienioną wersję
@@ -127,13 +203,17 @@ plans routes and recommends where a sensor, a compactor or a bigger bin pays off
 **Results (simulation, 60 bins and 12 shelters, 4 weeks vs the fixed schedule):** forecast MAE 2.4 p.p. vs 7.1 for a naive mean;
 bins −24% visits and empty trips down from 57% to 27%; shelter overflow hours 338 → 0; per month −866 visits, ≈ PLN 2,976 saved, +97 km.
 
-**Screens:** `/` jury walkthrough (Problem → Prediction → Route → Effect), `/dyspozytor` dispatcher panel,
-`/zglos` resident PWA (one tap, works offline), `/kierowca` driver PWA (next stop, Emptied / Can't reach / Problem + photo, works offline),
-`/epapier/18` e-paper display simulator, `/metodologia` assumptions straight from code. **Demo:** https://trashfairy.twapp.pl
+**Screens (no login):** `/` overview with a 6-step demo script, `/panel/18` bin kiosk (fill level visible from afar, pickup time, QR code),
+`/zglos` resident PWA (scan the bin's QR code, report in 3 steps), `/kierowca` driver PWA (route by priority, in-app navigation, Emptied / Problem),
+`/dashboard` city dashboard (costs vs plan, fractions, districts, projects), `/dashboard/urzadzenia` devices (battery, heartbeat, status),
+`/metodologia` assumptions straight from code. **Demo:** https://trashfairy.twapp.pl · **Run locally:** `docker compose up --build` → http://localhost:8080 (app + PostgreSQL 16).
 
-**Data:** © OpenStreetMap contributors (ODbL 1.0), Karnet Kraków events, MPO cleaning schedule 08/2026 ([mpo.krakow.pl/czystosc](https://mpo.krakow.pl/czystosc/)). All operational data is synthetic.
+**AI photo verification:** a resident's photo is stripped of EXIF, assessed by Claude Vision against a JSON schema, and a rule in code
+(`photos.verification`) marks the report "AI-verified" or "To be checked". AI never rejects a report; without an API key everything still works.
+
+**Data:** © OpenStreetMap contributors (ODbL 1.0), Karnet Kraków events, MPO cleaning schedule 08/2026 ([mpo.krakow.pl/czystosc](https://mpo.krakow.pl/czystosc/)). Operational data (fill levels, 12-month dashboard history, costs, devices) is synthetic and labelled "Dane demonstracyjne".
 **AI tools:** Claude Code (Claude Opus 5.5) for development and pitch materials (slides, video script, subtitles), Claude Design canvas for visual directions, Claude API in the app
-(photo analysis, event parsing, dispatcher report) behind input fencing and schema validation; Playwright and Lighthouse for the UX audit.
+(resident photo analysis, event parsing) behind input fencing and schema validation; Playwright and Lighthouse for the UX audit.
 
 **Transparency:** the concept was prepared before the event (`docs/KONCEPCJA.md`, no code).
 **All code was written during HackYeah, 3–4 Oct 2026**, starting at the `start-hackyeah` tag.

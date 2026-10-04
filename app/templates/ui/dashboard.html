@@ -18,6 +18,8 @@
     </div>
     <div class="dash-actions">
       <button class="btn btn-sm" type="button" id="d-print">{{ icon('download', 'i-sm') }}Pobierz raport PDF</button>
+      <a class="btn btn-sm" data-export="odbiory" href="/api/eksport/odbiory.csv" download>{{ icon('file-text', 'i-sm') }}Odbiory CSV</a>
+      <a class="btn btn-sm" data-export="zgloszenia" href="/api/eksport/zgloszenia.csv" download>{{ icon('file-text', 'i-sm') }}Zgłoszenia CSV</a>
     </div>
   </header>
 
@@ -71,7 +73,7 @@
     <section class="card chart c-wide c-map" data-chart="mapa">
       <header class="chart-h"><div><h2>Mapa koszy i gorące obszary</h2><p>Kolor = zapełnienie teraz; poświata = zgłoszenia przepełnień z 90 dni</p></div>
         <div class="map-legend" aria-hidden="true"><span><i class="lg ok"></i>&lt; 50%</span><span><i class="lg warn"></i>50–80%</span><span><i class="lg full"></i>≥ 80%</span><span><i class="lg hot"></i>gorący obszar</span></div></header>
-      <div class="chart-body" id="ch-mapa" role="img" aria-label="Mapa Krakowa z koszami w kolorze zapełnienia"></div>
+      <div class="chart-body" id="ch-mapa" role="region" aria-label="Mapa Krakowa z koszami w kolorze zapełnienia"></div>
     </section>
     <section class="card chart" data-chart="heatmapa">
       <header class="chart-h"><div><h2>Kiedy kosze się przepełniają</h2><p>Zgłoszenia według dnia tygodnia i godziny</p></div></header>
@@ -92,8 +94,8 @@
 </dialog>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}"></script>
-<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script>document.documentElement.dataset.echarts = "{{ url_for('static', filename='vendor/echarts/echarts.min.js') }}";</script>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/charts.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/dashboard.js') }}" defer></script>
 {% endblock %}

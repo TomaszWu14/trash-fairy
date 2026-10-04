@@ -199,4 +199,4 @@ dialog.modal[open] { animation: toast-in var(--t-slow) var(--ease) both; }
 
 /* wejście treści: jeden spokojny ruch, bez skakania */
 .rise { animation: rise var(--t-slow) var(--ease) both; }
-@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes rise { from { transform: translateY(8px); } }  /* bez opacity: 0 — tekst widoczny od pierwszej klatki (LCP) */

@@ -17,6 +17,6 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/mieszkaniec.js') }}" defer></script>
 {% endblock %}

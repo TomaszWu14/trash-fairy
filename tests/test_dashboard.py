@@ -239,3 +239,16 @@ def test_engine_api_ignores_city_points(client):
     city = Point.query.filter(Point.live.is_(False)).first()
     assert client.get(f"/api/points/{city.id}").status_code == 404
     assert all(f["properties"]["id"] != city.id for f in client.get("/api/v1/bins.geojson").json["features"])
+
+
+def test_csv_export_uses_dashboard_filters(client):
+    r = client.get("/api/eksport/odbiory.csv?dzielnica=Krowodrza&frakcja=szklo")
+    assert r.status_code == 200 and r.mimetype == "text/csv" and "attachment" in r.headers["Content-Disposition"]
+    lines = r.data.decode("utf-8-sig").splitlines()
+    assert "# Dane syntetyczne" in lines[0] and lines[1].startswith("data;kosz_id;dzielnica")
+    rows = [l.split(";") for l in lines[2:]]
+    assert rows and all(x[2] == "Krowodrza" and x[3] == "szklo" for x in rows)
+    z = client.get("/api/eksport/zgloszenia.csv?okres=kwartal").data.decode("utf-8-sig").splitlines()
+    assert z[1] == "data;kosz_id;dzielnica;frakcja;rodzaj;zamkniete" and len(z) > 2
+    assert client.get("/api/eksport/hasla.csv").json["kod"] == "nieznany_eksport"
+    assert client.get("/api/eksport/odbiory.csv?frakcja=zloto").status_code == 400

@@ -43,4 +43,5 @@ def test_docs_page_lists_every_path_from_contract(client):
     assert spec["openapi"].startswith("3.1")
     html = client.get("/api/docs").get_data(as_text=True)
     assert all(path in html for path in spec["paths"])
-    assert all(ops["get"]["summary"] in html for ops in spec["paths"].values())
+    assert all(op["summary"] in html for ops in spec["paths"].values() for op in ops.values())
+    assert "POST" in html and "/api/odczyty" in html  # nowe API aplikacji, nie tylko otwarte /api/v1

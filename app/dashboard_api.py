@@ -3,11 +3,13 @@
 Dane są SYNTETYCZNE (app/history.py) + zdarzenia demo na żywo — każda odpowiedź ma meta.syntetyczne = true.
 Błędy: {"blad": "<komunikat po polsku>", "kod": "<kod>"} z kodem HTTP 400 (zły filtr) albo 404.
 """
+import csv
+import io
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 from functools import wraps
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Response, jsonify, request
 from sqlalchemy import func, select
 
 from . import clock, db
@@ -286,3 +288,41 @@ def project(slug):
                 "czas_reakcji": [_num(series[m]["czas_reakcji"], 1) for m in months],
                 "podsumowanie": summary}
     return {"meta": {**meta, "miesiace": months}, "projekt": {**_project(pr, now, months), "przed_po": przed_po}}
+
+
+EXPORTS = {  # nazwa pliku → (źródło, kolumna czasu, nagłówki CSV)
+    "odbiory": (pickups, "at", ["data", "kosz_id", "dzielnica", "frakcja", "masa_kg", "koszt_zl", "km", "zapelnienie_pct",
+                                "na_zadanie"]),
+    "zgloszenia": (reports, "created_at", ["data", "kosz_id", "dzielnica", "frakcja", "rodzaj", "zamkniete"]),
+}
+
+
+@bp.get("/eksport/<nazwa>.csv")
+def export_csv(nazwa):
+    """CSV z tymi samymi filtrami co dashboard (okres, od/do, dzielnica, frakcja, projekt); separator „;” pod polski Excel."""
+    if nazwa not in EXPORTS:
+        raise ApiError(404, "nieznany_eksport", f"Nieznany eksport. Dostępne: {', '.join(EXPORTS)}.")
+    now = clock.now()
+    f, meta = parse_filters(now)
+    source, col, header = EXPORTS[nazwa]
+    sub = source(now)
+    c = sub.c
+    cols = ([c.at, c.point_id, c.district, c.fraction, c.mass_kg, c.cost_pln, c.km, c.fill_pct, c.on_demand] if nazwa == "odbiory"
+            else [c.created_at, c.point_id, c.district, c.fraction, c.kind, c.resolved_at])
+    rows = db.session.execute(_where(select(*cols), sub, f, getattr(c, col)).order_by(getattr(c, col)))
+    out = io.StringIO()
+    w = csv.writer(out, delimiter=";")
+    w.writerow([f"# {meta['zrodlo']} Okres: {meta['etykieta']}."])
+    w.writerow(header)
+    for r in rows:
+        r = list(r)
+        r[0] = r[0].strftime("%Y-%m-%d %H:%M")
+        if nazwa == "odbiory":
+            r[4:7] = [str(round(float(v), 2)).replace(".", ",") for v in r[4:7]]
+            r[8] = "tak" if r[8] else "nie"
+        else:
+            r[5] = r[5].strftime("%Y-%m-%d %H:%M") if r[5] else ""
+        w.writerow(r)
+    name = f"trash-fairy-{nazwa}-{f.od:%Y%m%d}-{(f.do - timedelta(seconds=1)):%Y%m%d}.csv"
+    return Response("﻿" + out.getvalue(), mimetype="text/csv",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"'})

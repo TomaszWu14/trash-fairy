@@ -363,3 +363,15 @@ z typem zgłoszenia, pewność ≥ 0,7). AI nigdy nie odrzuca zgłoszenia; bez k
 Odrzuciliśmy odrzucanie zgłoszeń z niską pewnością: fałszywy alarm kosztuje kurs, odrzucony mieszkaniec przestaje zgłaszać.
 Poza tym: prognoza „85% ok. 20:20” i powód priorytetu na karcie kierowcy (reguły), „Uszkodzony” i „Inne” nie podnoszą szacunku zapełnienia,
 limit 30 zgłoszeń na IP na godzinę, „Co tu wrzucać” na panelu, ostatni znany stan kiosku offline, auto-reset w wątku w tle.
+
+## P0 #15–19 i P1: jakość, uruchomienie, IoT, eksport (niedz. 4.10, rano)
+
+**Lighthouse i axe zamiast deklaracji:** wyniki w `audit/lighthouse/` (`/` 93/100, `/dashboard` 94 desktop, dostępność 100; axe-core 0 naruszeń
+na 8 ekranach w dwóch szerokościach, `scripts/axe_check.py`). Poprawki: kompresja gzip w Flasku (Gunicorn i proxy Coolify nie kompresowały,
+echarts 1 MB → ok. 330 kB), `defer` dla bibliotek, ECharts na dashboardzie ładowany po zdarzeniu `load`, animacja wejścia bez `opacity: 0`
+(opóźniała LCP), mapy z rolą `region` zamiast `img` (axe: interaktywne dzieci), przewijane tabele z `tabindex`. Odrzuciliśmy własną paczkę
+ECharts z wybranymi wykresami: na telefonie dashboard ma ok. 65, ale to narzędzie biurowe, a przebudowa paczki to ryzyko przed zamrożeniem.
+**`POST /api/odczyty`:** urządzenie podpisuje się tokenem HMAC numeru seryjnego (jak token QR), walidacja 0–100, limit raz na 10 s;
+status liczą te same reguły co dotąd (`devices.py`). **Eksport CSV** z filtrami dashboardu (separator „;”, BOM pod polski Excel).
+**Koszt pilotażu i zwrot** na `/metodologia` jako jawne założenia z env, oszczędność na kosz z wariantu ostrożnego skali Krakowa.
+`docker compose up --build` (app + PostgreSQL 16, seed na starcie) sprawdzony od zera; `audit/PRZED-PO.html` zestawia zrzuty przed i po.
