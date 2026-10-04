@@ -41,22 +41,22 @@ def test_old_addresses_redirect_to_new_screens(client, demo, old, new):
 
 def test_qr_on_bin_and_jury_link_carry_scan_token(client, demo):
     assert f"qr={qr_token(18)}" in client.get("/jury").headers["Location"]
-    assert f"qr={qr_token(7)}" in client.get("/kosz/7/zglos").headers["Location"]
+    assert "qr=" not in client.get("/kosz/7/zglos").headers["Location"]  # stały adres: token tylko dla kosza demo
     assert f"/zglos/18?qr={qr_token(18)}" in client.get("/panel/18").get_data(as_text=True)
 
 
-def test_report_needs_qr_scan_and_location_near_bin(client, demo):
+def test_report_needs_qr_scan_of_this_bin_but_not_location(client, demo):
     k = _bin(client)
     no_qr = client.post("/api/zgloszenia", json={"kosz": 18, "typ": "przepelniony", "lat": k["lat"], "lon": k["lon"]})
     assert no_qr.status_code == 403 and no_qr.json["kod"] == "brak_skanu_qr"
     wrong_qr = _report(client, qr=qr_token(17))
     assert wrong_qr.status_code == 403 and wrong_qr.json["kod"] == "brak_skanu_qr"
-    no_geo = client.post("/api/zgloszenia", json={"kosz": 18, "typ": "przepelniony", "qr": qr_token(18)})
-    assert no_geo.status_code == 403 and no_geo.json["kod"] == "brak_lokalizacji"
-    far = _report(client, lat=k["lat"] + 0.01)  # ok. 1,1 km na północ
-    assert far.status_code == 403 and far.json["kod"] == "za_daleko"
     bad = _report(client, typ="kot")
     assert bad.status_code == 400 and set(bad.json) == {"blad", "kod"}
+    # położenia nie sprawdzamy (jury testuje zdalnie): ważny token wystarcza, nawet bez lat/lon albo z daleka
+    no_geo = client.post("/api/zgloszenia", json={"kosz": 18, "typ": "przepelniony", "qr": qr_token(18), "klient": "bez-gps"})
+    assert no_geo.status_code == 201
+    assert _report(client, lat=k["lat"] + 0.01, klient="daleko").status_code == 201
 
 
 def test_report_lifecycle_przyjete_w_realizacji_zrealizowane(client, demo):
@@ -157,10 +157,11 @@ def test_second_scenario_run_without_reset_starts_as_przyjete(client, demo):
 
 
 @pytest.mark.parametrize("bad", [{"lat": "nan"}, {"lat": "inf"}, {"dokladnosc": "nan", "lat": 0, "lon": 0}, {"typ": ["x"]},
-                                 {"komentarz": 5}])
-def test_report_input_cannot_bypass_geofence_or_crash(client, demo, bad):
-    r = _report(client, **bad)
-    assert r.status_code in (400, 403) or (r.status_code == 201 and "komentarz" in bad)
+                                 {"komentarz": 5}, {"qr": ["x"]}, {"qr": "ż" * 12}])
+def test_report_odd_input_never_crashes(client, demo, bad):
+    r = _report(client, **bad)  # dawne pola położenia są ignorowane; zły typ albo kod QR to 4xx, nigdy 500
+    expected = 400 if "typ" in bad else 403 if "qr" in bad else 201
+    assert r.status_code == expected, r.json
 
 
 def test_non_object_json_and_huge_ids_and_extreme_dates_are_4xx(client, demo):

@@ -18,17 +18,36 @@ def _pl(v):
     return f"{v:g}".replace(".", ",")
 
 
+# Koszt jednego odbioru (opróżnienia kosza): ZAŁOŻENIA DEMO do potwierdzenia z MPO, rozpisane jawnie na /metodologia.
+# Postój przy koszu × (ekipa + pojazd w postoju) = (3 × 45 + 105) zł/h × 3/60 h = 12 zł. Kilometr liczony osobno.
+STOP_MIN = 3              # postój śmieciarki przy jednym koszu, minuty
+CREW_SIZE = 3             # osoby w ekipie
+CREW_PLN_H = 45           # koszt godziny pracy jednej osoby, zł
+VEHICLE_STOP_PLN_H = 105  # pojazd w postoju (praca silnika, amortyzacja), zł/h
+
+
+def visit_cost_parts():
+    """Składniki kosztu odbioru (założenia) i wynik bez nadpisania przez env."""
+    per_hour = CREW_SIZE * CREW_PLN_H + VEHICLE_STOP_PLN_H
+    return {"stop_min": STOP_MIN, "crew_size": CREW_SIZE, "crew_pln_h": CREW_PLN_H, "vehicle_pln_h": VEHICLE_STOP_PLN_H,
+            "per_hour": per_hour, "cost": per_hour / 60 * STOP_MIN}
+
+
 def money_assumptions():
     return {
         "cost_per_km": _env_float("COST_PER_KM_PLN", 5.0),  # paliwo + eksploatacja pojazdu
-        "cost_per_visit": _env_float("COST_PER_VISIT_PLN", 4.0),  # kilka minut pracy ekipy przy punkcie
+        "cost_per_visit": _env_float("COST_PER_VISIT_PLN", visit_cost_parts()["cost"]),  # postój ekipy i pojazdu przy koszu
         "co2_per_km": _env_float("CO2_KG_PER_KM", 1.0),  # pojazd z silnikiem diesla
+        "stop_min": STOP_MIN,
     }
 
 
 def assumptions():
     """[(obszar, założenie, wartość)] — wartości wprost z kodu."""
+    from .api_pl import poziom_stan  # import lokalny: api_pl ciągnie dashboard, a ten methodology
     e = events
+    screen_warn = next(v for v in range(101) if poziom_stan(v) != "ok")
+    screen_full = next(v for v in range(101) if poziom_stan(v) == "pelny")
     return [
         ("Punkty", "Kosze uliczne (Rynek, Kazimierz, przy przeciążonych altanach)",
          f"{sum(n for _, _, n in osm_import.BIN_AREAS) + osm_import.OVERLOADED_SHELTERS * osm_import.BINS_NEAR_OVERLOADED_SHELTER}, "
@@ -42,7 +61,8 @@ def assumptions():
         ("Zgłoszenia", "Wiarygodność przycisku", f"trafne z ostatnich {reports.RELIABILITY_WINDOW}, start {round(reports.DEFAULT_RELIABILITY * 100)}%"),
         ("Zgłoszenia", "Flaga „sprawdź przycisk”", f"<{round(reports.FLAG_BELOW * 100)}% trafnych w {reports.FLAG_DAYS} dni "
                                                   f"albo {state.OVERFLOW_HOURS} h przepełnienia bez naciśnięcia"),
-        ("Stan", "Progi", f"żółty od {state.WARN_FROM}%, czerwony powyżej {state.BAD_ABOVE}% lub świeże zgłoszenie"),
+        ("Stan", "Progi", f"kolor na ekranach: żółty od {screen_warn}%, czerwony od {screen_full}%; stan dla trasy i e-papieru: "
+                          f"od {state.WARN_FROM}% / powyżej {state.BAD_ABOVE}% lub świeże zgłoszenie"),
         ("Prognoza", "Profil", "7 dni × 24 h na punkt: średnia i kwantyle p20/p80 z historii sprzed zegara"),
         ("Prognoza", "Wydarzenia (promień, mnożnik)", ", ".join(f"{e.SCALE_PL[k]}: {e.RADIUS_M[k]} m ×{str(e.MULTIPLIER[k]).replace('.', ',')}"
                                                                for k in e.RADIUS_M) + ", także godzinę po"),
@@ -56,7 +76,7 @@ def assumptions():
         ("Trasy", "Wybór punktu", "pełny teraz, 85% przed kolejnym kursem albo bezpiecznik "
                                   f"(kosz {routes.FLEETS['bin']['safety'].days} dni, altana {routes.FLEETS['shelter']['safety'].days} dni)"),
         ("Trasy", "Odległości", f"linia prosta ×{str(routes.DETOUR).replace('.', ',')}, baza: {routes.DEPOT['name']}"),
-        ("Zdjęcia", "Rozbieżność zdjęcie ↔ ekipa", f">{photos.DISCREPANCY_PP} p.p."),
+        ("Zdjęcia", "Rozbieżność zdjęcie ↔ ekipa", f">{photos.DISCREPANCY_PP} pkt proc."),
         ("Nadużycia", "Powiązanie altana → kosz", f"worki domowe w {misuse.LINK_RADIUS_M} m od altany przepełnionej w ostatnich "
                                                   f"{int(misuse.SHELTER_WINDOW.total_seconds() // 3600)} h"),
         ("Rekomendacje", "Kompaktor", f"przepełniony w >{round(recommendations.OVERFLOW_COMPACTOR * 100)}% dni mimo 2× dziennie "
@@ -76,14 +96,14 @@ def money(result):
     d_visits = (fixed["visits"] - fairy["visits"]) * scale
     return {
         "assumptions": a,
-        "km_month": round(d_km), "visits_month": round(d_visits),
+        "km_month": round(d_km), "visits_month": round(d_visits), "crew_hours_month": round(d_visits * a["stop_min"] / 60),
         "pln_month": round(d_km * a["cost_per_km"] + d_visits * a["cost_per_visit"]),
         "co2_kg_month": round(d_km * a["co2_per_km"]),
         "forecast": forecast.QUALITY_DAYS,
     }
 
 
-# Harmonogram oczyszczania MPO 08/2026, arkusz „Kosze” (docs/kontekst-mpo.md): (częstotliwość, koszy, wizyt na 30 dni).
+# Harmonogram oczyszczania MPO 08/2026, arkusz „Kosze” (docs/kontekst-mpo.md): (częstotliwość, koszy, odbiorów na 30 dni).
 # „Rzadziej” to kosze spoza zestawienia (9 383 − 7 759); przyjmujemy 2× w tygodniu.
 MPO_SCHEDULE = [("3× dziennie", 498, 90), ("2× dziennie", 456, 60), ("1× dziennie", 1433, 30),
                 ("5× w tygodniu", 1581, 30 * 5 / 7), ("4× w tygodniu", 1409, 30 * 4 / 7), ("3× w tygodniu", 2382, 30 * 3 / 7),
@@ -92,7 +112,7 @@ DAILY_OR_MORE = 3  # pierwsze trzy wiersze: tu puste przyjazdy są najczęstsze,
 
 
 def city_scale(result):
-    """Skalowanie wyniku koszy na cały Kraków (decyzja 43): wizyty z harmonogramu MPO × spadek wizyt i km z modelu.
+    """Skalowanie wyniku koszy na cały Kraków (decyzja 43): odbiory z harmonogramu MPO × spadek odbiorów i km z modelu.
     Przedział: ostrożny (tylko kosze opróżniane codziennie lub częściej) i pełny (wszystkie 9 383). Altan nie skalujemy."""
     a = money_assumptions()
     fixed, fairy = result["fixed"]["bin"], result["fairy"]["bin"]
@@ -106,7 +126,8 @@ def city_scale(result):
         saved_visits, saved_km = visits * visit_cut, visits * km_per_visit * km_cut
         pln = saved_visits * a["cost_per_visit"] + saved_km * a["cost_per_km"]
         return {"bins": sum(r["bins"] for r in selected), "visits": visits, "saved_visits": round(saved_visits),
-                "saved_km": round(saved_km), "pln_month": round(pln, -3), "pln_year": round(pln * 12, -4)}
+                "saved_km": round(saved_km), "crew_hours_month": round(saved_visits * a["stop_min"] / 60, -1),
+                "pln_month": round(pln, -3), "pln_year": round(pln * 12, -5)}  # jedno zaokrąglenie do 0,1 mln, jak na stronach
     return {"rows": rows, "visit_cut_pct": round(visit_cut * 100), "km_cut_pct": round(km_cut * 100),
             "km_per_visit": round(km_per_visit, 2), "careful": variant(rows[:DAILY_OR_MORE]), "full": variant(rows),
             "assumptions": a}
@@ -117,7 +138,9 @@ PILOT_BINS = 50  # pilotaż w Dzielnicy I (ROADMAPA.md)
 
 def pilot_roi(city):
     """Koszt pilotażu i zwrot wg jawnych założeń (env, do weryfikacji w pilotażu). Oszczędność na kosz z wariantu ostrożnego:
-    tam są kosze opróżniane codziennie lub częściej, jak w Dzielnicy I. Dwa warianty: same naklejki QR albo panele e-papier."""
+    tam są kosze opróżniane codziennie lub częściej, jak w Dzielnicy I. Dwa warianty: panel e-papier albo sama naklejka QR.
+    Kod QR zmieniający się codziennie wymaga panelu z ekranem. Naklejka to tańszy start, ale z kodem stałym: jego zdjęcie
+    pozwala zgłaszać z dowolnego miejsca, więc to rozwiązanie z ograniczeniami."""
     a = {"qr": _env_float("COST_QR_STICKER_PLN", 5.0), "panel": _env_float("COST_PANEL_PLN", 600.0),
          "hosting": _env_float("COST_HOSTING_MONTH_PLN", 300.0)}
     per_bin = city["careful"]["pln_month"] / city["careful"]["bins"]
@@ -130,8 +153,19 @@ def pilot_roi(city):
             "qr": variant(a["qr"]), "panel": variant(a["qr"] + a["panel"])}
 
 
+def dumping_rules():
+    """Progi reguły „Miejsca podrzucania odpadów” wprost ze stałych app/dumping.py."""
+    from . import dumping as d  # import lokalny: dumping ciągnie dashboard, a ten methodology
+    share = d.WEEKDAY_SHARE
+    return {"window_days": d.WINDOW_DAYS, "sign_at": d.SIGN_AT, "patrol_at": d.PATROL_AT, "camera_at": d.CAMERA_AT,
+            "weekday_share_text": "co najmniej połowa" if share == 0.5 else f"co najmniej {round(share * 100)}%"}
+
+
 def page_context(now):
+    from . import crew_points  # import lokalny: crew_points ciągnie dashboard, a ten methodology
     result = comparison.compare(simulation.DEMO_NOW)
     city = city_scale(result)
     return {"assumptions": assumptions(), "money": money(result), "result": result, "city": city, "roi": pilot_roi(city),
+            "visit": visit_cost_parts(), "dumping": dumping_rules(),
+            "crew": {"rules": crew_points.RULES, "window_days": crew_points.WINDOW_DAYS, "route": crew_points.ROUTE},
             "quality": forecast.forecast_quality(simulation.hour_floor(now)), "verify_min": photos.VERIFY_MIN_CONFIDENCE}

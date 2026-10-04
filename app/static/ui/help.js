@@ -1,0 +1,169 @@
+// Trash Fairy: tryb „Podpowiedzi”. Ikonka „i” przy każdym [data-help] i przewodnik po stronie. Treści: podpowiedzi.json.
+// Klucz bez treści = brak ikonki + console.warn. Miejsce ikonki: data-help-at="after|heading|corner" (domyślnie wg typu elementu).
+(() => {
+  const TF = window.TF = window.TF || {};
+  const KEY = 'tf-podpowiedzi', root = document.documentElement;
+  const CTRL = 'button, a, input, select, textarea, label, fieldset, summary, [role=radiogroup], [role=group]';
+  const phone = () => matchMedia('(max-width: 640px)').matches;
+  const vis = el => !!el && el.getClientRects().length > 0;
+  const hosts = new WeakMap(), icons = new WeakMap(), tips = new Map(), warned = new Set();
+  let TXT = {}, n = 0, tip = null, tour = null, queued = 0;
+  let on = (() => { try { return localStorage.getItem(KEY) !== '0'; } catch (_) { return true; } })();  // bez localStorage: wł.
+
+  TF.help = { ready: false };
+  // id strony: <body data-page> albo ścieżka bez numerów i slugów: "/" → start, "/kierowca/kosz/18" → kierowca_kosz
+  TF.help.page = () => document.body.dataset.page || location.pathname.split('/').filter(s => /^[a-z]+$/.test(s)).join('_') || 'start';
+  const steps = () => (TXT._przewodniki?.[TF.help.page()] || []).filter(s => vis(document.querySelector(s.sel)));
+
+  function inject(host) {
+    const key = host.dataset.help, t = TXT[key];
+    if (!t || key.startsWith('_')) {
+      if (!warned.has(key)) { warned.add(key); console.warn(`Podpowiedzi: brak treści dla „${key}” w podpowiedzi.json`); }
+      return;
+    }
+    if (icons.get(host)?.isConnected) return;
+    const id = `help-tip-${++n}`, btn = document.createElement('button'), box = document.createElement('div');
+    btn.type = 'button'; btn.className = 'help-i'; btn.innerHTML = TF.icon('info');
+    for (const [a, v] of [['aria-label', `Podpowiedź: ${t.tytul}`], ['aria-expanded', 'false'], ['aria-controls', id], ['aria-describedby', id]]) btn.setAttribute(a, v);
+    const part = (k, v) => v ? `<p><span class="help-k">${k}</span>${TF.esc(v)}</p>` : '';
+    box.id = id; box.className = 'help-tip'; box.hidden = true; box.setAttribute('role', 'tooltip');
+    box.innerHTML = `<p class="help-t">${TF.esc(t.tytul)}</p>${part('Do czego służy', t.cel)}`
+      + `${part(t.jak_czytac ? 'Jak czytać' : 'Przykład', t.jak_czytac || t.przyklad)}${part('Skąd to się bierze', t.zrodlo)}`;
+    document.body.append(box);
+    // kontrolka → zaraz po niej; kontener → koniec pierwszego nagłówka h1–h3, bez nagłówka → prawy górny róg
+    const h = host.querySelector('h1, h2, h3'), head = h && !host.contains(h.closest('a, button, summary')) ? h : null;
+    const at = host.dataset.helpAt || (host.matches(CTRL) ? 'after' : head ? 'heading' : 'corner');
+    const into = at === 'after' ? host.parentElement : at === 'heading' && head ? head : host;
+    const bad = into?.closest('a, button, summary');  // przycisk w przycisku albo w linku jest niedozwolony
+    if (bad) bad.after(btn);
+    else if (at === 'after') host.after(btn);
+    else {
+      if (into === host) {
+        btn.classList.add('at-corner');
+        if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+      }
+      into.append(btn);
+    }
+    hosts.set(btn, host); icons.set(host, btn); tips.set(box, btn);
+  }
+
+  function scan() {
+    document.querySelectorAll('[data-help]').forEach(inject);
+    for (const [box, btn] of tips) if (!btn.isConnected) { if (tip?.box === box) tip = null; box.remove(); tips.delete(box); }
+    const tb = document.querySelector('.help-tour');
+    if (tb) tb.hidden = !on || !steps().length;
+    document.querySelectorAll('[data-start-tour]').forEach(b => { b.hidden = !on || !steps().length; });
+  }
+
+  // chmurka obok prostokąta r: pod spodem, a gdy brak miejsca, nad nim; na telefonie CSS robi z niej panel na dole
+  function place(box, r) {
+    if (phone()) { box.style.left = box.style.top = ''; return; }
+    const m = 8, w = box.offsetWidth, h = box.offsetHeight;
+    const top = r.bottom + m + h <= innerHeight - m || r.top - m - h < m ? r.bottom + m : r.top - m - h;
+    box.style.left = `${Math.max(m, Math.min(r.left - 12, innerWidth - w - m))}px`;
+    box.style.top = `${Math.max(m, Math.min(top, innerHeight - h - m))}px`;
+  }
+  // mały host (pole, przycisk, kafelek) w całości nad/pod chmurką, żeby jej nie zasłaniała; duży kontener → sama ikonka
+  const anchor = t => {
+    const b = t.btn.getBoundingClientRect(), h = t.host.getBoundingClientRect();
+    return h.height > 160 ? b : { left: b.left, top: Math.min(b.top, h.top), bottom: Math.max(b.bottom, h.bottom) };
+  };
+
+  function reflow() {
+    if (tip) place(tip.box, anchor(tip));
+    if (!tour) return;
+    const el = tour.el?.isConnected ? tour.el : (tour.el = document.querySelector(tour.s[tour.i].sel));
+    if (!el) return;
+    const r = el.getBoundingClientRect(), p = 6;
+    Object.assign(tour.hl.style, { left: `${r.left - p}px`, top: `${r.top - p}px`, width: `${r.width + 2 * p}px`, height: `${r.height + 2 * p}px` });
+    place(tour.box, { left: r.left + 12, top: r.top - p, bottom: r.bottom + p });
+  }
+
+  function openTip(btn) {
+    closeTip();
+    tip = { btn, box: document.getElementById(btn.getAttribute('aria-controls')), host: hosts.get(btn) };
+    tip.box.hidden = false; btn.setAttribute('aria-expanded', 'true');
+    reflow();
+    if (phone()) {  // panel na dole nie może zasłonić pola, którego dotyczy
+      const r = anchor(tip), limit = innerHeight - tip.box.offsetHeight - 12;
+      if (r.bottom > limit) scrollBy(0, r.bottom - limit);
+    }
+  }
+  function closeTip(focus) {
+    if (!tip) return;
+    tip.box.hidden = true; tip.btn.setAttribute('aria-expanded', 'false');
+    if (focus) tip.btn.focus();
+    tip = null;
+  }
+
+  function startTour() {
+    const s = steps();
+    if (!s.length) return;
+    closeTip();
+    const mk = cls => Object.assign(document.createElement('div'), { className: cls });
+    tour = { s, i: 0, bg: mk('tour-bg'), hl: mk('tour-hl'), box: mk('tour') };
+    tour.box.tabIndex = -1;
+    for (const [a, v] of [['role', 'dialog'], ['aria-modal', 'true'], ['aria-labelledby', 'tour-t']]) tour.box.setAttribute(a, v);
+    tour.box.addEventListener('click', e => {
+      const a = e.target.closest('[data-tour]')?.dataset.tour;
+      if (a === 'end') endTour(true); else if (a) step(tour.i + (a === 'next' ? 1 : -1), a);
+    });
+    document.body.append(tour.bg, tour.hl, tour.box);
+    step(0);
+  }
+  function step(i, via) {
+    const t = tour, s = t.s[i], last = i === t.s.length - 1, b = (a, cls, html) => `<button type="button" class="btn btn-sm ${cls}" data-tour="${a}">${html}</button>`;
+    t.i = i; t.el = document.querySelector(s.sel);
+    t.box.innerHTML = `<p class="tour-n">Krok ${i + 1} z ${t.s.length}</p><h2 id="tour-t">${TF.esc(s.tytul)}</h2><p class="tour-x">${TF.esc(s.tekst)}</p>
+      <div class="tour-act">${i ? b('prev', 'btn-ghost', `${TF.icon('arrow-left')}Wstecz`) : ''}
+      ${last ? b('end', 'btn-primary', `${TF.icon('check')}Zakończ`) : b('end', 'btn-ghost', 'Zakończ') + b('next', 'btn-primary', `Dalej${TF.icon('arrow-right')}`)}</div>`;
+    t.el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    reflow();
+    (via && t.box.querySelector(`[data-tour="${via}"]`) || t.box).focus({ preventScroll: true });
+  }
+  function endTour(focus) {
+    if (!tour) return;
+    tour.bg.remove(); tour.hl.remove(); tour.box.remove(); tour = null;
+    if (focus) document.querySelector('.help-tour')?.focus();
+  }
+
+  function apply() {
+    root.classList.toggle('help-off', !on);
+    const tg = document.querySelector('.help-toggle');
+    if (tg) { tg.hidden = false; tg.setAttribute('aria-pressed', String(on)); tg.querySelector('b').textContent = on ? 'wł.' : 'wył.'; tg.title = tg.textContent; }
+    if (!on) { closeTip(); endTour(); }
+    scan();
+  }
+
+  // przechwytywanie: klik w „i” nie uruchamia klikalnej karty, w której ikonka siedzi
+  document.addEventListener('click', e => {
+    const i = e.target.closest?.('.help-i');
+    if (i) { e.stopPropagation(); return tip?.btn === i ? closeTip() : openTip(i); }
+    if (tip && !tip.box.contains(e.target)) closeTip();
+    if (e.target.closest?.('.help-tour, [data-start-tour]')) startTour();
+    if (e.target.closest?.('.help-toggle')) {
+      on = !on;
+      try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (_) { /* tryb prywatny: stan tylko do przeładowania */ }
+      apply();
+      TF.toast?.(on ? 'Podpowiedzi włączone.' : 'Podpowiedzi wyłączone. Włączysz je tym samym przyciskiem w nagłówku.');
+    }
+  }, true);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && (tour || tip)) { e.preventDefault(); return tour ? endTour(true) : closeTip(true); }
+    if (e.key !== 'Tab' || !tour) return;
+    const f = [...tour.box.querySelectorAll('button')], a = document.activeElement;  // Tab nie ucieka poza chmurkę przewodnika
+    if (!tour.box.contains(a) || (e.shiftKey ? a === f[0] || a === tour.box : a === f.at(-1))) { e.preventDefault(); (e.shiftKey ? f.at(-1) : f[0]).focus(); }
+  });
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    try { TXT = await (await fetch(TF.icons.replace('icons.svg', 'podpowiedzi.json'))).json(); }
+    catch (e) { console.warn('Podpowiedzi: nie udało się wczytać treści', e); return; }
+    apply();
+    const main = document.querySelector('main');  // dashboard i trasa kierowcy renderują treść w JS
+    if (main) new MutationObserver(() => { queued ||= requestAnimationFrame(() => { queued = 0; scan(); }); }).observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-help'] });
+    addEventListener('scroll', reflow, { capture: true, passive: true });
+    addEventListener('resize', reflow);
+    TF.help.ready = true;
+  });
+})();

@@ -1,111 +1,72 @@
-// Perspektywa mieszkańca: wybór kosza → zgłoszenie w 3 krokach (QR + położenie, problem, wyślij) → oś czasu statusu.
+// Perspektywa mieszkańca: skan kodu QR z panelu → zgłoszenie na jednym ekranie (problem → Wyślij) → oś czasu statusu.
+// Bez mapy i listy cudzych koszy: mieszkaniec widzi tylko kosz, przy którym stoi, i swoje zgłoszenia (localStorage tf-moje).
 (() => {
-  const { api, esc, gauge, fillBadge, frac, icon, toast } = window.TF;
-  const RYNEK = [50.0617, 19.9373];  // położenie przyjęte w demo, gdy telefon nie podaje GPS
-  const GEO_M = 150;
-  const dist = (a, b) => {  // metry, haversine
-    const R = 6371000, r = x => x * Math.PI / 180, dLat = r(b[0] - a[0]), dLon = r(b[1] - a[1]);
-    const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLon / 2) ** 2;
-    return 2 * R * Math.asin(Math.sqrt(h));
+  const { api, esc, gauge, fillBadge, frac, icon, stateIcon } = window.TF;
+  // status zgłoszenia: klasa plakietki + gotowa ikona (zgłoszenie = dymek, zrobione = koło ✓, w drodze = śmieciarka)
+  const BADGE = { przyjete: ['report', stateIcon('report'), 'Przyjęte'], w_realizacji: ['progress', icon('truck'), 'W realizacji'], zrealizowane: ['ok', stateIcon('ok'), 'Zrealizowane'] };
+  const MINE = 'tf-moje', MINE_MAX = 5;
+  const readMine = () => { try { const m = JSON.parse(localStorage.getItem(MINE)); return Array.isArray(m) ? m : []; } catch (e) { return []; } };
+  const saveMine = (nr, kosz) => {
+    try { localStorage.setItem(MINE, JSON.stringify([{ nr, kosz, o: window.TF.now().toISOString() }, ...readMine().filter(m => m.nr !== nr)].slice(0, MINE_MAX))); }
+    catch (e) { /* tryb prywatny: zgłoszenie i tak ma numer na ekranie sukcesu */ }
   };
-  const tiles = map => L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    { maxZoom: 19, className: 'tiles-soft', attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
-  const pin = level => L.divIcon({ className: 'pin', html: gauge(level), iconSize: [26, 30], iconAnchor: [13, 30] });
-  const fmtM = m => m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;
 
-  // ---------- wybór kosza ----------
-  const list = document.getElementById('m-list');
-  if (list) {
-    const map = L.map('m-map', { zoomControl: false, attributionControl: true }).setView(RYNEK, 16);
-    tiles(map);
-    let here = RYNEK, me = L.marker(RYNEK, { icon: L.divIcon({ className: '', html: '<span class="pin-me"></span>', iconSize: [16, 16] }), keyboard: false }).addTo(map);
-    const pins = L.layerGroup().addTo(map);
-    const load = async () => {
-      try {
-        const { kosze } = await api(`/api/kosze?blisko=${here[0]},${here[1]}`);
-        const near = kosze.slice(0, 6);
-        pins.clearLayers();
-        near.forEach(k => L.marker([k.lat, k.lon], { icon: pin(k.poziom), title: k.nazwa })
-          .on('click', () => location.href = `/zglos/${k.id}`).addTo(pins));
-        list.innerHTML = near.map(k => `<li class="m-row"><a href="/zglos/${k.id}">${gauge(k.poziom)}
-          <span class="m-row-txt"><b>${esc(k.nazwa)}</b><span>${esc(k.adres)} · ${k.poziom}%</span></span>
-          <span class="m-dist num">${fmtM(k.odleglosc_m)}</span>${icon('chevron-right', 'i-sm')}</a></li>`).join('');
-        map.fitBounds(L.latLngBounds([here, ...near.map(k => [k.lat, k.lon])]).pad(0.15), { maxZoom: 17 });
-      } catch (e) {
-        list.innerHTML = `<li class="alert">${icon('wifi-off')}<span>${esc(e.message)}</span></li>`;
-      }
-    };
-    load();
-    document.querySelector('[data-locate]').addEventListener('click', () => {
-      if (!navigator.geolocation) return toast('Ta przeglądarka nie udostępnia położenia.', 'err');
-      navigator.geolocation.getCurrentPosition(p => {
-        here = [p.coords.latitude, p.coords.longitude]; me.setLatLng(here);
-        document.getElementById('m-pos').textContent = `Twoje położenie (dokładność ok. ${Math.round(p.coords.accuracy)} m).`;
-        load();
-      }, () => toast('Nie udało się pobrać położenia. Zostaje Rynek Główny.', 'err'), { enableHighAccuracy: true, timeout: 8000 });
-    });
+  // ---------- start: skan QR + „Twoje zgłoszenia” ----------
+  const mineBox = document.getElementById('m-mine');
+  if (mineBox) {
     const dlg = document.getElementById('scan-dialog');
     document.querySelector('[data-scan]').addEventListener('click', () => dlg.showModal());
     dlg.querySelector('[data-close]').addEventListener('click', () => dlg.close());
+    const mine = readMine().filter(m => /^(TF|WD)-\d+$/.test(m?.nr || ''));  // WD = dzikie wysypisko (wysypisko.js)
+    document.getElementById('m-mine-empty').hidden = mine.length > 0;
+    const day = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); };
+    mineBox.innerHTML = mine.map(m => `<li class="m-row"><a href="${m.nr.startsWith('WD') ? '/wysypisko/' : '/zgloszenie/'}${m.nr}">
+      <span class="m-row-txt"><b class="num">${m.nr}</b><span>${esc(m.kosz)}${day(m.o) ? ` · ${day(m.o)}` : ''}</span></span>
+      <span class="m-row-st" data-nr="${m.nr}"></span>${icon('chevron-right', 'i-sm')}</a></li>`).join('');
+    mineBox.querySelectorAll('[data-nr]').forEach(async el => {
+      try {
+        if (el.dataset.nr.startsWith('WD')) {
+          const w = (await api(`/api/wysypiska/${el.dataset.nr}`)).wysypisko;
+          el.innerHTML = `<span class="badge ${['uprzatniete', 'zweryfikowane'].includes(w.status) ? 'ok' : 'neutral'}">${esc(w.etykieta)}</span>`;
+          return;
+        }
+        const [cls, ico, label] = BADGE[(await api(`/api/zgloszenia/${el.dataset.nr}`)).status] || BADGE.przyjete;
+        el.innerHTML = `<span class="badge ${cls}">${ico}${label}</span>`;
+      } catch (e) { /* numer sprzed resetu demo: bez plakietki, strona statusu powie, że go nie ma */ }
+    });
   }
 
-  // ---------- formularz zgłoszenia ----------
+  // ---------- formularz zgłoszenia: jeden ekran ----------
   const form = document.getElementById('m-form');
   if (form) {
-    const bin = [+form.dataset.lat, +form.dataset.lon];
-    const qrOk = document.getElementById('chk-qr').classList.contains('ok');
-    let pos = null, simulated = false;
-    const next1 = form.querySelector('[data-next="2"]');
-    const geoBox = document.getElementById('chk-geo'), geoTxt = document.getElementById('geo-txt');
-    const setGeo = (p, acc, sim) => {
-      const d = Math.round(dist(p, bin));
-      const ok = d - Math.min(acc || 0, GEO_M) <= GEO_M;
-      pos = { lat: p[0], lon: p[1], acc: acc || 0 }; simulated = sim;
-      geoBox.classList.toggle('ok', ok); geoBox.classList.toggle('bad', !ok);
-      geoBox.querySelector('.m-check-i').innerHTML = icon(ok ? 'check' : 'map-pin');
-      geoTxt.textContent = sim ? 'Położenie symulowane: telefon przy koszu (demo).' : ok ? `Jesteś ${d} m od kosza.` : `Jesteś ${fmtM(d)} od kosza. Podejdź do ${GEO_M} m.`;
-      next1.disabled = !(ok && qrOk);
+    const qrOk = form.dataset.qrOk === '1';
+    const send = document.getElementById('m-send'), why = document.getElementById('m-why');
+    const reason = () => !qrOk ? 'Zeskanuj kod QR z panelu tego kosza'
+      : !form.querySelector('input[name=typ]:checked') ? 'Wybierz, co jest nie tak' : '';
+    const sync = () => {  // aria-disabled, nie disabled: przycisk zostaje w kolejności Tab, a powód jest obok niego
+      const r = reason();
+      why.hidden = !r; why.querySelector('span').textContent = r;
+      if (r) send.setAttribute('aria-disabled', 'true'); else send.removeAttribute('aria-disabled');
     };
-    form.querySelector('[data-geo]').addEventListener('click', () => {
-      if (!navigator.geolocation) return toast('Ta przeglądarka nie udostępnia położenia.', 'err');
-      geoTxt.textContent = 'Sprawdzamy położenie…';
-      navigator.geolocation.getCurrentPosition(p => setGeo([p.coords.latitude, p.coords.longitude], p.coords.accuracy, false),
-        () => { geoTxt.textContent = 'Brak dostępu do położenia. Włącz lokalizację albo użyj symulacji w demo.'; geoBox.classList.add('bad'); },
-        { enableHighAccuracy: true, timeout: 8000 });
-    });
-    form.querySelector('[data-geo-sim]').addEventListener('click', () => setGeo([bin[0] + 0.00012, bin[1] + 0.00008], 10, true));
-    if (window.TF.scenario().on && qrOk) setGeo([bin[0] + 0.00012, bin[1] + 0.00008], 10, true);  // scenariusz: telefon przy koszu
-
-    const go = n => {
-      form.querySelectorAll('.m-step').forEach(s => s.hidden = s.dataset.step !== String(n));
-      form.querySelectorAll('.m-steps li').forEach(li => li.classList.toggle('on', +li.dataset.s <= n));
-      if (n === 3) {
-        const t = form.querySelector('input[name=typ]:checked');
-        document.getElementById('sum-typ').textContent = t ? t.closest('.m-type').querySelector('b').textContent : '–';
-        document.getElementById('sum-kom').textContent = form.komentarz.value.trim() || 'brak';
-        document.getElementById('sum-foto').textContent = form.zdjecie.files[0]?.name || 'brak';
-      }
-      form.querySelector(`[data-step="${n}"] .m-legend, [data-step="${n}"] button`)?.focus({ preventScroll: true });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-    form.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => go(+b.dataset.next)));
-    form.querySelectorAll('input[name=typ]').forEach(r => r.addEventListener('change', () => { document.getElementById('to-3').disabled = false; }));
+    sync();
+    form.querySelectorAll('input[name=typ]').forEach(r => r.addEventListener('change', sync));
     form.zdjecie.addEventListener('change', () => {
       const f = form.zdjecie.files[0];
-      document.getElementById('m-photo-txt').innerHTML = f ? `Zdjęcie: ${esc(f.name)}` : 'Dodaj zdjęcie <span class="subtle">(opcjonalnie)</span>';
+      document.getElementById('m-photo-txt').textContent = f ? `Zdjęcie: ${f.name}` : 'Dodaj zdjęcie';
     });
     form.addEventListener('submit', async e => {
       e.preventDefault();
-      const err = document.getElementById('m-err'), send = document.getElementById('m-send');
+      if (reason() || send.getAttribute('aria-disabled') === 'true') return;  // Enter w polu: bez wysyłki, powód widać obok
+      const err = document.getElementById('m-err');
       err.hidden = true; send.setAttribute('aria-disabled', 'true');
       const fd = new FormData();
-      fd.append('kosz', form.dataset.bin); fd.append('typ', form.querySelector('input[name=typ]:checked')?.value || '');
-      fd.append('qr', form.dataset.qr); fd.append('lat', pos?.lat ?? ''); fd.append('lon', pos?.lon ?? '');
-      fd.append('dokladnosc', pos?.acc ?? ''); fd.append('komentarz', form.komentarz.value); fd.append('symulacja', simulated ? '1' : '');
-      fd.append('klient', clientId());
+      fd.append('kosz', form.dataset.bin); fd.append('typ', form.querySelector('input[name=typ]:checked').value);
+      fd.append('qr', form.dataset.qr); fd.append('komentarz', form.komentarz.value); fd.append('klient', clientId());
+      fd.append('konto', 'demo');  // mieszkanka demo z nagłówka: punkty za trafne zgłoszenie (/api/mieszkaniec/punkty)
       if (form.zdjecie.files[0]) fd.append('zdjecie', form.zdjecie.files[0]);
       try {
         const d = await api('/api/zgloszenia', { method: 'POST', body: fd, signal: AbortSignal.timeout?.(90000) });
+        saveMine(d.numer, form.dataset.name);
         form.hidden = true;
         const ok = document.getElementById('m-success');
         document.getElementById('m-nr').textContent = d.numer;
@@ -116,7 +77,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (x) {
         err.innerHTML = `${icon('circle-alert')}<span>${esc(x.message)}</span>`; err.hidden = false;
-      } finally { send.removeAttribute('aria-disabled'); }
+      } finally { sync(); }
     });
   }
   function clientId() {  // losowy identyfikator telefonu: limit zgłoszeń po telefonie, nie po IP sali (decyzja 13)
@@ -127,12 +88,11 @@
   // ---------- status zgłoszenia ----------
   const st = document.getElementById('m-status');
   if (st) {
-    const BADGE = { przyjete: ['brand', 'circle-dot', 'Przyjęte'], w_realizacji: ['progress', 'truck', 'W realizacji'], zrealizowane: ['ok', 'circle-check-big', 'Zrealizowane'] };
     const time = iso => iso ? new Date(iso).toLocaleString('pl-PL', { weekday: 'short', hour: '2-digit', minute: '2-digit' }) : null;
     const render = d => {
       const [cls, ico, label] = BADGE[d.status] || BADGE.przyjete;
       document.getElementById('st-badge').className = `badge ${cls}`;
-      document.getElementById('st-badge').innerHTML = `${icon(ico)}${label}`;
+      document.getElementById('st-badge').innerHTML = `${ico}${label}`;
       const k = d.kosz;
       document.getElementById('st-bin').innerHTML = `${gauge(k.poziom)}<div class="m-bin-txt"><b>${esc(k.nazwa)}</b><span>${esc(k.adres)}</span>
         <div class="m-bin-tags">${fillBadge(k.poziom)}${frac(k.frakcja)}</div></div><b class="m-bin-pct num">${k.poziom}%</b>`;

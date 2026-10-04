@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import text
 
-from . import db, devices, history, photos, residents
+from . import db, devices, history, photos, residents, wysypiska
 from .models import DemoClock, Emptying, FairyReport, StopIssue
 from .reports import resolve_reports
 from .simulation import DEMO_NOW, FUTURE_HOURS, hour_floor, simulate
@@ -70,6 +70,7 @@ def _retention():
         if rate.hit("retencja", 1, 3600):
             forget_old_ips()
             photos.cleanup()
+            wysypiska.cleanup()
     except Exception:  # retencja nie może zepsuć strony startowej
         from flask import current_app
         current_app.logger.exception("Retencja nie powiodła się")
@@ -142,6 +143,7 @@ def reset(weeks=8):
     if db.session.query(Pickup.id).filter(Pickup.far_m.isnot(None)).first() is None:
         stats["history"] = history.generate_history(sim_start=hour_floor(DEMO_NOW) - timedelta(weeks=weeks))
     photos.seed_demo(DEMO_NOW)
+    wysypiska.reset_demo()  # przed residents: konto demo „Anna K.” znika razem z jej zgłoszeniami
     residents.seed_demo(DEMO_NOW)
     devices.seed_demo(DEMO_NOW)  # masterdane urządzeń: po Device (residents) i punktach miasta
     db.session.query(FairyReport).delete()  # raporty z poprzedniego przebiegu demo opisywały inne naciśnięcia

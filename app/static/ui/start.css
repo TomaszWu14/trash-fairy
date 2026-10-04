@@ -1,15 +1,15 @@
 /* Ekran startowy „Przegląd jury”. */
 .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line);
-        background: radial-gradient(900px 420px at 85% 0%, #ECE7FF 0%, rgb(236 231 255 / 0) 70%),
-                    radial-gradient(600px 300px at 0% 100%, #F3F0FF 0%, rgb(243 240 255 / 0) 70%), var(--surface); }
+        background: radial-gradient(900px 420px at 85% 0%, color-mix(in srgb, var(--brand) 12%, transparent) 0%, transparent 70%),
+                    radial-gradient(600px 300px at 0% 100%, color-mix(in srgb, var(--route-bin) 8%, transparent) 0%, transparent 70%), var(--surface); }
 .hero-in { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: var(--s10); align-items: center;
            padding-block: var(--s12) var(--s10); }
-.hero h1 { font-size: clamp(36px, 5.2vw, var(--fs-4xl)); font-weight: 800; letter-spacing: -.022em; word-spacing: .06em; line-height: 1.06; margin-top: var(--s3); text-wrap: balance; }
+.hero h1 { font-size: clamp(36px, 5.2vw, var(--fs-4xl)); font-weight: 700; letter-spacing: -.022em; word-spacing: .06em; line-height: 1.06; margin-top: var(--s3); text-wrap: balance; }
 .grad { background: var(--brand-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .lead { font-size: var(--fs-lg); color: var(--ink-2); margin-top: var(--s5); max-width: 52ch; }
 .hero-cta { display: flex; flex-wrap: wrap; gap: var(--s3); margin-top: var(--s8); }
 .proof { display: flex; flex-wrap: wrap; gap: var(--s3) var(--s8); margin: var(--s10) 0 0; padding-top: var(--s5); border-top: 1px solid var(--line); }
-.proof dt { font-size: var(--fs-xl); font-weight: 800; letter-spacing: -.02em; }
+.proof dt { font: 700 var(--fs-xl)/1.2 var(--font-display); letter-spacing: -.01em; }
 .proof dd { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--ink-3); }
 .proof-link { margin-top: var(--s3); font-size: var(--fs-sm); }
 .hero-art img { width: 100%; height: auto; }
@@ -18,7 +18,7 @@
 .persp { padding-block: var(--s16) var(--s8); }
 .persp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s5); }
 .persp-tile { display: flex; flex-direction: column; color: inherit; text-decoration: none; overflow: hidden; }
-.persp-ill { width: 100%; height: auto; aspect-ratio: 240 / 150; background: var(--brand-soft); }
+.persp-ill { width: 100%; height: auto; aspect-ratio: 240 / 150; background: var(--surface-2); border-bottom: 1px solid var(--line); }
 .persp-body { padding: var(--s5) var(--s5) 0; flex: 1; }
 .persp-body h3 { font-size: var(--fs-lg); font-weight: 750; }
 .persp-body p { color: var(--ink-2); font-size: var(--fs-sm); margin-top: var(--s2); }
@@ -29,12 +29,13 @@
 .gauge-xs { width: 14px; height: 17px; }
 .go { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
       transition: transform var(--t) var(--ease), background var(--t) var(--ease), color var(--t) var(--ease); }
-.persp-tile:hover .go { transform: translateX(3px); background: var(--brand); color: #fff; }
+.persp-tile:hover .go { transform: translateX(3px); background: var(--brand); color: var(--on-brand); }
 
 .story { padding-block: var(--s8) var(--s16); }
 .story-card { padding: var(--s8); }
 .story-head { display: flex; align-items: center; gap: var(--s5); }
 .story-head > div { flex: 1; }
+.story-logo { width: 40px; height: 40px; flex: none; }
 .story-head h2 { font-size: var(--fs-xl); font-weight: 750; }
 .story-head p { font-size: var(--fs-sm); margin-top: 2px; }
 .story-steps { list-style: none; padding: 0; margin-top: var(--s8); display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -57,8 +58,9 @@
   .proof { gap: var(--s4); }
   .persp { padding-block: var(--s10) var(--s6); }
   .persp-grid { grid-template-columns: 1fr; gap: var(--s3); }
-  .persp-tile { display: grid; grid-template-columns: 96px 1fr; grid-template-rows: 1fr auto; }
-  .persp-ill { grid-row: 1 / 3; height: 100%; aspect-ratio: auto; object-fit: cover; }
+  .persp-tile { display: grid; grid-template-columns: 96px minmax(0, 1fr); grid-template-rows: 1fr auto; }
+  .persp-foot .chip { overflow: hidden; text-overflow: ellipsis; }
+  .persp-ill { grid-row: 1 / 3; height: 100%; aspect-ratio: auto; object-fit: contain; border-bottom: 0; border-right: 1px solid var(--line); }
   .persp-body { padding: var(--s4) var(--s4) 0; }
   .persp-body p { font-size: var(--fs-xs); }
   .persp-foot { padding: var(--s3) var(--s4) var(--s4); }

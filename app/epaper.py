@@ -32,7 +32,10 @@ def _when(run_at, now):
 
 
 def device_info(point):
-    return {"name": point.name, "device_no": str(point.id), "address": point.osm_tags.get("addr:street") or point.area}
+    """Dane urządzenia do renderera; `qr` = dzienny token kosza (kod „zgłoś” na ekranie zmienia się raz na dobę)."""
+    from .api_pl import qr_token  # import lokalny: api_pl ładuje silnik stanu, jak ten moduł
+    return {"name": point.name, "device_no": str(point.id), "address": point.osm_tags.get("addr:street") or point.area,
+            "qr": qr_token(point.id)}
 
 
 def display_state(point, now, states=None, routes=None):
@@ -101,7 +104,7 @@ def display_state(point, now, states=None, routes=None):
 
 def keys(state, data):
     """state_key zmienia się tylko przy pełnym odświeżeniu, values_key przy zmianie okna częściowego."""
-    full = (state, data.get("head"), data.get("big"), data.get("sub"), data["device"]["device_no"])
+    full = (state, data.get("head"), data.get("big"), data.get("sub"), data["device"]["device_no"], data["device"].get("qr"))
     partial = (data.get("fill"), data.get("b"), data.get("c"))
     # hashlib, nie hash(): hash() napisów jest losowany per proces, a 2 workery dawałyby różne klucze (fałszywe mignięcia)
     digest = lambda t: hashlib.sha1(repr(t).encode()).hexdigest()[:12]

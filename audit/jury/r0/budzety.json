@@ -1,0 +1,366 @@
+{
+ "laptop": [
+  {
+   "sciezka": "Wejść w perspektywę: Panel na koszu",
+   "budzet": 1,
+   "klikniecia": 1,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Panel na koszu"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Wejść w perspektywę: Mieszkaniec",
+   "budzet": 1,
+   "klikniecia": 1,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Mieszkaniec"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Wejść w perspektywę: Kierowca",
+   "budzet": 1,
+   "klikniecia": 1,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Kierowca"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Wejść w perspektywę: Dashboard",
+   "budzet": 1,
+   "klikniecia": 1,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Dashboard"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Mieszkaniec: zgłosić przepełniony kosz (QR)",
+   "budzet": 3,
+   "klikniecia": 5,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "/zglos/18?qr=971265d4bce4",
+    "Demo: położenie przy koszu (w realu: Sprawdź + zgoda GPS)",
+    "Dalej",
+    "Przepełniony",
+    "Dalej",
+    "Wyślij zgłoszenie"
+   ],
+   "uwagi": "numer TF-03740",
+   "bledy": []
+  },
+  {
+   "sciezka": "Mieszkaniec: zgłosić kosz z mapy",
+   "budzet": 3,
+   "klikniecia": 2,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Mieszkaniec",
+    "pierwszy kosz z listy"
+   ],
+   "uwagi": "bez skanu QR krok 1 blokuje „Dalej” (zgłoszenie tylko przy koszu)",
+   "bledy": []
+  },
+  {
+   "sciezka": "Mieszkaniec: sprawdzić status swojego zgłoszenia",
+   "budzet": 2,
+   "klikniecia": 1,
+   "ok": false,
+   "w_budzecie": false,
+   "kroki": [
+    "/",
+    "Mieszkaniec"
+   ],
+   "uwagi": "przerwane: na /zglos brak listy „Moje zgłoszenia”: status tylko z linku po wysłaniu",
+   "bledy": []
+  },
+  {
+   "sciezka": "Kierowca: oznaczyć kosz jako opróżniony",
+   "budzet": 2,
+   "klikniecia": 3,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "/",
+    "Kierowca",
+    "pierwszy kosz na trasie",
+    "Opróżniono"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Dashboard: przefiltrować po dzielnicy i okresie",
+   "budzet": 2,
+   "klikniecia": 3,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "/",
+    "Dashboard",
+    "Okres: Kwartał",
+    "Dzielnica (lista: 2 dotknięcia fizycznie)"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Dashboard: przejść do szczegółów projektu",
+   "budzet": 2,
+   "klikniecia": 2,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Dashboard",
+    "karta projektu"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Scenariusz demo do końca",
+   "budzet": 7,
+   "klikniecia": 13,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "/",
+    "Zacznij scenariusz demo",
+    "Dalej (krok 1 formularza)",
+    "Przepełniony",
+    "Dalej",
+    "Wyślij",
+    "Scenariusz: Dalej",
+    "Scenariusz: Dalej",
+    "Scenariusz: Dalej",
+    "Jadę",
+    "Opróżniono",
+    "Scenariusz: Dalej",
+    "Scenariusz: Dalej",
+    "Zakończ"
+   ],
+   "uwagi": "6 kroków",
+   "bledy": []
+  },
+  {
+   "sciezka": "Z dowolnego ekranu do innej perspektywy",
+   "budzet": 1,
+   "klikniecia": 2,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "bez przełącznika perspektyw: panel-18"
+   ],
+   "uwagi": "ekrany bez przełącznika: ['panel-18']",
+   "bledy": [
+    "404 /nie-ma-takiej-strony",
+    "konsola: Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+   ]
+  }
+ ],
+ "telefon": [
+  {
+   "sciezka": "Wejść w perspektywę: Panel na koszu",
+   "budzet": 1,
+   "klikniecia": 1,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Panel na koszu"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Wejść w perspektywę: Mieszkaniec",
+   "budzet": 1,
+   "klikniecia": 1,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Mieszkaniec"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Wejść w perspektywę: Kierowca",
+   "budzet": 1,
+   "klikniecia": 1,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Kierowca"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Wejść w perspektywę: Dashboard",
+   "budzet": 1,
+   "klikniecia": 1,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Dashboard"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Mieszkaniec: zgłosić przepełniony kosz (QR)",
+   "budzet": 3,
+   "klikniecia": 5,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "/zglos/18?qr=971265d4bce4",
+    "Demo: położenie przy koszu (w realu: Sprawdź + zgoda GPS)",
+    "Dalej",
+    "Przepełniony",
+    "Dalej",
+    "Wyślij zgłoszenie"
+   ],
+   "uwagi": "numer TF-03741",
+   "bledy": []
+  },
+  {
+   "sciezka": "Mieszkaniec: zgłosić kosz z mapy",
+   "budzet": 3,
+   "klikniecia": 2,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Mieszkaniec",
+    "pierwszy kosz z listy"
+   ],
+   "uwagi": "bez skanu QR krok 1 blokuje „Dalej” (zgłoszenie tylko przy koszu)",
+   "bledy": []
+  },
+  {
+   "sciezka": "Mieszkaniec: sprawdzić status swojego zgłoszenia",
+   "budzet": 2,
+   "klikniecia": 1,
+   "ok": false,
+   "w_budzecie": false,
+   "kroki": [
+    "/",
+    "Mieszkaniec"
+   ],
+   "uwagi": "przerwane: na /zglos brak listy „Moje zgłoszenia”: status tylko z linku po wysłaniu",
+   "bledy": []
+  },
+  {
+   "sciezka": "Kierowca: oznaczyć kosz jako opróżniony",
+   "budzet": 2,
+   "klikniecia": 3,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "/",
+    "Kierowca",
+    "pierwszy kosz na trasie",
+    "Opróżniono"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Dashboard: przefiltrować po dzielnicy i okresie",
+   "budzet": 2,
+   "klikniecia": 3,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "/",
+    "Dashboard",
+    "Okres: Kwartał",
+    "Dzielnica (lista: 2 dotknięcia fizycznie)"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Dashboard: przejść do szczegółów projektu",
+   "budzet": 2,
+   "klikniecia": 2,
+   "ok": true,
+   "w_budzecie": true,
+   "kroki": [
+    "/",
+    "Dashboard",
+    "karta projektu"
+   ],
+   "uwagi": "",
+   "bledy": []
+  },
+  {
+   "sciezka": "Scenariusz demo do końca",
+   "budzet": 7,
+   "klikniecia": 13,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "/",
+    "Zacznij scenariusz demo",
+    "Dalej (krok 1 formularza)",
+    "Przepełniony",
+    "Dalej",
+    "Wyślij",
+    "Scenariusz: Dalej",
+    "Scenariusz: Dalej",
+    "Scenariusz: Dalej",
+    "Jadę",
+    "Opróżniono",
+    "Scenariusz: Dalej",
+    "Scenariusz: Dalej",
+    "Zakończ"
+   ],
+   "uwagi": "6 kroków",
+   "bledy": []
+  },
+  {
+   "sciezka": "Z dowolnego ekranu do innej perspektywy",
+   "budzet": 1,
+   "klikniecia": 2,
+   "ok": true,
+   "w_budzecie": false,
+   "kroki": [
+    "bez przełącznika perspektyw: panel-18"
+   ],
+   "uwagi": "ekrany bez przełącznika: ['panel-18']",
+   "bledy": [
+    "404 /nie-ma-takiej-strony",
+    "konsola: Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+   ]
+  }
+ ]
+}

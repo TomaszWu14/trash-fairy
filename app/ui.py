@@ -6,7 +6,7 @@ from flask import Blueprint, abort, render_template, request
 from . import clock, db
 from .comparison import compare
 from .methodology import city_scale, page_context
-from .models import Point
+from .models import DeviceInfo, Point
 from .simulation import DEMO_NOW
 from .state import point_states
 
@@ -55,36 +55,39 @@ def methodology():
 
 @bp.get("/panel/<int:point_id>")
 def kiosk(point_id):
-    """Panel na koszu (kiosk 1280×800): kod QR prowadzi do zgłoszenia z tokenem tego kosza."""
-    from .api_pl import FRAKCJE, _point, kosz_json, qr_token
+    """Panel kosza (kiosk 1280×800): kod QR z dziennym tokenem tego kosza i przyciski „Zgłoś na miejscu”.
+    Token urządzenia panelu jest w HTML tylko dlatego, że w demo panel to strona WWW (prawdziwy panel liczy go sam)."""
+    from .api_pl import FRAKCJE, _point, kosz_json, qr_seconds_left, qr_token
+    from .devices_api import device_token
     p = _point(point_id)
     if p is None:
         abort(404)
     now = clock.now()
     base = (os.environ.get("PUBLIC_URL") or request.url_root).rstrip("/")
     k = kosz_json(p, point_states(now), now)
+    info = db.session.get(DeviceInfo, p.id)
     return render_template("ui/kiosk.html", bin=k, frakcje=FRAKCJE, sortowanie=SORTOWANIE.get(k["frakcja"], SORTOWANIE["zmieszane"]),
-                           qr_url=f"{base}/zglos/{p.id}?qr={qr_token(p.id)}")
+                           qr_url=f"{base}/zglos/{p.id}?qr={qr_token(p.id)}", qr_left_s=qr_seconds_left(),
+                           panel_token=device_token(info.serial) if info and info.kind == "panel" else None)
 
 
 @bp.get("/zglos")
 def report_pick():
-    """Mieszkaniec: skan QR, mapa i lista najbliższych koszy."""
+    """Mieszkaniec: skan kodu QR z panelu i „Twoje zgłoszenia”. Bez mapy i listy cudzych koszy (mieszkaniec to nie kierowca)."""
     return render_template("ui/zglos_wybor.html")
 
 
 @bp.get("/zglos/<int:point_id>")
 def report(point_id):
-    """Zgłoszenie w 3 krokach. ?qr=<token> z kodu na panelu kosza potwierdza skan (bez niego krok 1 prosi o skan)."""
-    import hmac
-    from .api_pl import FRAKCJE, _point, kosz_json, qr_token
+    """Zgłoszenie na jednym ekranie: problem → Wyślij. ?qr=<token> z kodu na panelu potwierdza skan (dzienny token kosza)."""
+    from .api_pl import FRAKCJE, _point, kosz_json, qr_valid
     p = _point(point_id)
     if p is None:
         abort(404)
     now = clock.now()
     qr = request.args.get("qr", "")
     return render_template("ui/zglos.html", bin=kosz_json(p, point_states(now), now), frakcje=FRAKCJE, qr=qr,
-                           qr_ok=hmac.compare_digest(qr, qr_token(p.id)))
+                           qr_state="ok" if qr_valid(p.id, qr) else "nieaktualny" if qr else "brak")
 
 
 @bp.get("/zgloszenie/<nr>")

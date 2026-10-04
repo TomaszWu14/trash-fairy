@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150" fill="none">
-  <rect width="240" height="150" rx="20" fill="#EFEBFF"/>
-  <path d="M24 118c30 0 36-48 72-48s34 34 64 34 30-50 60-50" stroke="#5B3DF5" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10"/>
-  <circle cx="96" cy="70" r="8" fill="#16A34A"/><path d="m92 70 3 3 5-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="m160 94 9 9-9 9-9-9z" fill="#F59E0B"/>
-  <rect x="207" y="40" width="20" height="20" rx="5" fill="#DC2626"/><path d="M217 45v6m0 4v.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+  <rect width="240" height="150" fill="#1C2438"/>
+  <path d="M24 118c30 0 36-48 72-48s34 34 64 34 30-50 60-50" stroke="#5AA7FF" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10"/>
+  <circle cx="96" cy="70" r="8" fill="#3DBF72"/><path d="m92 70 3 3 5-6" stroke="#0B0F1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m160 94 9 9-9 9-9-9z" fill="#FFC247"/>
+  <rect x="207" y="40" width="20" height="20" rx="5" fill="#FF5C5C"/><path d="M217 45v6m0 4v.5" stroke="#0B0F1A" stroke-width="2.6" stroke-linecap="round"/>
   <g transform="translate(30 92)">
-    <rect y="4" width="60" height="32" rx="8" fill="#fff" stroke="#CFD4DF" stroke-width="2"/><rect y="16" width="60" height="6" fill="#5B3DF5"/>
-    <path d="M60 12h16l10 12v12H60z" fill="#fff" stroke="#CFD4DF" stroke-width="2" stroke-linejoin="round"/><path d="M64 16h9l6 7H64z" fill="#DED6FF"/>
-    <circle cx="16" cy="38" r="7" fill="#0D1126"/><circle cx="72" cy="38" r="7" fill="#0D1126"/>
+    <rect y="4" width="60" height="32" rx="8" fill="#E8ECF4" stroke="#8F99B0" stroke-width="2"/><rect y="16" width="60" height="6" fill="#4FD1E0"/>
+    <path d="M60 12h16l10 12v12H60z" fill="#E8ECF4" stroke="#8F99B0" stroke-width="2" stroke-linejoin="round"/><path d="M64 16h9l6 7H64z" fill="#2C6373"/>
+    <circle cx="16" cy="38" r="7" fill="#0B0F1A" stroke="#8F99B0" stroke-width="2"/><circle cx="72" cy="38" r="7" fill="#0B0F1A" stroke="#8F99B0" stroke-width="2"/>
   </g>
-  <g transform="translate(130 30)" fill="#F5B83D"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g>
+  <g transform="translate(130 30)" fill="#FFC247"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g>
 </svg>

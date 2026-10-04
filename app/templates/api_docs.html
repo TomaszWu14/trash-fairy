@@ -1,9 +1,15 @@
 {% extends "ui/base.html" %}
 {% block title %}Otwarte API{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">
+<style>.doc .c-doc-post { background: var(--brand-soft); color: var(--brand-ink); border-radius: 6px; padding: 2px 8px; font-size: var(--fs-xs); font-weight: 800; }</style>{% endblock %}
 {% block content %}
 <div class="shell page"><article class="doc">
-  <h1>{{ spec.info.title }}</h1>
+  {% set ns = namespace(o311=none, data=none) %}
+  {% for path in spec.paths %}{% if 'open311/requests' in path %}{% set ns.o311 = loop.index %}{% elif 'open-data/' in path and ns.data is none %}{% set ns.data = loop.index %}{% endif %}{% endfor %}
+  <h1>Otwarte API</h1>
+  <p class="c-doc-note"><strong>Dla miasta:</strong> zgłoszenia w standardzie
+    {% if ns.o311 %}<a href="#ep-{{ ns.o311 }}-get">Open311 GeoReport v2</a>{% else %}Open311 GeoReport v2{% endif %}
+    i {% if ns.data %}<a href="#ep-{{ ns.data }}-get">miesięczne otwarte dane CSV/JSON</a>{% else %}miesięczne otwarte dane CSV/JSON{% endif %}, bez klucza.</p>
   <p>{{ spec.info.summary }}</p>
   <p class="c-doc-note"><strong>Dane syntetyczne.</strong> {{ spec.info.description }}</p>
   <p>Kontrakt OpenAPI 3.1: <a href="{{ url_for('static', filename='openapi.json') }}">openapi.json</a></p>
@@ -11,14 +17,18 @@
   {% for path, ops in spec.paths.items() %}{% set outer = loop %}{% for method, op in ops.items() %}
   {% set example = path.replace('{id}', '18').replace('eksport/{nazwa}', 'eksport/odbiory').replace('{nazwa}', 'koszty') %}
   <section class="c-doc-ep" aria-labelledby="ep-{{ outer.index }}-{{ method }}">
-    <h2 id="ep-{{ outer.index }}-{{ method }}"><span class="c-doc-get">{{ method|upper }}</span> <code>{{ path }}</code></h2>
+    <h2 id="ep-{{ outer.index }}-{{ method }}"><span class="{{ 'c-doc-get' if method == 'get' else 'c-doc-post' }}">{{ method|upper }}</span> <code>{{ path }}</code></h2>
     <p>{% if op.tags %}<span class="c-doc-small">{{ op.tags[0] }} · </span>{% endif %}{{ op.summary }}</p>
     {% if op.parameters %}<p class="c-doc-small">Parametry: {% for prm in op.parameters %}<code>{{ prm.name }}</code> ({{ prm['in'] }}, {{ prm.schema.type }}){{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
     {% if method == 'get' %}
-    <pre><code>curl {{ request.host_url.rstrip('/') }}{{ example }}</code></pre>
+    <pre tabindex="0"><code>curl {{ request.host_url.rstrip('/') }}{{ example }}</code></pre>
     {% if '{' not in example %}<p><a href="{{ example }}">Otwórz odpowiedź: {{ example }}</a></p>{% endif %}
     {% else %}
-    <pre><code>curl -X {{ method|upper }} {{ request.host_url.rstrip('/') }}{{ example }} -H "Content-Type: application/json" -d '{{ op.requestBody.content['application/json'].example|tojson }}'</code></pre>
+    {# treść żądania bywa JSON-em, formularzem multipart albo jej brak — przykład nie może wywrócić strony #}
+    {% set body = (op.requestBody or {}).get('content', {}) %}
+    {% set json_ex = (body.get('application/json') or {}).get('example') %}
+    {% set form = ((body.get('multipart/form-data') or {}).get('schema') or {}).get('properties', {}) %}
+    <pre tabindex="0"><code>curl -X {{ method|upper }} {{ request.host_url.rstrip('/') }}{{ example }}{% if json_ex is not none %} -H "Content-Type: application/json" -d '{{ json_ex|tojson }}'{% else %}{% for name in form %} -F "{{ name }}=…"{% endfor %}{% endif %}</code></pre>
     {% endif %}
     {% if op.responses %}<p class="c-doc-small">Odpowiedzi: {% for code, r in op.responses.items() %}<code>{{ code }}</code> {{ r.description }}{{ ', ' if not loop.last }}{% endfor %}. Błędy: <code>{"blad": "…", "kod": "…"}</code>.</p>{% endif %}
   </section>

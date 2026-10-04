@@ -8,8 +8,10 @@
   TF.num = (v, d = 0) => v == null ? '–' : (d ? nf1 : nf).format(d ? v : Math.round(v));
   TF.icon = (name, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true"><use href="${TF.icons}#${name}"/></svg>`;
   TF.lvl = l => l >= 80 ? 'full' : l >= 50 ? 'warn' : 'ok';
-  TF.LVL = { ok: ['W porządku', 'check'], warn: ['Zapełnia się', 'trending-up'], full: ['Pełny', 'circle-alert'] };
-  TF.fillBadge = l => { const k = TF.lvl(l), [t, i] = TF.LVL[k]; return `<span class="badge ${k}">${TF.icon(i)}${t}</span>`; };
+  TF.LVL = { ok: 'W porządku', warn: 'Zapełnia się', full: 'Pełny' };
+  // stan = kształt + znak (icons.svg st-*): ok koło ✓, warn romb ↑, full kwadrat !, report dymek …, sensor trójkąt ! (= _ui.html state_icon)
+  TF.stateIcon = (k, cls = '') => `<svg class="i si si-${k} ${cls}" viewBox="0 0 24 24" aria-hidden="true"><use href="${TF.icons}#st-${k}"/></svg>`;
+  TF.fillBadge = l => { const k = TF.lvl(l); return `<span class="badge ${k}">${TF.stateIcon(k)}${TF.LVL[k]}</span>`; };
   TF.gauge = (level, cls = '') => {
     const l = Math.max(0, Math.min(100, level || 0));
     return `<svg class="gauge lvl-${TF.lvl(l)} ${cls}" viewBox="0 0 48 56" style="--lvl:${(l / 100).toFixed(3)}" role="img" aria-label="Zapełnienie ${Math.round(l)}%">
@@ -56,7 +58,7 @@
     if (!box) return;
     const t = document.createElement('div');
     t.className = `toast ${kind === 'err' ? 'err' : ''}`;
-    t.innerHTML = `${TF.icon(kind === 'err' ? 'circle-alert' : 'circle-check-big')}<span>${TF.esc(msg)}</span>`;
+    t.innerHTML = `${TF.stateIcon(kind === 'err' ? 'full' : 'ok')}<span>${TF.esc(msg)}</span>`;
     box.append(t);
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3600);
   };
@@ -107,7 +109,7 @@
     try {
       await TF.api('/api/demo/reset', { method: 'POST', signal: AbortSignal.timeout?.(90000) });  // reset na Postgresie ~13 s
       sessionStorage.removeItem('tf-scenariusz');
-      try { localStorage.removeItem('tf-pojazd'); } catch (_) { /* tryb prywatny */ }  // śmieciarka wraca do bazy
+      try { localStorage.removeItem('tf-pojazd'); localStorage.removeItem('tf-moje'); } catch (_) { /* tryb prywatny */ }  // śmieciarka wraca do bazy, zgłoszenia z pokazu znikają
       TF.toast('Dane demo przywrócone do stanu początkowego.');
       setTimeout(() => location.reload(), 700);
     } catch (e) { TF.toast(e.message, 'err'); if (btn) btn.removeAttribute('aria-disabled'); }
@@ -116,8 +118,8 @@
   // ---------- scenariusz demo: 6 kroków jednej historii ----------
   const bin = () => TF.demoBin;
   TF.SCENARIO = [
-    { url: () => `/zglos/${bin()}?qr=${TF.demoQr}`, t: 'Mieszkaniec zgłasza przepełnienie', d: 'Telefon jest przy koszu (położenie symulowane). Wybierz „Przepełniony” i wyślij.' },
-    { url: () => `/panel/${bin()}`, t: 'Panel na koszu pokazuje zgłoszenie', d: 'Ekran przy koszu potwierdza: zgłoszone, kierowca dostał informację.' },
+    { url: () => `/zglos/${bin()}?qr=${TF.demoQr}`, t: 'Mieszkaniec zgłasza przepełnienie', d: 'Kod QR z panelu kosza jest zeskanowany. Wybierz „Przepełniony” i wyślij.' },
+    { url: () => `/panel/${bin()}`, t: 'Panel kosza pokazuje zgłoszenie', d: 'Ekran przy koszu potwierdza: zgłoszone, kierowca dostał informację.' },
     { url: () => '/kierowca', t: 'Kosz trafia na trasę kierowcy', d: 'Jest na górze listy, bo ma zgłoszenie mieszkańca. Kliknij go.' },
     { url: () => `/kierowca/kosz/${bin()}`, t: 'Kierowca opróżnia kosz', d: 'Najpierw „Jadę”, na miejscu „Opróżniono”.' },
     { url: () => { const s = TF.scenario(); return s.nr ? `/zgloszenie/${s.nr}` : `/panel/${bin()}`; }, t: 'Mieszkaniec widzi, że zrobione', d: 'Oś czasu zgłoszenia: przyjęte, w realizacji, zrealizowane.' },
@@ -137,18 +139,43 @@
       <div class="scenario-text"><b>${st.t}</b>${st.d}</div>
       <div class="scenario-dots" aria-hidden="true">${TF.SCENARIO.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>
       ${i > 0 ? `<button class="btn btn-ghost btn-sm" data-sc="prev">${TF.icon('arrow-left')}Wstecz</button>` : ''}
-      ${last ? `<button class="btn btn-sm" data-sc="end">${TF.icon('check')}Zakończ</button>`
-             : `<button class="btn btn-sm" data-sc="next">Dalej${TF.icon('arrow-right')}</button>`}
+      ${last ? `<button class="btn btn-primary btn-sm" data-sc="end">${TF.icon('check')}Zakończ</button>`
+             : `<button class="btn btn-primary btn-sm" data-sc="next">Dalej${TF.icon('arrow-right')}</button>`}
       <button class="btn btn-ghost btn-sm" data-sc="close" aria-label="Zamknij scenariusz">${TF.icon('x')}</button></div>`;
+    // pasek jest fixed na dole: rezerwujemy pod treścią tyle miejsca, ile zajmuje, żeby nic pod nim nie znikało
+    const bar = slot.firstElementChild, pad = () => document.body.style.setProperty('--scenario-h', `${bar.offsetHeight}px`);
+    document.body.classList.add('has-scenario'); pad(); new ResizeObserver(pad).observe(bar);
     slot.onclick = e => {
       const a = e.target.closest('[data-sc]')?.dataset.sc;
       if (a === 'next') TF.goStep(i + 1);
       if (a === 'prev') TF.goStep(i - 1);
-      if (a === 'end' || a === 'close') { TF.setScenario({ ...s, on: false }); slot.innerHTML = ''; if (a === 'end') location.href = '/'; }
+      if (a === 'end' || a === 'close') { TF.setScenario({ ...s, on: false }); slot.innerHTML = ''; document.body.classList.remove('has-scenario'); if (a === 'end') location.href = '/'; }
     };
   }
 
+  // motyw: ciemny (domyślny) / jasny; base.html ustawia go przed CSS, tu przełącznik, zapis i zdarzenie 'tf-motyw' (wykresy)
+  const syncThemeBtn = () => document.querySelectorAll('.theme-toggle').forEach(b => {
+    const dark = document.documentElement.dataset.theme !== 'light';
+    b.setAttribute('aria-pressed', dark);
+    b.querySelector('use')?.setAttribute('href', `${TF.icons}#${dark ? 'moon' : 'sun'}`);
+  });
+  TF.setTheme = t => {
+    const h = document.documentElement;
+    h.dataset.theme = t;
+    try { localStorage.setItem('tf-motyw', t); } catch (_) { /* tryb prywatny */ }
+    document.querySelector('meta[name=theme-color]')?.setAttribute('content', getComputedStyle(h).getPropertyValue(t === 'light' ? '--surface' : '--bg').trim());
+    syncThemeBtn();
+    document.dispatchEvent(new CustomEvent('tf-motyw', { detail: t }));
+  };
+  // wydruk zawsze w jasnym (przeglądarki nie drukują tła): bez zapisu wyboru
+  let printTheme = null;
+  addEventListener('beforeprint', () => { printTheme = document.documentElement.dataset.theme; document.documentElement.dataset.theme = 'light'; });
+  addEventListener('afterprint', () => { if (printTheme) document.documentElement.dataset.theme = printTheme; });
+
   document.addEventListener('DOMContentLoaded', () => {
+    syncThemeBtn();
+    document.querySelectorAll('.theme-toggle').forEach(b => b.addEventListener('click', () =>
+      TF.setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light')));
     renderScenario();
     document.querySelectorAll('[data-reset-demo]').forEach(b => b.addEventListener('click', () => TF.resetDemo(b)));
     document.querySelectorAll('[data-start-scenario]').forEach(b => b.addEventListener('click', TF.startScenario));

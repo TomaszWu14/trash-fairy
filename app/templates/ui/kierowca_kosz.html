@@ -49,6 +49,7 @@
                          ('damaged', 'wrench', 'Kosz uszkodzony'), ('overflow', 'package', 'Odpady obok kosza')] %}
     <button class="btn k-prob" type="button" data-problem-kind="{{ k }}">{{ icon(ico) }}{{ t }}</button>
     {% endfor %}
+    <a class="btn k-prob" href="{{ url_for('wysypiska.page', ekipa=1) }}">{{ icon('map-pin') }}Dzikie wysypisko w pobliżu</a>
   </div>
 </dialog>
 {% endblock %}

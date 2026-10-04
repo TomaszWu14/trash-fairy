@@ -40,21 +40,22 @@ with sync_playwright() as p:
     desk.request.post(BASE + "/api/demo/reset")  # przycisk „Resetuj” przeładowuje stronę; tu reset przez API
     desk.goto(BASE + "/", wait_until="networkidle")
     z0, w0 = kpi(desk, "zgloszenia"), kpi(desk, "wywozy")
-    desk.click(".hero [data-start-scenario]"); desk.wait_for_load_state("networkidle"); desk.wait_for_selector("#chk-geo.ok", timeout=8000)
-    check("1. scenariusz otwiera zgłoszenie z QR i symulowanym położeniem", "/zglos/18?qr=" in desk.url and desk.locator("#chk-geo.ok").count() == 1, desk.url)
+    desk.click(".hero [data-start-scenario]"); desk.wait_for_load_state("networkidle"); desk.wait_for_selector("#chk-qr.ok", timeout=8000)
+    check("1. scenariusz otwiera zgłoszenie z potwierdzonym kodem QR i od razu wyborem problemu",
+          "/zglos/18?qr=" in desk.url and desk.locator("#chk-qr.ok").count() == 1 and desk.locator("input[name=typ]").count() == 4, desk.url)
 
     phone = b.new_page(viewport=VP["telefon"]); perr = watch(phone)
     phone.goto(desk.url, wait_until="networkidle")
-    phone.click("[data-geo-sim]"); phone.click("[data-next='2']")
-    phone.click(".m-type:has(input[value=przepelniony])"); phone.fill("#m-komentarz", "Worki obok kosza")
-    phone.click("#to-3"); phone.click("#m-send"); phone.wait_for_selector("#m-success:not([hidden])", timeout=8000)
+    phone.click(".m-type:has(input[value=przepelniony])")
+    phone.click(".m-more summary"); phone.fill("#m-komentarz", "Worki obok kosza")
+    phone.click("#m-send"); phone.wait_for_selector("#m-success:not([hidden])", timeout=8000)
     nr = phone.text_content("#m-nr")
     check("2. mieszkaniec dostaje numer zgłoszenia", nr.startswith("TF-"), nr)
-    phone.click("#m-status-link"); phone.wait_for_selector("#st-badge.badge.brand", timeout=8000)
+    phone.click("#m-status-link"); phone.wait_for_selector("#st-badge.badge.report", timeout=8000)
     check("3. status: przyjęte", "Przyjęte" in phone.text_content("#st-badge"))
 
     desk.goto(BASE + "/panel/18", wait_until="networkidle"); desk.wait_for_timeout(1500)
-    check("4. panel na koszu pokazuje zgłoszenie", "Zgłoszono" in desk.text_content("#k-msg") or "kierowca" in desk.text_content("#k-msg"),
+    check("4. panel kosza pokazuje zgłoszenie", "Zgłoszono" in desk.text_content("#k-msg") or "kierowca" in desk.text_content("#k-msg"),
           desk.text_content("#k-msg").strip()[:60])
     desk.goto(BASE + "/kierowca", wait_until="networkidle"); desk.wait_for_timeout(1500)
     ids = desk.eval_on_selector_all("#k-stops a", "a => a.map(x => x.getAttribute('href'))")

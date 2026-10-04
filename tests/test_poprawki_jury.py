@@ -115,6 +115,7 @@ def pa(**kw):
     (pa(status="pending"), "full", "w_toku"),
 ])
 def test_verification_rule(analysis, kind, status):
+    analysis.wall_at = datetime.now(UTC).replace(tzinfo=None)  # pa() powstaje przy zbieraniu testów: wolny przebieg > PENDING_MAX
     assert photos.verification(analysis, kind)["status"] == status
 
 

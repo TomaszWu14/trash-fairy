@@ -1,22 +1,22 @@
 {% extends "ui/base.html" %}
 {% from "ui/_ui.html" import icon %}
 {# Wspólna rama perspektywy mieszkańca: wąska kolumna jak w aplikacji na telefon, tożsamość demo „zalogowanej” mieszkanki. #}
-{% set perspective = "mieszkaniec" %}
+{% set perspective = perspective | default("mieszkaniec") %}{# /wysypisko?ekipa=1 podaje „kierowca” #}
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='ui/mieszkaniec.css') }}">
 {% endblock %}
 {% block content %}
 <div class="m-wrap">
+  {% block m_who %}
   <div class="m-who rise" aria-label="Zalogowana mieszkanka (konto demo)">
     <span class="m-avatar" aria-hidden="true">AK</span>
     <div><b>Anna K.</b><span>Kazimierz · konto demo</span></div>
     <span class="badge brand">{{ icon('circle-check-big') }}Zalogowana</span>
   </div>
+  {% endblock %}
   {% block m_content %}{% endblock %}
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}" defer></script>
 <script src="{{ url_for('static', filename='ui/mieszkaniec.js') }}" defer></script>
 {% endblock %}

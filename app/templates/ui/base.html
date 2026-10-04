@@ -5,24 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}Trash Fairy{% endblock %} · Trash Fairy</title>
   <meta name="description" content="{% block description %}Trash Fairy: kosze w Krakowie opróżniane wtedy, gdy trzeba. Zgłoszenia mieszkańców, panele na koszach, trasy kierowców i dashboard dla miasta.{% endblock %}">
-  <meta name="theme-color" content="#FFFFFF">
+  <meta name="theme-color" content="#0B0F1A">
+  {# motyw przed arkuszami: bez mignięcia jasnej strony; domyślnie ciemny, wybór w localStorage (TF.setTheme w app.js) #}
+  <script>(() => { let t = 'dark'; try { t = localStorage.getItem('tf-motyw') === 'light' ? 'light' : 'dark'; } catch (e) { /* tryb prywatny */ }
+    document.documentElement.dataset.theme = t; if (t === 'light') document.querySelector('meta[name=theme-color]').content = '#FFFFFF'; })();</script>
   <link rel="icon" href="{{ url_for('static', filename='ui/logo.svg') }}" type="image/svg+xml">
-  <link rel="preload" href="{{ url_for('static', filename='fonts/plus-jakarta-sans-latin-wght.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/ibm-plex-sans-latin-wght.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/space-grotesk-latin-wght.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', filename='ui/tokens.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='ui/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='ui/help.css') }}">
   {% block head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% endblock %}" data-page="{% block page %}{% endblock %}">
 <a class="sr-only" href="#tresc">Przejdź do treści</a>
 {% block topbar %}
 <header class="topbar">
   <div class="shell topbar-in">
     <a class="brand" href="{{ url_for('ui.start') }}" aria-label="Trash Fairy: przegląd">{{ logo() }}<span>Trash <b>Fairy</b></span></a>
     {% set p = perspective | default("") %}
-    <nav class="switcher" aria-label="Perspektywy">
+    <nav class="switcher" aria-label="Perspektywy" data-help="base.przelacznik" data-help-at="after">
       {% for key, href, ico, label in [
         ('start', url_for('ui.start'), 'house', 'Przegląd'),
-        ('panel', url_for('ui.kiosk', point_id=demo_bin_id), 'monitor', 'Panel na koszu'),
+        ('panel', url_for('ui.kiosk', point_id=demo_bin_id), 'monitor', 'Panel kosza'),
         ('mieszkaniec', url_for('ui.report_pick'), 'smartphone', 'Mieszkaniec'),
         ('kierowca', url_for('ui.driver'), 'truck', 'Kierowca'),
         ('dashboard', url_for('ui.dashboard'), 'layout-dashboard', 'Dashboard')] %}
@@ -30,7 +35,10 @@
       {% endfor %}
     </nav>
     <div class="topbar-end">
-      <a class="demo-tag" href="{{ url_for('ui.methodology') }}" title="Dane operacyjne są syntetyczne. Zobacz, jak liczymy.">{{ icon('sparkles') }}<span>Dane demonstracyjne</span></a>
+      <button class="theme-toggle" type="button" aria-pressed="true" title="Przełącz motyw jasny / ciemny">{{ icon('moon') }}<span class="theme-lbl">Motyw ciemny</span></button>
+      <button class="help-toggle" type="button" aria-pressed="true" data-help="base.podpowiedzi" hidden><span class="help-ico">{{ icon('circle-help') }}</span><span class="help-lbl">Podpowiedzi: <b>wł.</b></span></button>
+      <button class="help-tour" type="button" title="Przewodnik po tej stronie" data-help="base.przewodnik" hidden>{{ icon('map') }}<span class="help-lbl">Przewodnik po tej stronie</span></button>
+      <a class="demo-tag" data-help="base.dane_demo" href="{{ url_for('ui.methodology') }}" title="Dane operacyjne są syntetyczne. Zobacz, jak liczymy.">{{ icon('sparkles') }}<span>Dane demonstracyjne</span></a>
     </div>
   </div>
 </header>
@@ -54,6 +62,7 @@
 <div id="scenario-slot"></div>
 <script>window.TF = { icons: "{{ url_for('static', filename='ui/icons.svg') }}", demoBin: {{ demo_bin_id }}, demoQr: "{{ demo_qr }}" };</script>
 <script src="{{ url_for('static', filename='ui/app.js') }}" defer></script>
+<script src="{{ url_for('static', filename='ui/help.js') }}" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

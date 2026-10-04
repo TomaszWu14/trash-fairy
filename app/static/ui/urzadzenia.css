@@ -34,7 +34,7 @@
 .u-skel { cursor: default; gap: var(--s3); min-height: 210px; }
 .u-top { display: flex; align-items: flex-start; gap: var(--s3); min-width: 0; }
 .u-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r-md); flex: none; background: var(--brand-soft); color: var(--brand); }
-.u-ico.t-czujnik { background: var(--surface-2); border: 1px solid var(--line); color: var(--st-progress); }
+.u-ico.t-czujnik { background: var(--st-progress-soft); color: var(--st-progress); }
 .u-name { display: grid; min-width: 0; }
 .u-name b { font-size: var(--fs-md); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .u-name span { font-size: var(--fs-xs); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -43,7 +43,7 @@
 
 /* bateria: obrys z biegunem, wypełnienie wg poziomu + procent + słowo */
 .batt-row { display: flex; align-items: center; gap: var(--s2); }
-.batt-row > b { font-size: var(--fs-lg); font-weight: 800; letter-spacing: -.02em; min-width: 44px; }
+.batt-row > b { font: 700 var(--fs-lg)/1.2 var(--font-display); letter-spacing: -.01em; min-width: 44px; }
 .batt { --c: var(--fill-ok); position: relative; flex: 1; height: 22px; margin-right: 5px; padding: 3px; border: 1.5px solid var(--line-strong); border-radius: 6px; background: var(--surface); }
 .batt::after { content: ""; position: absolute; right: -5px; top: 6px; width: 3px; height: 8px; border-radius: 0 2px 2px 0; background: var(--line-strong); }
 .batt > i { display: block; height: 100%; border-radius: 3px; background: var(--c); transform-origin: left; transform: scaleX(var(--p, 0)); animation: bar-in 800ms var(--ease) both; }
@@ -75,7 +75,7 @@ dialog.u-modal { width: min(94vw, 960px); }
 .u-dl dt { color: var(--ink-3); font-weight: 600; } .u-dl dd { margin: 0; color: var(--ink); font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .u-dl code { font: 600 var(--fs-sm)/1 var(--font); letter-spacing: .02em; padding: 2px 6px; border-radius: 6px; white-space: nowrap; background: var(--surface); border: 1px solid var(--line); }
 .t-bad { color: var(--fill-full-ink); }
-.u-chart .chart-h b { font-size: var(--fs-xl); font-weight: 800; }
+.u-chart .chart-h b { font: 700 var(--fs-xl)/1.2 var(--font-display); }
 .u-chart-b { height: 180px; margin-top: var(--s2); position: relative; }
 .u-more { justify-self: center; margin-top: calc(-1 * var(--s4)); }
 .u-actions { display: flex; align-items: center; gap: var(--s4); flex-wrap: wrap; font-size: var(--fs-xs); }

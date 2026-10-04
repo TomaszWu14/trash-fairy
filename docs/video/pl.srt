@@ -38,7 +38,7 @@ AI nigdy nie odrzuca zgłoszenia.
 
 9
 00:00:40,000 --> 00:00:44,000
-Panel na koszu widać z daleka:
+Panel kosza widać z daleka:
 zapełnienie, najbliższy odbiór
 
 10

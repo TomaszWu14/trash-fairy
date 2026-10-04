@@ -1,4 +1,4 @@
-"""API perspektyw (panel na koszu, mieszkaniec, kierowca, demo). JSON wszędzie, jeden format błędu {"blad", "kod"}.
+"""API perspektyw (panel kosza, mieszkaniec, kierowca, demo). JSON wszędzie, jeden format błędu {"blad", "kod"}.
 
 Wspólny słownik statusów (audit/AUDYT-UX.md, sekcja 5):
 - kosz: poziom 0–100 → `ok` (< 50), `zapelnia_sie` (50–79), `pelny` (≥ 80); osobno `zgloszony` (świeże zgłoszenie mieszkańca);
@@ -8,21 +8,29 @@ Decyzje liczą reguły w kodzie; nic tu nie pyta AI.
 import hashlib
 import hmac
 import math
-from datetime import UTC, datetime
+import time
+from datetime import UTC, datetime, timedelta, timezone
+from datetime import time as dt_time
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from flask import Blueprint, current_app, jsonify, request
 
-from . import clock, db, osrm, photos, rate, traffic
+from . import clock, db, osrm, photos, rate, residents, traffic
+from .devices_api import device_token
 from .geo import distance_m
-from .models import Emptying, PhotoAnalysis, Point, Press, Report, StopIssue
+from .models import DeviceInfo, Emptying, PhotoAnalysis, Point, Press, Report, StopIssue
 from .reports import resolve_reports, record_press
 from .routes import DEPOT, next_runs
 from .state import current_routes, data_version, point_states
 
 bp = Blueprint("api_pl", __name__, url_prefix="/api")
 
-GEO_RADIUS_M = 150          # zgłoszenie tylko z telefonu najwyżej 150 m od kosza (jak dotąd, decyzja 28)
-MAX_ACCURACY_M = 150        # słaby GPS w kamienicy nie blokuje zgłoszenia przy koszu, ale „5 km dokładności” nie wyłącza kontroli
+try:
+    WARSAW = ZoneInfo("Europe/Warsaw")  # doba kodu QR kosza = doba kalendarzowa w Krakowie
+except ZoneInfoNotFoundError:  # obraz bez tzdata: doba w UTC+1, kod zmienia się najwyżej godzinę „za wcześnie” latem
+    WARSAW = timezone(timedelta(hours=1))
+QR_GRACE_S = 3600           # wczorajszy kod działa jeszcze godzinę po północy: skan tuż przed północą nie przepada
+BUTTON_PRESSES_PER_MIN = 3  # przycisk na panelu: najwyżej 3 zgłoszenia na minutę z jednego kosza
 REPORT_GAP_S = 60           # ten sam telefon i ten sam kosz: nie częściej niż raz na minutę
 REPORTS_PER_IP_HOUR = 200   # wszystkie kosze z jednego IP: wysoko, bo sala HackYeah i jury wychodzą przez jeden NAT
 RESET_GAP_S = 20            # ręczny reset demo najwyżej raz na 20 s (wszystkie workery)
@@ -59,10 +67,30 @@ def poziom_stan(level):
     return "pelny" if level >= 80 else "zapelnia_sie" if level >= 50 else "ok"
 
 
-def qr_token(point_id):
-    """Token z kodu QR na panelu kosza: bez niego nie ma zgłoszenia (wymaganie: skan QR + bycie przy koszu)."""
+def _local(at=None):
+    """Zegar ŚCIENNY w Krakowie, nie zegar demo: kod QR to zabezpieczenie, nie może stać razem ze scenariuszem."""
+    return datetime.fromtimestamp(time.time() if at is None else at, WARSAW)
+
+
+def qr_token(point_id, at=None):
+    """Token z kodu QR na panelu kosza, inny każdego dnia (doba w Krakowie): bez niego nie ma zgłoszenia mieszkańca.
+    Zdjęcie kodu nie pozwala zgłaszać jutro ani z innego kosza; położenia telefonu nie sprawdzamy (decyzja w DECYZJE.md)."""
     key = current_app.config["SECRET_KEY"].encode()
-    return hmac.new(key, f"kosz:{point_id}".encode(), hashlib.sha256).hexdigest()[:12]
+    return hmac.new(key, f"kosz:{point_id}:{_local(at).date().isoformat()}".encode(), hashlib.sha256).hexdigest()[:12]
+
+
+def qr_valid(point_id, token):
+    """Kod z dziś albo, przez pierwszą godzinę po północy, z wczoraj. Porównanie bajtów: znaki spoza ASCII nie dają 500."""
+    now, token = time.time(), str(token or "").encode()
+    return any(hmac.compare_digest(token, qr_token(point_id, now - back).encode()) for back in (0, QR_GRACE_S))
+
+
+def qr_seconds_left(at=None):
+    """Sekundy do najbliższej północy w Krakowie (panel przeładowuje się wtedy z nowym kodem). Przez timestamp: zmiana czasu
+    w marcu i październiku nie przesuwa wyniku o godzinę."""
+    now = _local(at)
+    midnight = datetime.combine(now.date() + timedelta(days=1), dt_time.min, WARSAW)
+    return max(1, round(midnight.timestamp() - now.timestamp()))
 
 
 def numer(report_id):
@@ -225,47 +253,46 @@ def kosz(point_id):
     return jsonify(kosz=kosz_json(p, point_states(now), now, detail=True), meta=meta())
 
 
-def _accuracy(data):
-    try:
-        acc = float(data.get("dokladnosc") or 0)
-        return min(max(acc, 0.0), MAX_ACCURACY_M) if math.isfinite(acc) else 0.0
-    except (TypeError, ValueError):
-        return 0.0
+@bp.post("/kosze/<int:point_id>/przycisk")
+def przycisk(point_id):
+    """Przycisk na panelu kosza: naciśnięcie fizycznego przycisku = obecność przy koszu, więc bez kodu QR.
+    Body JSON: {"typ": klucz TYPY, "token": token urządzenia panelu} (ten sam HMAC co nagłówek w POST /api/odczyty).
+    W demo panel to strona WWW i ma token w HTML; prawdziwy panel liczy go sam z sekretu wgranego przy montażu."""
+    p = _point(point_id)
+    if p is None:
+        return blad("Nie ma takiego kosza.", "kosz_nie_istnieje", 404)
+    data = _json_body()
+    info = db.session.get(DeviceInfo, p.id)
+    token = str(data.get("token") or "").encode()
+    if info is None or info.kind != "panel" or not hmac.compare_digest(token, device_token(info.serial).encode()):
+        return blad("Ten panel nie jest zarejestrowany przy tym koszu. Zgłoś problem kodem QR z ekranu.", "zly_token_panelu", 403)
+    if not isinstance(data.get("typ"), str) or data["typ"] not in TYPY:
+        return blad("Wybierz, co jest nie tak z koszem.", "zly_typ")
+    if not rate.hit(f"btn:{p.id}", BUTTON_PRESSES_PER_MIN, 60):
+        return blad("Zgłoszenia z tego kosza już dotarły. Kolejne możesz wysłać za minutę.", "za_czesto", 429)
+    record_press(p.id, clock.now(), ip=request.remote_addr, wall_at=datetime.now(UTC).replace(tzinfo=None),
+                 source="button", kind=TYPY[data["typ"]][0])  # record_press zapisuje (commit)
+    clock.touch()
+    return jsonify(komunikat="Dziękujemy, zgłoszenie przyjęte.", meta=meta()), 201
 
 
 @bp.post("/zgloszenia")
 def zglos():
-    """Zgłoszenie mieszkańca: tylko z tokenem z kodu QR kosza i z położeniem do 150 m od kosza.
-    Pola: kosz, typ, qr, lat, lon, dokladnosc, komentarz?, symulacja?, zdjecie? (multipart)."""
+    """Zgłoszenie mieszkańca: tylko z dziennym tokenem z kodu QR tego kosza (qr_valid). Położenia nie sprawdzamy:
+    jury testuje zdalnie, a GPS w kamienicach bywa zawodny. Pola: kosz, typ, qr, komentarz?, zdjecie? (multipart);
+    lat/lon z dawnych klientów są ignorowane."""
     data = request.form if request.files or request.form else _json_body()
     p = _point(data.get("kosz"))
     if p is None:
         return blad("Nie ma takiego kosza.", "kosz_nie_istnieje", 404)
     if not isinstance(data.get("typ"), str) or data["typ"] not in TYPY:
         return blad("Wybierz, co jest nie tak z koszem.", "zly_typ")
-    if not hmac.compare_digest(str(data.get("qr") or ""), qr_token(p.id)):
-        return blad("Zeskanuj kod QR na koszu, żeby zgłosić problem.", "brak_skanu_qr", 403)
-    try:
-        lat, lon = float(data.get("lat")), float(data.get("lon"))
-        if not (math.isfinite(lat) and math.isfinite(lon) and abs(lat) <= 90 and abs(lon) <= 180):
-            raise ValueError
-    except (TypeError, ValueError):
-        return blad("Włącz udostępnianie lokalizacji: zgłoszenie przyjmujemy tylko przy koszu.", "brak_lokalizacji", 403)
-    dist = distance_m(lat, lon, p.lat, p.lon)
-    if not dist - _accuracy(data) <= GEO_RADIUS_M:  # „not <=”: NaN nigdy nie przechodzi kontroli
-        return blad(f"Jesteś {round(dist)} m od kosza. Podejdź bliżej (do {GEO_RADIUS_M} m), żeby zgłosić.", "za_daleko", 403)
-    raw = mt = None
-    upload = request.files.get("zdjecie")
-    if upload and upload.filename:  # zdjęcie sprawdzamy przed limitami: zły plik nie zużywa limitu
-        raw = upload.read(photos.MAX_BYTES + 1)
-        mt, error = photos.validate(raw)
-        if not error:
-            try:
-                raw = photos.strip_metadata(raw, mt)  # bez GPS i danych aparatu, zanim cokolwiek trafi na dysk
-            except Exception:  # sygnatura się zgadza, ale obrazu nie da się odczytać
-                error = "Nie udało się odczytać zdjęcia. Spróbuj innego pliku."
-        if error:
-            return blad(error, "zle_zdjecie")
+    if not qr_valid(p.id, data.get("qr")):
+        return blad("Kod QR jest nieaktualny albo z innego kosza. Zeskanuj kod z panelu tego kosza." if data.get("qr")
+                    else "Zeskanuj kod QR z panelu kosza, żeby zgłosić problem.", "brak_skanu_qr", 403)
+    raw, mt, error = photos.read_upload(request.files.get("zdjecie"))  # przed limitami: zły plik nie zużywa limitu
+    if error:
+        return blad(error, "zle_zdjecie")
     client = str(data.get("klient") or request.remote_addr)[:64]
     if not rate.hit(f"zgl:{client}:{p.id}", 1, REPORT_GAP_S):
         return blad("To zgłoszenie już dotarło. Kolejne z tego telefonu możesz wysłać za minutę.", "za_czesto", 429)
@@ -276,10 +303,13 @@ def zglos():
     photo_id = photos.save(p.id, clock.now(), raw, mt, source="resident").id if raw else None
     now = clock.now()
     kind = TYPY[data["typ"]][0]
+    # konto demo „Anna K.” z nagłówka perspektywy mieszkańca: TYLKO punkty za trafne zgłoszenie (residents.award czyta
+    # Press.resident_id po opróżnieniu). Nie przez record_press: wspólne konto jury podniosłoby wagę i „potwierdziło” zgłoszenie
+    resident_id = residents.demo_resident().id if data.get("konto") == "demo" else None
     report = record_press(p.id, now, ip=request.remote_addr, wall_at=datetime.now(UTC).replace(tzinfo=None),
                           source="qr", kind=kind)
     press = Press.query.filter_by(report_id=report.id).order_by(Press.id.desc()).first()
-    press.note, press.photo_id = note, photo_id
+    press.note, press.photo_id, press.resident_id = note, photo_id, resident_id
     db.session.commit()
     clock.touch()
     if photo_id:  # AI tylko opisuje zdjęcie; status weryfikacji liczy reguła (photos.verification)

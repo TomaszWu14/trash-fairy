@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150" fill="none">
-  <rect width="240" height="150" rx="20" fill="#EFEBFF"/>
-  <rect x="86" y="14" width="68" height="124" rx="14" fill="#0D1126"/><rect x="91" y="22" width="58" height="108" rx="9" fill="#fff"/>
-  <path d="M103 40h8m-8 0v8M137 40h-8m8 0v8M103 84h8m-8 0v-8M137 84h-8m8 0v-8" stroke="#5B3DF5" stroke-width="3" stroke-linecap="round"/>
-  <path d="M110 50h8v8h-8zM122 50h8v8h-8zM110 64h8v8h-8zM124 66h4v4h-4z" fill="#0D1126"/>
-  <rect x="99" y="96" width="42" height="12" rx="6" fill="#FFF3DC" stroke="#F59E0B" stroke-width="1.5"/><path d="m106 102 3-3 3 3m-3-3v6" stroke="#8A4B00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="99" y="112" width="42" height="10" rx="5" fill="#5B3DF5"/>
-  <path d="M184 58c0 14-16 28-16 28s-16-14-16-28a16 16 0 0 1 32 0z" fill="#5B3DF5"/><circle cx="168" cy="58" r="6" fill="#fff"/>
-  <g transform="translate(62 36)" fill="#F5B83D"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g><g transform="translate(196 104) scale(.6)" fill="#8B6CFF"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g>
+  <rect width="240" height="150" fill="#1C2438"/>
+  <rect x="86" y="14" width="68" height="124" rx="14" fill="#0B0F1A" stroke="#3D4866" stroke-width="2"/><rect x="91" y="22" width="58" height="108" rx="9" fill="#E8ECF4"/>
+  <path d="M103 40h8m-8 0v8M137 40h-8m8 0v8M103 84h8m-8 0v-8M137 84h-8m8 0v-8" stroke="#0B7285" stroke-width="3" stroke-linecap="round"/>
+  <path d="M110 50h8v8h-8zM122 50h8v8h-8zM110 64h8v8h-8zM124 66h4v4h-4z" fill="#0B0F1A"/>
+  <rect x="99" y="96" width="42" height="12" rx="6" fill="#FFC247" stroke="#0B0F1A" stroke-width="1.5"/><path d="m106 102 3-3 3 3m-3-3v6" stroke="#0B0F1A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="99" y="112" width="42" height="10" rx="5" fill="#0B7285"/>
+  <path d="M184 58c0 14-16 28-16 28s-16-14-16-28a16 16 0 0 1 32 0z" fill="#4FD1E0"/><circle cx="168" cy="58" r="6" fill="#0B0F1A"/>
+  <g transform="translate(62 36)" fill="#FFC247"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g><g transform="translate(196 104) scale(.6)" fill="#B48CFF"><path d="M0-10 2.4-2.4 10 0 2.4 2.4 0 10-2.4 2.4-10 0-2.4-2.4z"/></g>
 </svg>

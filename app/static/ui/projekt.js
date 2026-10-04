@@ -33,7 +33,7 @@
       TF.chart(el).setOption({
         animation: TF.anim, tooltip: { trigger: 'axis', valueFormatter: v => v == null ? '–' : UNIT[k](v) },
         xAxis: { type: 'category', data: labels }, yAxis: { type: 'value', scale: k !== 'koszt', axisLabel: { formatter: v => k === 'koszt' ? `${num(v / 1000)} tys.` : num(v) } },
-        series: [{ type: 'bar', barMaxWidth: 22, data: vals.map((v, i) => ({ value: v, itemStyle: { color: si >= 0 && i >= si ? C.brand : '#C9CFDC', borderRadius: [4, 4, 0, 0] } })),
+        series: [{ type: 'bar', barMaxWidth: 22, data: vals.map((v, i) => ({ value: v, itemStyle: { color: si >= 0 && i >= si ? C.brand : C.lineStrong, borderRadius: [4, 4, 0, 0] } })),
                    markLine: si >= 0 ? { symbol: 'none', silent: true, lineStyle: { color: C.ink2, type: [4, 4] }, label: { formatter: 'start projektu', color: C.ink2, position: 'insideEndTop' }, data: [{ xAxis: labels[si] }] } : undefined }],
       });
     });

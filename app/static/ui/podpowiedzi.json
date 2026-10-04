@@ -1,0 +1,40 @@
+{
+  "base.przelacznik": {
+    "tytul": "Perspektywy",
+    "cel": "Przenosi między pięcioma widokami tej samej historii: przegląd, panel kosza, mieszkaniec, kierowca i dashboard miasta.",
+    "przyklad": "Kliknij „Kierowca”, aby zobaczyć trasę na dziś. Potem kliknij „Dashboard”, aby zobaczyć te same zdarzenia w liczbach miasta.",
+    "zrodlo": "Wszystkie widoki korzystają z tych samych danych. Zgłoszenie wysłane z telefonu od razu widać na koszu, w trasie kierowcy i na dashboardzie."
+  },
+  "base.dane_demo": {
+    "tytul": "Dane demonstracyjne",
+    "cel": "Przypomina, że oglądasz pokaz prototypu, a nie prawdziwe dane MPO. Kliknięcie otwiera stronę „Jak liczymy”.",
+    "jak_czytac": "Zapełnienie koszy, zgłoszenia i odbiory pochodzą z symulacji, a nie z prawdziwych koszy. Położenia koszy na mapie są prawdziwe.",
+    "zrodlo": "Kosze i mapa pochodzą z OpenStreetMap, a dane operacyjne z symulacji 8 tygodni. Przycisk „Resetuj dane demo” na stronie głównej przywraca stan początkowy, a po 30 minutach bez żadnej akcji pokaz zaczyna się od nowa."
+  },
+  "base.podpowiedzi": {
+    "tytul": "Podpowiedzi",
+    "cel": "Włącza i wyłącza małe ikonki „i”, które wyjaśniają elementy strony.",
+    "przyklad": "Gdy znasz już stronę, kliknij, aby ukryć ikonki. Kliknij jeszcze raz, aby je przywrócić.",
+    "zrodlo": "Teksty podpowiedzi napisali autorzy projektu, nie tworzy ich AI. Twój wybór zapamiętuje tylko ta przeglądarka."
+  },
+  "base.przewodnik": {
+    "tytul": "Przewodnik po tej stronie",
+    "cel": "Pokazuje po kolei najważniejsze miejsca na tej stronie i mówi, do czego służą.",
+    "przyklad": "Kliknij, a potem przechodź przyciskami „Dalej” i „Wstecz”. „Zakończ” albo klawisz Esc zamyka przewodnik.",
+    "zrodlo": "Kroki przygotowali autorzy projektu osobno dla każdej strony. Przycisk widać tylko tam, gdzie przewodnik jest gotowy."
+  },
+  "_przewodniki": {
+    "start": [
+      {"sel": ".hero-cta", "tytul": "Zacznij od scenariusza",
+       "tekst": "Przycisk „Zacznij scenariusz demo” przeprowadzi Cię przez historię jednego kosza w sześciu krokach. „Resetuj dane demo” przywraca stan początkowy, gdy chcesz zacząć od nowa."},
+      {"sel": ".proof", "tytul": "Trzy najważniejsze liczby",
+       "tekst": "Dwie pierwsze to porównanie 4 tygodni: stały harmonogram kontra Trash Fairy, na tych samych danych z symulacji. Trzecia to szacunek rocznej oszczędności dla całego Krakowa, a sposób liczenia opisuje strona „Jak to policzyliśmy”."},
+      {"sel": ".switcher", "tytul": "Pięć widoków",
+       "tekst": "Ten pasek przenosi między widokami: panel kosza, mieszkaniec, kierowca i dashboard miasta. Wszystkie pokazują te same dane."},
+      {"sel": ".persp-grid", "tytul": "Cztery perspektywy",
+       "tekst": "Każdy kafelek opisuje jeden widok i otwiera go po kliknięciu. Możesz je oglądać w dowolnej kolejności."},
+      {"sel": ".story-card", "tytul": "Scenariusz krok po kroku",
+       "tekst": "Tu widać sześć kroków historii: od zgłoszenia mieszkańca do liczb w dashboardzie. W trakcie scenariusza pasek na dole ekranu podpowiada, co kliknąć."}
+    ]
+  }
+}

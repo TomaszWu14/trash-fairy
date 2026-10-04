@@ -137,7 +137,7 @@
         xAxis: { type: 'category', data: d.seria.dni.map(x => new Date(x).toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric' })) },
         yAxis: { type: 'value', axisLabel: { formatter: v => num(v) } },
         series: [{ type: 'bar', barMaxWidth: 36, data: d.seria.odczyty.map((v, i) => ({ value: v, itemStyle: { color: i === d.seria.odczyty.length - 1 ? C.soft : C.brand, borderColor: C.brand, borderWidth: i === d.seria.odczyty.length - 1 ? 1 : 0, borderRadius: [6, 6, 0, 0] } })),
-                   label: { show: true, position: 'top', color: C.ink2, fontSize: 11, formatter: p => p.value ? num(p.value) : '0' } }],
+                   label: { show: true, position: 'top', color: C.ink2, fontSize: 13, formatter: p => p.value ? num(p.value) : '0' } }],
       }, true);
       if (!max) TF.chartEmpty(document.getElementById('u-chart'), true, 'Urządzenie nie przesłało odczytów w tym tygodniu.');
     } catch (e) {

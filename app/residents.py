@@ -28,6 +28,17 @@ BADGES = [  # (nazwa, opis, warunek na liście nagród)
     ("Strażnik Plant", "5 trafnych zgłoszeń na Starym Mieście", lambda aw, pts: sum(pts[a.point_id].area == "Rynek" for a in aw) >= 5),
     ("Opiekun altan", "3 trafne zgłoszenia altan", lambda aw, pts: sum(a.kind == "shelter" for a in aw) >= 3),
 ]
+DUMP_POINTS = 20  # dzikie wysypisko ze zdjęciem, po weryfikacji (app/wysypiska.py: resident_dump_items)
+DUMP_DAILY_LIMIT = 3  # nagrodzone wysypiska na mieszkańca na dobę (zegar demo)
+DUMP_BADGE = ("Czujne oko", "pierwsze potwierdzone dzikie wysypisko")
+DEMO_RESIDENT = ("Anna K.", "Kazimierz")  # konto demo z nagłówka perspektywy mieszkańca (ui/mieszkaniec_base.html)
+# Katalog nagród: PROPOZYCJA dla miasta. Progi to założenie programu; bez partnerów i bez kwot (decyduje miasto).
+NAGRODY = [
+    {"prog": 100, "nazwa": "Bilet dobowy komunikacji miejskiej"},
+    {"prog": 200, "nazwa": "Bilet do kina lub na wydarzenie miejskie"},
+    {"prog": 500, "nazwa": "Ulga w opłacie za odpady (wysokość ustala miasto)"},
+]
+NAGRODY_UWAGA = "Katalog nagród to propozycja do ustalenia z miastem; partnerów jeszcze nie ma."
 
 
 class RegistrationError(Exception):
@@ -82,6 +93,24 @@ def mark_verified(resident):
     db.session.commit()
 
 
+def demo_resident():
+    """Konto demo „Anna K.” (bez danych osobowych: pseudonim + hash stałego tekstu). Reset demo je kasuje (seed_demo),
+    więc tworzymy je przy pierwszym zgłoszeniu; dwa workery naraz → drugi dostaje IntegrityError i czyta wiersz pierwszego."""
+    from sqlalchemy.exc import IntegrityError
+    nick, district = DEMO_RESIDENT
+    r = Resident.query.filter_by(nick=nick).first()
+    if r is None:
+        try:
+            r = Resident(nick=nick, phone_hash=hashlib.sha256(f"demo-{nick}".encode()).hexdigest(), district=district,
+                         verified=True, source="demo")
+            db.session.add(r)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            r = Resident.query.filter_by(nick=nick).first()
+    return r
+
+
 def resident_reliability(resident_id):
     """Trafne z ostatnich 10 rozstrzygniętych zgłoszeń z naciśnięciem mieszkańca; start 80%."""
     hits = [hit for (hit,) in (db.session.query(Report.hit).join(Press, Press.report_id == Report.id)
@@ -124,6 +153,28 @@ def profile(resident):
                     "status": "trafne" if r.hit else ("fałszywe" if r.hit is False else "czeka na opróżnienie"),
                     "confirmed": r.confirmed} for r in reports],
     }
+
+
+def points_summary(resident):
+    """„Twoje punkty”: trafne zgłoszenia koszy (PointAward) + potwierdzone wysypiska ze zdjęciem (liczone regułą przy
+    odczycie, app/wysypiska.py), odznaki, ostatnie pozycje z powodem i katalog nagród jako PROPOZYCJA dla miasta."""
+    from .wysypiska import resident_dump_items  # import lokalny: wysypiska importuje stałe z tego modułu
+    awards = PointAward.query.filter_by(resident_id=resident.id).order_by(PointAward.at.desc()).all()
+    points = {p.id: p for p in Point.query.filter(Point.id.in_({a.point_id for a in awards}))}
+    dumps = resident_dump_items(resident.id)
+    recent = [{"numer": f"TF-{a.report_id:05d}" if a.report_id else None, "o": a.at.isoformat(), "punkty": a.points,
+               "powod": f"Trafne zgłoszenie kosza: {points[a.point_id].name}"} for a in awards] + dumps
+    total = sum(x["punkty"] for x in recent)
+    badges = [{"nazwa": n, "opis": d} for n, d, ok in BADGES if ok(awards, points)]
+    if any(x["punkty"] for x in dumps):
+        badges.append({"nazwa": DUMP_BADGE[0], "opis": DUMP_BADGE[1]})
+    return {"mieszkaniec": resident.nick, "punkty": total, "odznaki": badges,
+            "ostatnie": sorted(recent, key=lambda x: x["o"], reverse=True)[:10],
+            "zasady": [{"punkty": POINTS["bin"], "za": "Trafne zgłoszenie kosza (przy opróżnieniu kosz był pełny)"},
+                       {"punkty": POINTS["shelter"], "za": "Trafne zgłoszenie altany"},
+                       {"punkty": DUMP_POINTS, "za": f"Dzikie wysypisko ze zdjęciem po weryfikacji (najwyżej "
+                                                     f"{DUMP_DAILY_LIMIT} na dobę)"}],
+            "nagrody": [n | {"brakuje": max(0, n["prog"] - total)} for n in NAGRODY], "uwaga": NAGRODY_UWAGA}
 
 
 def rankings(limit=10):

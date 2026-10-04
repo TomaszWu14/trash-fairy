@@ -403,3 +403,64 @@ i do 3 pojazdów (w demo wystarcza jeden, więc liczby ze slajdów bez zmian: pi
 bez danych osobowych. Własna paczka ECharts (645 kB zamiast 1 MB). QR na slajdzie 1 = ten sam adres co na panelu kosza (`/kosz/18/zglos`).
 Poprawka z przeglądu: wiarygodność przycisku wyklucza zgłoszenia „uszkodzony/inne” zamiast wybierać „pełne” (symulowane naciśnięcia nie mają
 `report_id`, więc wybór gubił całą historię). Odrzuciliśmy kolejkę napraw odporną na odbiór (status „naprawiono”): wymaga roli serwisu, w ROADMAPA.
+
+## Zgłoszenie tylko przy koszu: dzienny kod QR i przycisk na panelu (niedz. 4.10, przed południem)
+
+**Mieszkaniec nie jest śmieciarzem: nie widzi mapy ani listy cudzych koszy.** Zgłasza przy koszu: naciska „Przepełniony” (albo „Inny problem”)
+na panelu albo skanuje kod QR z ekranu panelu i wybiera problem na jednym ekranie (problem → Wyślij, 2 dotknięcia). `/zglos` ma tylko skan
+i „Twoje zgłoszenia” z tego telefonu (localStorage, 5 ostatnich). Ochroną jest wyłącznie token kosza w kodzie QR: HMAC(SECRET_KEY, kosz + data
+w Krakowie), inny każdego dnia i dla każdego kosza, wczorajszy działa jeszcze godzinę po północy; panel przeładowuje się po północy, e-papier
+dostaje nowy kod przy pełnym odświeżeniu (klucz ETag zawiera token). Zegar ścienny, nie zegar demo. Przycisk panelu (`POST /api/kosze/<id>/przycisk`)
+nie wymaga QR: naciśnięcie fizycznego przycisku = obecność przy koszu; chroni go token urządzenia panelu, ten sam HMAC co w `POST /api/odczyty`,
+i limit 3 zgłoszeń na minutę z kosza. W demo panel to strona WWW, więc token urządzenia jest w jej HTML; prawdziwy panel liczy go sam z sekretu
+wgranego przy montażu. Jawny wyjątek demo: stały adres `/kosz/18/zglos` (slajdy, nagranie) zawsze daje dzisiejszy token kosza nr 18; dla innych
+koszy ten adres otwiera formularz bez tokenu. Odrzuciliśmy geolokalizację 150 m z kodem zmienianym co 10 minut: jury testuje zdalnie i nie
+przeklikałoby zgłoszenia, a GPS w kamienicach bywa zawodny; dzienny kod per kosz jest prostszy i nadal nie pozwala zgłaszać jutro ze zdjęcia kodu.
+
+## Dzikie wysypiska i punkty mieszkańców (niedz. 4.10, po południu)
+
+**Zgłoszenie bez kosza: położenie jest treścią zgłoszenia.** Mieszkaniec (z `/zglos`) i kierowca (dialog „Problem” → „Dzikie wysypisko
+w pobliżu”) zgłaszają odpady poza koszami na `/wysypisko`: pinezka na mapie (GPS, dotknięcie, środek mapy, przykład demo przy ROD
+„Grzegórzki”), rodzaje, liczba worków 1–100 albo „nie wiem”, opcjonalnie zdjęcie bez EXIF. Mapa pokazuje tylko pinezkę: bez koszy i cudzych
+zgłoszeń. AI (`app/llm.py`) tylko opisuje zdjęcie; status nadaje reguła (`app/wysypiska.py`): „Zweryfikowane AI” (widać odpady, pewność
+≥ 0,7), „Potwierdzone” (drugi telefon do 50 m w 72 h — dołącza do wysypiska zamiast tworzyć nowe), „Uprzątnięte” (ekipa), inaczej „Do
+weryfikacji”; bez klucza API też „Do weryfikacji”. Miejsce = wysypiska do 100 m w 90 dni, drabinka ta sama co przy podrzucaniu
+(`dumping.level`). Punkty: mieszkanka demo „Anna K.” dostaje +10/+15 za trafne zgłoszenie kosza (istniejące `award` po opróżnieniu) i +20
+za wysypisko ze zdjęciem po weryfikacji, najwyżej 3 dziennie; ekipa +3/+2 (`crew_dump_points`). Katalog nagród to propozycja dla miasta,
+bez partnerów i kwot. Odrzuciliśmy osobną tabelę miejsc i tabelę nagród za wysypiska: miejsca i punkty liczymy regułą przy odczycie
+(status tylko rośnie, więc suma się nie cofa), a jedna nowa tabela `dump_report` powstaje sama przez `db.create_all()`.
+
+**Punkty za wysypiska tylko za dowód, którego zgłaszający nie wyprodukuje sam (po recenzji).** Id telefonu przysyła telefon, więc
+„Potwierdzone” (drugie zgłoszenie) zostaje statusem dla dyspozytora, ale punktów nie daje; to samo konto nie potwierdza samo siebie.
+Punkty: pierwsze zgłoszenie, gdy zdjęcie wysypiska przeszło regułę AI albo „Uprzątnięte” oznaczył inny telefon (`cleared_by`); zgłoszenie
+dołączone do cudzego wysypiska tylko za własne zdjęcie zweryfikowane regułą. Konto demo „Anna K.” jest dopisywane do naciśnięcia po
+`record_press`, więc nie podnosi wagi ani nie „potwierdza” zgłoszeń koszy. Publicznie pokazujemy tylko zdjęcie zweryfikowane (widać odpady,
+bez osób). Odrzuciliśmy zapis skrótu IP przy każdym zgłoszeniu: wymagałby retencji jak przy IP naciśnięć, a „Uprzątnięte” i tak
+docelowo wymaga tokenu ekipy (jak `devices_api`), którego w demo nie ma.
+
+## Symulacja jury, wariant A i oszczędności 12 zł (niedz. 4.10, rano)
+
+**Symulacja trzech jurorów na dowodach z sondy, nie na wrażeniu.** `scripts/jury_check.py` zbiera zrzuty (1366×768, 390×844, kiosk
+1280×800), metryki (scroll, cele dotykowe, kolory spoza tokenów, fokus, axe, żargon) i budżety kliknięć; 7 analityków + sceptyk na każdą
+paczkę → `audit/JURY.md` (wynik wstępny 6,96/10 wg oficjalnych wag Smart City 30/20/20/20/10), `audit/PLAN-POPRAWEK.md`, `audit/WZORCE.md`.
+Odrzuciliśmy „klikanie na oko”: bez sondy nie da się powtórzyć oceny po poprawkach.
+
+**Wariant A „Centrum operacyjne” z PDF „3 kierunki UI”, motyw ciemny domyślny + jasny.** Tokeny w `tokens.css` dla `data-theme`
+dark/light (nazwy bez zmian, więc komponenty działają), Space Grotesk + IBM Plex Sans lokalnie, ikony stanów kształt + znak, mapa przez
+`--map-filter`. Każdy ekran autor zaakceptował na stronie z 3 pytaniami (12/12). Odrzuciliśmy osobny arkusz dla ciemnego motywu
+(rozjazd stylów) i domyślny motyw systemowy (wariant A jest ciemny z założenia).
+
+**Koszt odbioru 12 zł z rozpisanych składników zamiast stałej 4 zł.** Postój 3 min × (ekipa 3 × 45 zł/h + pojazd w postoju 105 zł/h);
+km 5 zł. Koszt historycznych odbiorów liczony w zapytaniu tą samą formułą (`cost_pln`), więc nowa stawka działa bez ponownego seedowania.
+„Kurs” to przejazd śmieciarki, pominięty kosz to „odbiór mniej”. Liczba ekip MPO: do ustalenia w pilotażu — oszczędność liczymy na odbiór,
+pokazujemy godziny pracy ekip. Odrzuciliśmy stałe 4 zł bez uzasadnienia (autor: „4 zł za wyjazd to absurdalna kwota”).
+
+**Rekomendacje z danych, miejsca podrzucania i punkty ekip — regułą.** `app/dumping.py` (≥ 2 tablica, ≥ 4 Straż Miejska, ≥ 6 albo
+powtarzalny dzień tygodnia → „rozważ fotopułapkę — decyzja gminy”), `app/crew_points.py` (+1/+3/+5 i wysypiska +3/+2, za sygnały,
+nie kliknięcia). O premii decyduje regulamin MPO, system daje dowód. Odrzuciliśmy ranking imienny kierowców (monitoring pracowników).
+
+**Podpowiedzi i przewodnik po stronie.** Teksty w jednym `podpowiedzi.json`, własny komponent `help.js` (ikonka „i”, chmurka, wycieczka
+3–7 kroków), strażnik `scripts/check_help.py`. Odrzuciliśmy bibliotekę typu Shepherd (zależność) i ikonki w nagłówku (decyzja autora).
+
+**„Panel kosza” jako symulacja urządzenia 10,1″.** Nagłówek aplikacji zostaje, ekran 1280×800 w ramce skalowany do okna;
+`?urzadzenie=1` = tryb sprzętu. Odrzuciliśmy pełnoekranowy kiosk w aplikacji (gubił nawigację i pasek scenariusza go zasłaniał).

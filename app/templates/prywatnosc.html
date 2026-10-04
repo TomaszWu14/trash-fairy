@@ -1,21 +1,59 @@
 {% extends "ui/base.html" %}
-{% block title %}Jak używamy danych{% endblock %}
-{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">{% endblock %}
+{% block title %}Prywatność{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='ui/doc.css') }}">
+<style>
+  /* Tabela jako karty na telefonie (tylko układ; kolory z tokenów motywu). */
+  @media (max-width: 720px) {
+    .doc table.stack { display: block; overflow: visible; }
+    .doc table.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .doc table.stack tbody, .doc table.stack tr { display: block; }
+    .doc table.stack tr { padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }
+    .doc table.stack tr:last-child { border-bottom: 0; }
+    .doc table.stack td { display: block; border: 0; padding: 2px 0; }
+    .doc table.stack td:first-child { font-weight: 700; color: var(--ink); }
+    .doc table.stack td[data-label]::before { content: attr(data-label); display: block; font-size: var(--fs-xs); color: var(--ink-3); font-weight: 600; }
+  }
+</style>{% endblock %}
 {% block content %}
 <div class="shell page"><article class="doc">
-  <h1>Jak używamy danych</h1>
+  <h1>Prywatność: jak używamy danych</h1>
   <p>Trash Fairy to prototyp z HackYeah 2026 dla MPO Kraków. Dane operacyjne (zapełnienie, odbiory, koszty, projekty) są syntetyczne.
-     Konta mieszkanki i kierowcy w demo są przykładowe: nie zbieramy danych osobowych.</p>
-  <table tabindex="0">
+     Konta mieszkanki i kierowcy w demo są przykładowe. Nie pytamy o imię, e-mail ani telefon.
+     Danymi osobowymi mogą być tylko adres IP (kasowany po 24 h) i zdjęcie, jeśli ktoś na nim jest (7 dni).</p>
+
+  <h2>Zgłoszenie mieszkańca</h2>
+  <p>Problem zgłaszasz tylko przy koszu: przyciskiem „Przepełniony” albo „Inny problem” na panelu kosza albo skanem kodu QR z tego panelu.
+     Kod QR zmienia się codziennie dla każdego kosza, więc zdjęcie kodu nie pozwoli zgłaszać jutro ani z innego kosza.
+     Dlatego nie potrzebujemy Twojego położenia.</p>
+  <table class="stack" tabindex="0">
     <thead><tr><th scope="col">Co</th><th scope="col">Po co</th><th scope="col">Jak długo</th></tr></thead>
     <tbody>
-      <tr><td>Zgłoszenie: kosz, rodzaj problemu, godzina, komentarz</td><td>status zgłoszenia, trasa kierowcy, statystyki miasta</td><td>jak historia odbiorów</td></tr>
-      <tr><td>Zdjęcie dołączone do zgłoszenia (opcjonalne)</td><td>podgląd dla kierowcy przy koszu</td><td>do czyszczenia komendą <code>cleanup-photos</code></td></tr>
-      <tr><td>Położenie telefonu</td><td>sprawdzenie, czy jesteś do 150 m od kosza</td><td><b>nie zapisujemy</b>: tylko porównanie w chwili zgłoszenia</td></tr>
-      <tr><td>Adres IP zgłoszenia</td><td>ochrona przed spamem</td><td><b>24 godziny</b>, potem usuwany automatycznie</td></tr>
-      <tr><td>Losowy identyfikator telefonu (w przeglądarce)</td><td>limit: jedno zgłoszenie kosza na minutę</td><td>licznik na 1 minutę</td></tr>
+      <tr><td>Zgłoszenie: kosz, rodzaj problemu, godzina, komentarz</td><td data-label="Po co">status zgłoszenia, trasa kierowcy, statystyki miasta</td><td data-label="Jak długo">jak historia odbiorów</td></tr>
+      <tr><td>Kod dnia z kodu QR na panelu kosza</td><td data-label="Po co">potwierdzenie, że zgłoszenie pochodzi sprzed tego kosza; kod zmienia się codziennie</td><td data-label="Jak długo">sprawdzamy w chwili zgłoszenia; nie mówi nic o Tobie</td></tr>
+      <tr><td>Zdjęcie dołączone do zgłoszenia (opcjonalne)</td><td data-label="Po co">podgląd dla kierowcy; opis zdjęcia przez model AI (Anthropic); zapisujemy bez metadanych EXIF (GPS, model aparatu)</td><td data-label="Jak długo"><b>7 dni</b>, potem usuwane automatycznie</td></tr>
+      <tr><td>Położenie telefonu</td><td data-label="Po co">niepotrzebne: zgłoszenie potwierdza kod QR albo przycisk na koszu</td><td data-label="Jak długo"><b>nie pobieramy</b> i nie zapisujemy</td></tr>
+      <tr><td>Adres IP zgłoszenia</td><td data-label="Po co">ochrona przed spamem</td><td data-label="Jak długo"><b>24 godziny</b>, potem usuwany automatycznie</td></tr>
+      <tr><td>Losowy identyfikator telefonu (w przeglądarce)</td><td data-label="Po co">limit: jedno zgłoszenie tego samego kosza na minutę</td><td data-label="Jak długo">licznik na 1 minutę</td></tr>
+      <tr><td>Lista Twoich zgłoszeń</td><td data-label="Po co">szybki podgląd statusu</td><td data-label="Jak długo">tylko w tej przeglądarce, nie wysyłamy jej</td></tr>
     </tbody>
   </table>
+  <p>Jeśli analiza zdjęcia wykryje osobę albo tablicę rejestracyjną, zdjęcie nie jest pokazywane publicznie.
+     W pilotażu administratorem danych byłoby MPO Kraków (do ustalenia w umowie).</p>
+
+  <h2>Dowód wykonania usługi i zdjęcia miejsc podrzucania</h2>
+  <p>Dowód dotyczy kosza, nie osoby. Przy odbiorze zapisujemy kosz, czas i odległość śmieciarki od kosza w chwili oznaczenia „Opróżniono”
+     (samo położenie pojazdu służy tylko do tego porównania), a w pilotażu także zdjęcie kosza. Zdjęcia miejsc, w których ktoś zostawia odpady obok kosza,
+     dokumentują miejsce i czas, nie ludzi.</p>
+  <ul>
+    <li><b>Nie fotografujemy celowo ludzi</b>: w kadrze ma być kosz. Metadane EXIF usuwamy przed zapisem. Zdjęcie, na którym analiza
+        wykryje osobę albo tablicę rejestracyjną, nie jest pokazywane publicznie i, jak każde zdjęcie, znika po 7 dniach.</li>
+    <li>Wyniki pokazujemy zbiorczo dla tras i dzielnic, nie dla pojedynczych pracowników.</li>
+    <li>Punkty zaangażowania liczymy dla trasy (ekipy) za potwierdzone sygnały; o premii decyduje regulamin MPO.</li>
+    <li>Położenie pojazdu i zdjęcia od ekipy to monitoring pracowników: tylko zgodnie z Kodeksem pracy i RODO,
+        z informacją dla załogi przekazaną z wyprzedzeniem, przed uruchomieniem.</li>
+    <li>System nie montuje kamer. Kamera albo fotopułapka przy miejscu podrzucania to wyłącznie rekomendacja, o której decyduje gmina.</li>
+  </ul>
+
   <p>Nie używamy ciasteczek reklamowych ani analityki. Masz prawo dostępu do danych, ich sprostowania, usunięcia i ograniczenia przetwarzania
      oraz skargi do Prezesa UODO.</p>
 </article></div>

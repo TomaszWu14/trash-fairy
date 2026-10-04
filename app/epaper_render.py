@@ -178,6 +178,8 @@ def render(state: str, data: dict | None = None, tri: bool = False) -> Image.Ima
     draw.rectangle([0, 61, W, 63], fill=BLACK)
 
     url = QR_TARGETS[d["qr"]].format(base=BASE_URL, dev=dev["device_no"])
+    if d["qr"] == "report" and dev.get("qr"):  # aplikacja podaje dzienny token kosza: skan od razu otwiera zgłoszenie
+        url = f"{BASE_URL}/zglos/{dev['device_no']}?qr={dev['qr']}"
     if state == "night":
         _shape(draw, "ok", 24, 120, 96, BLACK, WHITE)
         draw.text((144, 128), d["head"].upper(), font=_font("bold", 60), fill=BLACK)

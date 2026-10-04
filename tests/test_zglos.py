@@ -34,12 +34,12 @@ def test_reports_from_two_phones_merge(client, demo):
     assert Press.query.filter_by(point_id=p.id, kind="full").count() == 2
 
 
-def test_report_distance_allows_gps_accuracy_but_caps_it(client, demo):
+def test_report_gate_is_bin_token_not_location(client, demo):
     p = a_bin()
-    ok = report(client, p, klient="a", lat=p.lat + 0.0021, dokladnosc=120)  # ~233 m, GPS ±120 m
-    assert ok.status_code == 201, ok.json
-    spoof = report(client, p, klient="b", lat=p.lat + 0.0036, dokladnosc=5000)  # ~400 m, „±5 km” obcięte do 150
-    assert spoof.status_code == 403 and spoof.json["kod"] == "za_daleko"
+    far = report(client, p, klient="a", lat=p.lat + 0.0036)  # ~400 m: położenia nie sprawdzamy, ważny token wystarcza
+    assert far.status_code == 201, far.json
+    other_bin = report(client, p, klient="b", qr=qr_token(p.id + 1))  # kod z innego kosza nie przechodzi
+    assert other_bin.status_code == 403 and other_bin.json["kod"] == "brak_skanu_qr"
 
 
 def test_overflow_counts_as_full_and_is_noted(client, demo):

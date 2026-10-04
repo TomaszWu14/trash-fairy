@@ -1,8 +1,6 @@
 // Perspektywa kierowcy: trasa po priorytecie, karta kosza z akcjami jednym dotknięciem, nawigacja prowadzona w aplikacji (symulowany przejazd).
 (() => {
-  const { api, esc, gauge, fillBadge, frac, icon, toast } = window.TF;
-  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();  // kolory tylko z tokens.css
-  const BRAND = tok('--brand'), COLOR = { ok: tok('--fill-ok'), warn: tok('--fill-warn'), full: tok('--fill-full') };
+  const { api, esc, gauge, fillBadge, frac, icon, toast, stateIcon, lvl } = window.TF;  // kolory warstw mapy: klasy .mk-* / .route-bin (app.css)
   const POS_KEY = 'tf-pojazd';
   const DEPOT = [50.0702786, 20.0056628];
   const LEVELS = [0, 25, 50, 75, 100];
@@ -11,11 +9,11 @@
   const tiles = map => L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     { maxZoom: 19, className: 'tiles-soft', attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
   const truckIcon = () => L.divIcon({ className: '', html: `<span class="truck">${icon('truck')}</span>`, iconSize: [36, 36], iconAnchor: [18, 18] });
-  const pin = (level, n) => L.divIcon({ className: 'pin', html: gauge(level) + (n ? `<span class="k-num">${n}</span>` : ''), iconSize: [24, 28], iconAnchor: [12, 28] });
+  const pin = (level, n) => L.divIcon({ className: 'pin', html: gauge(level) + stateIcon(lvl(level)) + (n ? `<span class="k-num">${n}</span>` : ''), iconSize: [24, 28], iconAnchor: [12, 28] });
   const fmtM = m => m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;
   const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m} min`;
   // „dlaczego tu”: powód z reguły priorytetu (api_pl.powod); pełny kosz ma już kolor i ikonę w samym powodzie
-  const WHY = [['Zdjęcie', 'neutral', 'camera'], ['zgłosz', 'brand', 'message-square-text'], ['Pełny', 'full', 'circle-alert'], ['Prognoza', 'warn', 'trending-up']];
+  const WHY = [['Zdjęcie', 'neutral', 'camera'], ['zgłosz', 'report', 'message-square-text'], ['Pełny', 'full', 'circle-alert'], ['Prognoza', 'warn', 'trending-up']];
   const why = k => {
     const [, cls, ico] = WHY.find(([t]) => (k.powod || '').includes(t)) || [null, 'neutral', 'route'];
     return `<span class="badge ${cls}" title="Dlaczego na tej pozycji">${icon(ico)}${esc(k.powod || '')}</span>`;
@@ -55,8 +53,8 @@
           <b class="num">${k.poziom}%</b><span>${esc(k.powod)}</span></a></li>`).join('')
           + (more > 0 ? `<li class="hint">i ${more} mniej pełnych</li>` : '');
         layer.clearLayers();
-        if (d.linia.length > 1) L.polyline(d.linia, { color: BRAND, weight: 4, opacity: .75 }).addTo(layer);
-        todo.slice(5).forEach(k => L.circleMarker([k.lat, k.lon], { radius: 6, weight: 2, color: '#fff', fillColor: COLOR[window.TF.lvl(k.poziom)], fillOpacity: 1 })
+        if (d.linia.length > 1) L.polyline(d.linia, { className: 'route-bin', weight: 4, opacity: .85 }).addTo(layer);
+        todo.slice(5).forEach(k => L.circleMarker([k.lat, k.lon], { radius: 6, weight: 2, className: `mk mk-${lvl(k.poziom)}`, fillOpacity: 1 })
           .bindTooltip(`${TF.esc(k.nazwa)} · ${k.poziom}%`).on('click', () => location.href = `/kierowca/kosz/${k.id}`).addTo(layer));
         todo.slice(0, 5).forEach((k, i) => L.marker([k.lat, k.lon], { icon: pin(k.poziom, i + 1), title: k.nazwa, zIndexOffset: 1000 - i })
           .on('click', () => location.href = `/kierowca/kosz/${k.id}`).addTo(layer));
@@ -126,7 +124,7 @@
     try { path = (await api(`/api/trasa/dojazd?do=${id}&od=${from[0]},${from[1]}`)).sciezka; }
     catch (e) { path = [from, binLL]; }
     if (routeLine) routeLine.remove();
-    routeLine = L.polyline(path, { color: BRAND, weight: 6, opacity: .85 }).addTo(map);
+    routeLine = L.polyline(path, { className: 'route-bin', weight: 6, opacity: .9 }).addTo(map);
     map.fitBounds(routeLine.getBounds().pad(0.15));
     const cum = [0]; for (let i = 1; i < path.length; i++) cum.push(cum[i - 1] + segLen(path[i - 1], path[i]));
     const total = cum[cum.length - 1], tr = turns(path);

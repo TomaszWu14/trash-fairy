@@ -9,7 +9,7 @@
 |---|---|
 | ![Przegląd: cztery perspektywy, liczby z kodu i scenariusz demo w 6 krokach](docs/img/przeglad.png) | ![Dashboard miasta: KPI, koszty wobec planu, frakcje, dzielnice i mapa koszy](docs/img/dashboard.png) |
 | ![Telefon mieszkańca: zgłoszenie kosza w 3 krokach po zeskanowaniu kodu QR](docs/img/zglos.png) | ![Telefon kierowcy: trasa po priorytecie z postępem i przyciskami Jadę oraz Opróżniono](docs/img/kierowca.png) |
-| ![Panel na koszu (kiosk): zapełnienie widoczne z daleka, termin odbioru i kod QR](docs/img/panel.png) | ![Urządzenia na koszach: bateria, sygnał życia i status paneli oraz czujników](docs/img/urzadzenia.png) |
+| ![Panel kosza (kiosk): zapełnienie widoczne z daleka, termin odbioru i kod QR](docs/img/panel.png) | ![Urządzenia na koszach: bateria, sygnał życia i status paneli oraz czujników](docs/img/urzadzenia.png) |
 
 Przed i po przebudowie każdej perspektywy: [`audit/PRZED-PO.html`](audit/PRZED-PO.html). Jak poprowadzić pokaz w 3 minuty: [`DEMO.md`](DEMO.md).
 
@@ -34,7 +34,7 @@ kompaktor albo większy kosz. **Decyzje podejmują jawne reguły w kodzie, a AI 
 ```mermaid
 flowchart LR
   subgraph S[Sygnały]
-    K[Panel na koszu / kiosk<br/>kod QR]
+    K[Panel kosza / kiosk<br/>kod QR]
     M[Mieszkaniec PWA<br/>zgłoszenie + zdjęcie]
     D[Kierowca PWA<br/>Opróżniono / Problem]
     U[Czujniki i panele<br/>urządzenia]
@@ -109,7 +109,7 @@ Każdy ekran z danymi syntetycznymi ma plakietkę **„Dane demonstracyjne”** 
 | Adres | Perspektywa | Co robi |
 |---|---|---|
 | [`/`](https://trashfairy.twapp.pl/) | Przegląd | cztery perspektywy, liczby z kodu, **scenariusz demo w 6 krokach** i reset danych demo |
-| [`/panel/18`](https://trashfairy.twapp.pl/panel/18) | Panel na koszu | kiosk 1280×800: zapełnienie z daleka, termin odbioru, status zgłoszeń, kod QR do zgłoszenia |
+| [`/panel/18`](https://trashfairy.twapp.pl/panel/18) | Panel kosza | kiosk 1280×800: zapełnienie z daleka, termin odbioru, status zgłoszeń, kod QR do zgłoszenia |
 | [`/zglos`](https://trashfairy.twapp.pl/zglos) → `/zglos/<id>` → `/zgloszenie/<nr>` | Mieszkaniec | skan QR, mapa i najbliższe kosze, zgłoszenie w 3 krokach (tylko z kodem QR kosza i do 150 m), oś czasu statusu |
 | [`/kierowca`](https://trashfairy.twapp.pl/kierowca) → `/kierowca/kosz/<id>` | Kierowca | trasa po priorytecie z postępem, „Jadę” z nawigacją w aplikacji, „Opróżniono”, „Problem” |
 | [`/dashboard`](https://trashfairy.twapp.pl/dashboard) → `/dashboard/projekty/<slug>` | Dashboard miasta | KPI ze zmianą i trendem, koszty vs plan, frakcje, dzielnice, zgłoszenia, heatmapa, mapa, projekty; filtry i drill-down |

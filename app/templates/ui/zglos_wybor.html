@@ -1,23 +1,39 @@
 {% extends "ui/mieszkaniec_base.html" %}
 {% from "ui/_ui.html" import icon %}
 {% block title %}Zgłoś kosz{% endblock %}
+{% block head %}{{ super() }}<link rel="stylesheet" href="{{ url_for('static', filename='ui/wysypisko.css') }}">{% endblock %}
 {% block m_content %}
 <section class="m-card m-intro rise">
   <h1>Zgłoś problem z koszem</h1>
-  <p>Zeskanuj kod QR na panelu kosza. Zgłoszenie przyjmujemy tylko przy koszu, więc trafia tam, gdzie naprawdę jest problem.</p>
+  <p>Podejdź do kosza. Naciśnij przycisk na panelu albo zeskanuj kod QR z ekranu panelu.</p>
   <button class="btn btn-primary btn-xl m-scan" type="button" data-scan>{{ icon('scan-line', 'i-lg') }}Zeskanuj kod QR</button>
 </section>
 
-<section class="m-card rise" aria-labelledby="near-h">
-  <div class="m-head">
-    <h2 id="near-h">Kosze w pobliżu</h2>
-    <button class="btn btn-ghost btn-sm" type="button" data-locate>{{ icon('locate-fixed', 'i-sm') }}Moje położenie</button>
+<section class="m-card rise" aria-labelledby="wd-entry-h">
+  <div class="wd-entry">
+    <span class="wd-entry-i" aria-hidden="true">{{ icon('map-pin', 'i-lg') }}</span>
+    <div><h2 class="m-h2" id="wd-entry-h">Dzikie wysypisko poza koszem?</h2>
+      <p>Worki przed ogródkami działkowymi, gabaryty pod wiatą. Tu nie trzeba kodu QR: zaznaczasz miejsce na mapie.</p></div>
   </div>
-  <div class="m-map" id="m-map" role="region" aria-label="Mapa koszy w pobliżu"></div>
-  <p class="hint m-pos" id="m-pos">Położenie przyjęte w demo: Rynek Główny. Możesz użyć prawdziwego GPS.</p>
-  <ul class="m-list" id="m-list" aria-live="polite">
-    {% for _ in range(4) %}<li class="m-row"><span class="skel" style="width:32px;height:38px"></span><span class="skel" style="flex:1;height:36px"></span></li>{% endfor %}
-  </ul>
+  <a class="btn btn-xl wd-entry-btn" href="{{ url_for('wysypiska.page') }}">{{ icon('map-pin') }}Zgłoś dzikie wysypisko</a>
+</section>
+
+<section class="m-card rise" aria-labelledby="mine-h">
+  <h2 class="m-h2" id="mine-h">Twoje zgłoszenia</h2>
+  <ul class="m-list" id="m-mine"></ul>
+  <p class="hint" id="m-mine-empty">Z tego telefonu nie wysłano jeszcze żadnego zgłoszenia.</p>
+</section>
+
+<section class="m-card rise" id="wd-points" aria-labelledby="wd-pts-h" aria-live="polite">
+  <h2 class="m-h2" id="wd-pts-h">Twoje punkty</h2>
+  <div class="wd-pts-sum" id="wd-pts-sum"><span class="skel" style="width:120px;height:36px"></span></div>
+  <div class="wd-badges" id="wd-pts-badges"></div>
+  <p class="hint">Punkty tylko za potwierdzone zgłoszenia: trafne zgłoszenie kosza albo dzikie wysypisko ze zdjęciem po weryfikacji.</p>
+  <ul class="m-list" id="wd-pts-list"></ul>
+  <p class="hint" id="wd-pts-empty" hidden>Jeszcze nie ma punktów. Pojawią się po pierwszym potwierdzonym zgłoszeniu.</p>
+  <h3 class="wd-pts-h">Nagrody (propozycja)</h3>
+  <ul class="wd-rewards" id="wd-pts-rewards"></ul>
+  <p class="hint" id="wd-pts-note"></p>
 </section>
 
 <dialog class="modal" id="scan-dialog" aria-labelledby="scan-h">
@@ -31,3 +47,4 @@
   </div>
 </dialog>
 {% endblock %}
+{% block scripts %}{{ super() }}<script src="{{ url_for('static', filename='ui/wysypisko.js') }}" defer></script>{% endblock %}

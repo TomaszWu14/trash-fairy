@@ -160,6 +160,20 @@ def validate(data):
     return (mt, None) if mt else (None, "Dozwolone są tylko zdjęcia JPEG, PNG lub WebP.")
 
 
+def read_upload(upload):
+    """Plik z formularza → (bajty bez EXIF, typ, None) albo (None, None, komunikat). Brak pliku → (None, None, None)."""
+    if not upload or not upload.filename:
+        return None, None, None
+    raw = upload.read(MAX_BYTES + 1)
+    mt, error = validate(raw)
+    if not error:
+        try:
+            raw = strip_metadata(raw, mt)  # bez GPS i danych aparatu, zanim cokolwiek trafi na dysk
+        except Exception:  # sygnatura się zgadza, ale obrazu nie da się odczytać
+            error = "Nie udało się odczytać zdjęcia. Spróbuj innego pliku."
+    return (None, None, error) if error else (raw, mt, None)
+
+
 def photo_dir():
     path = Path(current_app.instance_path) / "photos"
     path.mkdir(parents=True, exist_ok=True)

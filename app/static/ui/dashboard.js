@@ -85,7 +85,7 @@
       yAxis: { type: 'value', scale: true, min: v => Math.floor(v.min * 0.92 / 5000) * 5000, axisLabel: { formatter: v => `${num(v / 1000)} tys.` } },
       series: [
         { name: 'Rzeczywiste', type: 'line', data: d.rzeczywiste, smooth: .3, symbol: 'circle', symbolSize: 6, lineStyle: { width: 3, color: C.brand },
-          itemStyle: { color: C.brand }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(91,61,245,.22)' }, { offset: 1, color: 'rgba(91,61,245,0)' }]) },
+          itemStyle: { color: C.brand }, areaStyle: { opacity: .25, color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: C.brand }, { offset: 1, color: C.surface }]) },
           markLine: w >= 0 ? { symbol: 'none', silent: true, lineStyle: { color: C.ink2, type: [4, 4] }, label: { formatter: 'Wdrożenie Trash Fairy', color: C.ink2, fontWeight: 600, position: 'insideEndTop' },
                                data: [{ xAxis: labels[w] }] } : undefined },
         { name: 'Plan (budżet)', type: 'line', data: d.plan, smooth: .3, symbol: 'none', lineStyle: { width: 2, type: [6, 4], color: C.ink3 }, itemStyle: { color: C.ink3 } },
@@ -101,10 +101,10 @@
     c.setOption({
       animation: TF.anim, tooltip: { trigger: 'item', formatter: p => `${p.name}<br><b>${num(p.value, 1)} t</b> · ${num(p.percent, 1)}%` },
       legend: { bottom: 0, top: 'auto', left: 'center' },
-      graphic: [{ type: 'text', left: 'center', top: '38%', style: { text: `${num(total, 0)} t`, font: `800 22px ${C.font}`, fill: C.ink, textAlign: 'center' } },
-                { type: 'text', left: 'center', top: '50%', style: { text: 'odpadów', font: `500 12px ${C.font}`, fill: C.ink3, textAlign: 'center' } }],
+      graphic: [{ type: 'text', left: 'center', top: '38%', style: { text: `${num(total, 0)} t`, font: `700 22px ${C.display}`, fill: C.ink, textAlign: 'center' } },
+                { type: 'text', left: 'center', top: '50%', style: { text: 'odpadów', font: `500 13px ${C.font}`, fill: C.ink3, textAlign: 'center' } }],
       series: [{ type: 'pie', radius: ['52%', '74%'], center: ['50%', '45%'], avoidLabelOverlap: true, label: { show: false }, padAngle: 2,
-                 itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+                 itemStyle: { borderRadius: 6, borderColor: C.surface, borderWidth: 2 },
                  emphasis: { scale: true, scaleSize: 6 },
                  data: rows.map(r => ({ name: r.etykieta, value: r.masa_t, key: r.frakcja, itemStyle: { color: C.frac[r.frakcja], opacity: sel && sel !== r.frakcja ? .3 : 1 } })) }],
     }, true);
@@ -151,8 +151,8 @@
       xAxis: { type: 'category', data: [...Array(24).keys()], splitArea: { show: false }, axisLabel: { interval: 2, color: C.ink3 } },
       yAxis: { type: 'category', data: DNI, inverse: true, axisLabel: { color: C.ink2, fontWeight: 600 } },
       visualMap: { min: 0, max, calculable: false, orient: 'horizontal', left: 'center', bottom: 0, itemWidth: 10, itemHeight: 120,
-                   inRange: { color: ['#F4F2FF', '#C9BCFF', '#8B6CFF', '#5B3DF5', '#2E1A9E'] }, textStyle: { color: C.ink3 }, text: ['więcej', 'mniej'] },
-      series: [{ type: 'heatmap', data: rows.map(r => [r[1], r[0], r[2]]), itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 3 } }],
+                   inRange: { color: [C.soft, C.brand] }, textStyle: { color: C.ink3 }, text: ['więcej', 'mniej'] },  // więcej = mocniejszy akcent w obu motywach
+      series: [{ type: 'heatmap', data: rows.map(r => [r[1], r[0], r[2]]), itemStyle: { borderColor: C.surface, borderWidth: 2, borderRadius: 3 } }],
     }, true);
   }
   let map, mapLayer;
@@ -166,9 +166,8 @@
     mapLayer.clearLayers();
     const kosze = d.kosze || [], hot = d.goraco || [], maxw = Math.max(1, ...hot.map(h => h[2]));
     TF.chartEmpty(document.getElementById('ch-mapa'), !kosze.length, 'Dla tych filtrów nie ma koszy na mapie.');
-    hot.forEach(([lat, lon, w]) => L.circle([lat, lon], { radius: 120 + 380 * (w / maxw), stroke: false, fillColor: C.full, fillOpacity: .08 + .22 * (w / maxw), interactive: false }).addTo(mapLayer));
-    const COL = { ok: C.ok, warn: C.warn, full: C.full };
-    kosze.forEach(k => L.circleMarker([k.lat, k.lon], { radius: k.live ? 6 : 5, weight: 1.5, color: '#fff', fillColor: COL[TF.lvl(k.zapelnienie)], fillOpacity: 1 })
+    hot.forEach(([lat, lon, w]) => L.circle([lat, lon], { radius: 120 + 380 * (w / maxw), stroke: false, className: 'mk-hot', fillOpacity: .08 + .22 * (w / maxw), interactive: false }).addTo(mapLayer));
+    kosze.forEach(k => L.circleMarker([k.lat, k.lon], { radius: k.live ? 6 : 5, weight: 1.5, className: `mk mk-${TF.lvl(k.zapelnienie)}`, fillOpacity: 1 })  // kolory: app.css .mk-*
       .bindTooltip(`<b>${esc(k.nazwa)}</b><br>${esc(k.adres || '')}<br>${esc(TF.FRAKCJE[k.frakcja] || '')} · ${num(k.zapelnienie)}%`)
       .on('click', () => details('kosz', k)).addTo(mapLayer));
     if (kosze.length && !st.mapFitted) { map.fitBounds(L.latLngBounds(kosze.map(k => [k.lat, k.lon])).pad(0.05)); st.mapFitted = true; }

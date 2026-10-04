@@ -1,0 +1,68 @@
+/* Tryb „Podpowiedzi” (help.js): przełącznik i przewodnik w nagłówku, ikonki „i”, chmurki. Wartości tylko z tokens.css. */
+
+/* ---------- przyciski w nagłówku: okrągłe ikony jak plakietka „Dane demonstracyjne”; nazwa dla czytnika w .help-lbl ---------- */
+.help-toggle, .help-tour { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+  padding: 0; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.help-toggle::after, .help-tour::after { content: ""; position: absolute; inset: -8px -3px; }  /* obszar dotyku 44 px wysokości */
+.help-toggle:hover, .help-tour:hover { color: var(--ink); border-color: var(--ink-3); }
+.help-toggle .i, .help-tour .i { width: 16px; height: 16px; }
+.help-ico { position: relative; display: inline-flex; }
+.help-toggle[aria-pressed="true"] { color: var(--brand); border-color: var(--brand-line); background: var(--brand-soft); }
+/* „wył.” to przekreślona ikona, nie tylko inny kolor */
+.help-toggle[aria-pressed="false"] .help-ico::after { content: ""; position: absolute; left: -2px; top: 7px; width: 20px; height: 2px;
+  border-radius: 1px; background: currentColor; box-shadow: 0 0 0 1px var(--surface); transform: rotate(-45deg); }
+.help-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- ikonka „i”: mała i stonowana, obszar kliknięcia 44 px przez pseudo-element ---------- */
+.help-i { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 20px; height: 20px;
+  margin-left: var(--s1); padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink-3); cursor: pointer;
+  vertical-align: middle; transition: color var(--t-fast) var(--ease); }
+.help-i::before { content: ""; position: absolute; inset: -12px; }
+.help-i .i { width: 16px; height: 16px; }
+.help-i:hover, .help-i[aria-expanded="true"] { color: var(--brand); }
+.help-i.at-corner { position: absolute; top: var(--s2); right: var(--s2); margin: 0; z-index: 1; }
+.help-off .help-i, [hidden] + .help-i { display: none; }
+.topbar-end .help-i { width: 16px; margin-left: -6px; }
+.topbar-end .help-i::before { inset: -14px -8px -14px 0; }  /* w ciasnym nagłówku 24 × 44 px, bez zabierania kliknięć sąsiadom */
+html:not(.help-off) .switcher:has(+ .help-i) { margin-right: 0; }
+.switcher + .help-i { margin: 0 auto 0 calc(-1 * var(--s2)); }
+
+/* ---------- chmurka podpowiedzi ---------- */
+.help-tip { position: fixed; z-index: 75; top: 0; left: 0; width: min(380px, calc(100vw - 2 * var(--s4))); padding: var(--s4);
+  border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); color: var(--ink-2); box-shadow: var(--shadow-3);
+  font-size: var(--fs-sm); line-height: var(--lh); text-align: left; animation: toast-in var(--t) var(--ease) both; }
+.help-tip p + p { margin-top: var(--s2); }
+.help-t { color: var(--ink); font-size: var(--fs-md); font-weight: 750; }
+.help-k { display: block; color: var(--brand-ink); font-size: var(--fs-xs); font-weight: 700; }
+
+/* ---------- przewodnik: przyciemnione tło (--scrim z motywu), obwódka wokół elementu, chmurka nad paskiem scenariusza (60) ---------- */
+.tour-bg { position: fixed; inset: 0; z-index: 70; }
+.tour-hl { position: fixed; z-index: 71; pointer-events: none; border-radius: var(--r-lg);
+  box-shadow: 0 0 0 3px var(--brand), 0 0 0 100vmax var(--scrim); }
+.tour { position: fixed; z-index: 72; top: 0; left: 0; width: min(400px, calc(100vw - 2 * var(--s4))); padding: var(--s5);
+  border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-3);
+  animation: toast-in var(--t-slow) var(--ease) both; }
+.tour:focus-visible { box-shadow: var(--shadow-3), var(--ring); }
+.tour-n { color: var(--brand-ink); font-size: var(--fs-xs); font-weight: 700; }
+.tour h2 { margin-top: var(--s1); font-size: var(--fs-lg); font-weight: 750; }
+.tour-x { margin-top: var(--s2); color: var(--ink-2); }
+.tour-act { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--s2); margin-top: var(--s4); }
+.tour-act [data-tour="prev"] { margin-right: auto; }
+
+/* ---------- .topbar-end bez poziomego przewijania (motyw, Podpowiedzi, Przewodnik, plakietka demo). W powłoce 1280 px
+   mieści się jeden napis: zostaje „Dane demonstracyjne”, reszta to okrągłe ikony z nazwą dla czytnika. Progi = pomiar
+   (brand 139, przełącznik perspektyw 681 / 236 px); pełny układ z napisami wymaga przeprojektowania nagłówka. ---------- */
+@media (min-width: 1101px) and (max-width: 1310px), (max-width: 860px) { .topbar-end .demo-tag span { display: none; } }
+@media (max-width: 720px) {
+  .topbar-end { margin-left: auto; gap: var(--s1); }  /* miejsce na przełącznik motywu, Podpowiedzi, Przewodnik i plakietkę demo */
+  .topbar-end .help-i { margin-left: -2px; }
+  html:not(.help-off) .switcher:has(+ .help-i) { width: calc(100% - 20px - var(--s4)); }
+  .switcher + .help-i { order: 3; margin: 0; }
+}
+/* telefon: chmurka i przewodnik jako panel na dole ekranu; „i” przy przełączniku podpowiedzi znika (390 px: brak miejsca),
+   bo sam przełącznik tłumaczy się komunikatem po kliknięciu */
+@media (max-width: 640px) {
+  .topbar-end .help-toggle + .help-i { display: none; }
+  .help-tip, .tour { top: auto; right: 0; bottom: 0; left: 0; width: auto; max-height: 60vh; overflow: auto; border-width: 1px 0 0;
+    border-radius: var(--r-xl) var(--r-xl) 0 0; padding-bottom: calc(var(--s5) + env(safe-area-inset-bottom)); }
+}

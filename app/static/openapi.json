@@ -361,12 +361,95 @@
         ]
       }
     },
+    "/api/kosze/{id}/przycisk": {
+      "post": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Przycisk na panelu kosza: zgłoszenie bez kodu QR (naciśnięcie = obecność przy koszu). token = token urządzenia panelu, ten sam HMAC co X-Token-Urzadzenia w /api/odczyty",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "typ": "przepelniony",
+                "token": "<token urządzenia panelu>"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Przyjęte: {komunikat}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nieznany typ problemu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Zły token panelu albo kosz bez panelu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nie ma takiego kosza",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Więcej niż 3 zgłoszenia na minutę z jednego kosza",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/zgloszenia": {
       "post": {
         "tags": [
           "Aplikacja"
         ],
-        "summary": "Zgłoszenie mieszkańca: tylko z tokenem QR kosza i do 150 m od niego; zdjęcie (multipart) bez EXIF idzie do analizy AI",
+        "summary": "Zgłoszenie mieszkańca: tylko z dziennym tokenem z kodu QR panelu tego kosza (bez sprawdzania położenia); zdjęcie (multipart) bez EXIF idzie do analizy AI",
         "responses": {
           "201": {
             "description": "OK",
@@ -389,7 +472,7 @@
             }
           },
           "403": {
-            "description": "Za daleko od kosza albo zły kod QR",
+            "description": "Brak albo nieaktualny kod QR (token kosza zmienia się codziennie; wczorajszy działa do 1:00)",
             "content": {
               "application/json": {
                 "schema": {
@@ -419,8 +502,6 @@
                 "kosz": 18,
                 "typ": "przepelniony",
                 "qr": "<token z kodu QR>",
-                "lat": 50.0614,
-                "lon": 19.9372,
                 "klient": "id-telefonu",
                 "komentarz": "Worki obok kosza"
               }
@@ -1091,6 +1172,255 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wysypiska": {
+      "post": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Zgłoszenie dzikiego wysypiska (mieszkaniec albo ekipa MPO): położenie, rodzaje, liczba worków; ze zdjęciem jako multipart (pole zdjecie, bez EXIF). Duplikat do 50 m od otwartego wysypiska z 72 h dołącza do niego; AI tylko opisuje zdjęcie, status nadaje reguła",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "lat": 50.06446,
+                "lon": 19.96446,
+                "rodzaj": [
+                  "bio",
+                  "tworzywa"
+                ],
+                "ilosc": 20,
+                "komentarz": "Worki przed bramą ogródków",
+                "klient": "id-telefonu",
+                "konto": "demo",
+                "zrodlo": "ekipa"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Przyjęte",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "numer": "WD-00001",
+                  "dolaczone": false,
+                  "status": "do_weryfikacji",
+                  "etykieta": "Do weryfikacji",
+                  "uzasadnienie": "Zgłoszenie bez zdjęcia: miejsce sprawdzi ekipa MPO.",
+                  "zdjecie": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Złe dane: brak położenia, miejsce poza Krakowem, rodzaj spoza listy, liczba poza 1–100, złe zdjęcie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Za często (telefon: 1 na 2 min, sieć: 20 na godzinę)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Dashboard miasta"
+        ],
+        "summary": "Dzikie wysypiska z 90 dni (otwarte i uprzątnięte, bez komentarzy i bez zdjęć z osobami) i miejsca powtórzeń (100 m) z drabinką: tablica, kontrola Straży Miejskiej, fotopułapka (decyzja gminy)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wysypiska/{nr}": {
+      "get": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Status zgłoszenia wysypiska dla zgłaszającego: do weryfikacji, zweryfikowane AI, potwierdzone, uprzątnięte",
+        "parameters": [
+          {
+            "name": "nr",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nie ma takiego zgłoszenia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wysypiska/{nr}/zdjecie": {
+      "get": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Zdjęcie wysypiska, tylko gdy analiza AI nie widzi osób ani tablic rejestracyjnych",
+        "parameters": [
+          {
+            "name": "nr",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Obraz JPEG, PNG albo WebP"
+          },
+          "404": {
+            "description": "Brak publicznego zdjęcia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wysypiska/{nr}/uprzatnieto": {
+      "post": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Ekipa MPO oznacza wysypisko jako uprzątnięte (status końcowy z czasem)",
+        "parameters": [
+          {
+            "name": "nr",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nie ma takiego zgłoszenia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Już uprzątnięte",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "klient": {
+                    "type": "string",
+                    "description": "Id telefonu; uprzątnięcie z telefonu zgłaszającego nie daje mu punktów"
+                  }
+                }
+              },
+              "example": {
+                "klient": "id-telefonu"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mieszkaniec/punkty": {
+      "get": {
+        "tags": [
+          "Aplikacja"
+        ],
+        "summary": "Punkty mieszkanki demo „Anna K.”: tylko za potwierdzone zgłoszenia, odznaki, ostatnie pozycje z powodem i katalog nagród jako propozycja dla miasta",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
                 }
               }
             }

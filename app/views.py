@@ -99,8 +99,12 @@ def button(point_id):
 
 @bp.get("/kosz/<int:point_id>/zglos")
 def qr_report(point_id):
-    """Adres z kodu QR na ekranie e-papieru: zgłoszenie z potwierdzonym skanem (token kosza)."""
+    """Stały adres (slajdy, stare naklejki). Świeży token tylko dla kosza demo: ten adres jest na slajdach i w nagraniu,
+    więc to jawny wyjątek demo. Inne kosze: formularz bez tokenu, bo stały adres mógłby wpisać każdy, z dowolnego miejsca;
+    zgłoszenie wymaga wtedy skanu dziennego kodu z panelu albo przycisku na koszu."""
     from .api_pl import qr_token
+    if point_id != DEMO_BIN_ID:
+        return redirect(url_for("ui.report", point_id=point_id))
     return redirect(url_for("ui.report", point_id=point_id, qr=qr_token(point_id)))
 
 

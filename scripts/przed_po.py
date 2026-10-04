@@ -5,7 +5,7 @@ import pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent / "audit"
 PAIRS = [  # (perspektywa, zrzut przed, zrzut po, co się zmieniło)
     ("Przegląd", "start-pokaz", "przeglad", "Jedna rola bez logowania, cztery perspektywy i scenariusz demo w 6 krokach zamiast widoku jury z 4 krokami."),
-    ("Panel na koszu", "epapier-18", "panel-18", "Kiosk 1280×800 czytelny z daleka: kosz-wskaźnik, termin odbioru, „Co tu wrzucać”, kod QR do zgłoszenia."),
+    ("Panel kosza", "epapier-18", "panel-18", "Kiosk 1280×800 czytelny z daleka: kosz-wskaźnik, termin odbioru, „Co tu wrzucać”, kod QR do zgłoszenia."),
     ("Mieszkaniec: wybór kosza", "zglos-wybor", "zglos-wybor", "Mapa i najbliższe kosze, skan kodu QR."),
     ("Mieszkaniec: zgłoszenie", "zglos-18", "zglos-18", "Trzy kroki, zgłoszenie tylko z kodem QR kosza i do 150 m, zdjęcie bez EXIF z weryfikacją AI."),
     ("Kierowca: trasa", "kierowca-zalogowany", "kierowca", "Lista po priorytecie z powodem („2 zgłoszenia · 113%”), postęp kursu, prognoza 85%."),
