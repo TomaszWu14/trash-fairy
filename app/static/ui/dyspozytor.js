@@ -9,7 +9,7 @@
   const hhmm = iso => new Date(iso).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
   const dur = m => m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m} min`;
   const km = v => num(v, 1);
-  const st = { seen: null, fitted: false, show: { bin: true, shelter: true }, last: null, focus: null };
+  const st = { seen: null, fitted: false, show: { bin: true, shelter: true }, last: null, wys: null, focus: null };
   const sc = TF.scenario(), q = new URLSearchParams(location.search);
   st.focus = q.get('kosz') ? +q.get('kosz') : sc.on && sc.v !== 'C' ? +(sc.bin || TF.demoBin) : null;
   const focusDump = sc.on && sc.v === 'C' ? sc.wd : null;
@@ -76,7 +76,9 @@
   // ---------- kafle ----------
   function renderKpis(k) {
     const set = (key, html) => { const el = document.querySelector(`[data-k="${key}"]`); if (el) el.innerHTML = html; };
-    set('zagrozone', num(k.zagrozone)); set('przepelnione', num(k.przepelnione)); set('km', km(k.km));
+    set('pilne', num(k.pilne)); set('pilne-l', TF.plural(k.pilne, ['pilny', 'pilne', 'pilnych']));  // ta sama liczba co na zakładce „Pilne”
+    set('pilne-s', `${num(k.juz)} już ponad 85%, ${num(k.zagrozone)} ${TF.plural(k.zagrozone, ['przekroczy', 'przekroczą', 'przekroczy'])} przed kursem`);
+    set('przepelnione', num(k.przepelnione)); set('km', km(k.km));
     set('kurs', `kurs ${esc(k.kurs)} · ${num(k.punkty)} ${TF.plural(k.punkty, ['punkt', 'punkty', 'punktów'])}, kosze uliczne`);
     set('odbiory', `−${num(k.odbiory_mniej_pct)}%`);
     set('porownanie', `vs stały harmonogram, ${num(k.tygodnie)} tygodnie (<a href="/metodologia">metodologia</a>)`);
@@ -87,8 +89,10 @@
   function urgentItem(k, now) {
     const [cls, txt] = PRIO[k.priorytet], kurs = k.kurs;
     const span = Math.max(1, (new Date(k.kurs_o || 0) - now) / 60000);
-    const when = k.juz ? `<b class="num">Powyżej 85% od ok. ${esc(k.prog)}</b>`
-      : `<b class="num">85% ok. ${esc(k.prog)}</b><span>za ${dur(k.za_min)}</span>`;
+    const crossed = k.prog_o && new Date(k.prog_o) <= now, why = k.powod ? k.powod[0].toUpperCase() + k.powod.slice(1) : '';
+    const when = !k.juz ? `<b class="num">85% ok. ${esc(k.prog)}</b><span>za ${dur(k.za_min)}</span>`
+      : crossed ? `<b class="num">Powyżej 85% od ok. ${esc(k.prog)}</b>`
+      : `<b>Do opróżnienia teraz</b><span>${esc(why)}</span>`;  // zgłoszenie mieszkańca albo poziom ponad 85% przed prognozą
     const pos = k.na_kursie ? `na trasie jako ${num(k.pozycja)}. z ${num(k.punktow)}` : 'poza trasą kursu';
     const act = k.dodany
       ? `<p class="dp-added">${icon('check', 'i-sm')}<span>Dodany do kursu ${esc(kurs)} · pierwszy na liście kierowcy</span></p>
@@ -108,8 +112,8 @@
     const box = document.getElementById('dp-pilne'), now = new Date(d.meta.zegar);
     document.getElementById('dp-n-pilne').textContent = d.pilne_liczba ? num(d.pilne_liczba) : '';
     box.innerHTML = d.pilne.length ? d.pilne.map(k => urgentItem(k, now)).join('')
-      + (d.pilne_liczba > d.pilne.length ? `<li class="dp-more">i ${num(d.pilne_liczba - d.pilne.length)} kolejnych na trasie najbliższego kursu</li>` : '')
-      : `<li class="dp-empty">${stateIcon('ok')}<span>Żaden kosz nie przekroczy 85% przed najbliższym kursem.</span></li>`;
+      + (d.pilne_liczba > d.pilne.length ? `<li class="dp-more">i ${num(d.pilne_liczba - d.pilne.length)} kolejnych, mniej pilnych</li>` : '')
+      : `<li class="dp-empty">${stateIcon('ok')}<span>Żaden kosz nie wymaga decyzji przed najbliższym kursem.</span></li>`;
   }
 
   // ---------- Ekipy i trasy ----------
@@ -206,12 +210,25 @@
     try {
       const [d, mapa, wys, rek] = await Promise.all([api('/api/dyspozytor'), api('/api/dashboard/wykresy/mapa').catch(() => null),
         api('/api/wysypiska').catch(() => null), api('/api/dashboard/rekomendacje').catch(() => null)]);  // bez warstw dodatkowych reszta działa
-      TF._mapa = mapa;
+      TF._mapa = mapa; st.wys = JSON.stringify(wys?.wysypiska || []);
+      const sig = JSON.stringify([d, mapa?.kosze, st.wys, rek?.podrzucanie, rek?.punkty_ekip]);
+      if (sig === st.last) return;  // bez zmian: listy i mapa zostają (fokus, otwarty dymek, rozwinięta grupa)
+      st.last = sig;
+      // fokus klawiatury wraca na ten sam element po podmianie listy (WCAG 2.4.3)
+      const a = document.activeElement, ds = a?.closest?.('.dp-pane') ? a.dataset : {}, pane = a?.closest?.('.dp-pane')?.id;
+      const keep = ds.lat ? `[data-lat="${ds.lat}"][data-lon="${ds.lon}"]` : ds.add || ds.undo ? `.dp-item[data-id="${ds.add || ds.undo}"] .dp-act .btn`
+        : ds.fleet ? `[data-fleet="${ds.fleet}"]` : null;  // „Dodaj” po zapisie staje się „Cofnij”: fokus zostaje przy koszu
       renderKpis(d.kafle); renderUrgent(d); renderFleets(d, rek); renderFeed(d, wys); renderMap(d, mapa, wys, rek);
+      if (keep && pane) document.querySelector(`#${pane} ${keep}`)?.focus();
     } catch (e) { toast(e.message, 'err'); }
     finally { busy = false; }
   }
   load();
-  setInterval(() => { if (!document.hidden) load(); }, 10000);  // zgłoszenia na żywo co ~10 s
-  TF.watch(() => load(), 4000);  // zgłoszenie, odbiór, przewinięcie zegara: od razu
+  // zgłoszenie, odbiór, przewinięcie zegara zmieniają wersję danych → od razu; wysypiska jej nie zmieniają, więc tylko ich lista co 10 s
+  TF.watch(() => load(), 4000);
+  setInterval(async () => {
+    if (document.hidden) return;
+    const w = await api('/api/wysypiska').catch(() => null);
+    if (w && JSON.stringify(w.wysypiska || []) !== st.wys) load();
+  }, 10000);
 })();

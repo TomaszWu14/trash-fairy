@@ -61,6 +61,9 @@ def test_simulated_scan_offers_bins_with_panel_and_todays_token(client, demo):
     assert len(bins) > 1 and any(b["losuj"] for b in bins)
     assert all(b["id"] in panels and b["qr"] == qr_token(b["id"]) and qr_valid(b["id"], b["qr"]) for b in bins)
     assert "Losuj inny" in html and 'id="scan-sim"' in html and "/zglos/18?qr=" in html  # bez JS: kosz demo
+    # nazwa kosza (jak na panelu), nie id; zmiana losowania ogłaszana czytnikowi ekranu
+    name18 = next(b["nazwa"] for b in bins if b["id"] == 18)
+    assert f'aria-live="polite">Wylosowany kosz: <b id="scan-sim-n">{name18}</b>' in html
 
 
 def test_success_screens_thank_and_lead_back(client, demo):

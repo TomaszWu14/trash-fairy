@@ -16,7 +16,7 @@
   <div class="dp-map" id="dp-map" role="region" aria-label="Mapa koszy na żywo: kształt stanu zapełnienia, trasy pojazdów, gorące obszary zgłoszeń i dzikie wysypiska"></div>
 
   <section class="dp-kpis" id="dp-kpis" aria-label="Sytuacja teraz" data-help="dyspozytor.kafle">
-    <article class="dp-kpi"><span class="dp-kpi-ico">{{ state_icon('warn') }}</span><div><p class="dp-kpi-v"><b class="num" data-k="zagrozone">–</b> zagrożonych</p><p class="dp-kpi-s">przekroczą 85% przed najbliższym kursem</p></div></article>
+    <article class="dp-kpi"><span class="dp-kpi-ico">{{ state_icon('warn') }}</span><div><p class="dp-kpi-v"><b class="num" data-k="pilne">–</b> <span data-k="pilne-l">pilnych</span></p><p class="dp-kpi-s" data-k="pilne-s">do decyzji przed najbliższym kursem</p></div></article>
     <article class="dp-kpi"><span class="dp-kpi-ico">{{ state_icon('full') }}</span><div><p class="dp-kpi-v"><b class="num" data-k="przepelnione">–</b> przepełnionych</p><p class="dp-kpi-s">80% i więcej teraz</p></div></article>
     <article class="dp-kpi"><span class="dp-kpi-ico dp-kpi-route">{{ icon('route') }}</span><div><p class="dp-kpi-v"><b class="num" data-k="km">–</b> km trasy</p><p class="dp-kpi-s" data-k="kurs">kosze uliczne</p></div></article>
     <article class="dp-kpi"><span class="dp-kpi-ico dp-kpi-good">{{ icon('trending-down') }}</span><div><p class="dp-kpi-v"><b class="num" data-k="odbiory">–</b> odbiorów</p><p class="dp-kpi-s" data-k="porownanie">vs stały harmonogram</p></div></article>
@@ -28,8 +28,9 @@
       <button type="button" role="tab" id="dp-t-trasy" aria-controls="dp-p-trasy" aria-selected="false" tabindex="-1">{{ icon('truck', 'i-sm') }}Ekipy i trasy</button>
       <button type="button" role="tab" id="dp-t-zgl" aria-controls="dp-p-zgl" aria-selected="false" tabindex="-1">{{ icon('message-square-text', 'i-sm') }}Zgłoszenia <span class="dp-count num" id="dp-n-zgl"></span></button>
     </div>
+    <p class="sr-only" id="dp-live" aria-live="polite"></p>
     <div class="dp-pane" role="tabpanel" id="dp-p-pilne" aria-labelledby="dp-t-pilne" tabindex="0" data-help="dyspozytor.pilne">
-      <p class="dp-lead">Przekroczą 85% przed najbliższym kursem. Kolejność ustala reguła, „Dodaj do kursu” to decyzja dyspozytora.</p>
+      <p class="dp-lead">Do opróżnienia teraz albo przekroczą 85% przed najbliższym kursem. Kolejność ustala reguła, „Dodaj do kursu” to decyzja dyspozytora.</p>
       <ul class="dp-list" id="dp-pilne"><li class="dp-skel"><span class="skel" style="height:120px"></span></li></ul>
     </div>
     <div class="dp-pane" role="tabpanel" id="dp-p-trasy" aria-labelledby="dp-t-trasy" tabindex="0" hidden data-help="dyspozytor.trasy">
@@ -41,7 +42,6 @@
     <div class="dp-pane" role="tabpanel" id="dp-p-zgl" aria-labelledby="dp-t-zgl" tabindex="0" hidden data-help="dyspozytor.zgloszenia">
       <p class="dp-lead">Ostatnie zgłoszenia przy koszach i dzikie wysypiska. Lista odświeża się sama.</p>
       <ul class="dp-list dp-feed" id="dp-zgl"></ul>
-      <p class="sr-only" id="dp-live" aria-live="polite"></p>
     </div>
   </aside>
 

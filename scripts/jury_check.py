@@ -237,7 +237,9 @@ def flows(b, vp):
         f.click(".dp-item .btn-add", "„Dodaj do kursu” przy pierwszym pilnym koszu")
         f.pg.locator(".dp-added").first.wait_for(state="visible", timeout=8000)
         note = f.pg.locator(".dp-added").first.inner_text().strip()
-        f.pg.click("[data-undo]")  # sprzątanie po sondzie (bez liczenia): decyzja cofnięta, trasa jak przed
+        with f.pg.expect_response(lambda r: "/api/dyspozytor/cofnij" in r.url):  # sprzątanie po sondzie (bez liczenia)
+            f.pg.click("[data-undo]")  # czekamy na zapis: przerwane żądanie zostawiłoby kosz na trasie na 24 h
+        assert f.pg.request.get(BASE + "/api/dyspozytor/dodane").json()["dodane"] == [], "sonda nie cofnęła „Dodaj do kursu”"
         return note
     run("Dyspozytor: dodać pilny kosz do najbliższego kursu", 2, dispatch)
 
@@ -269,7 +271,7 @@ def flows(b, vp):
         f.click('label.m-type:has(input[value="przepelniony"])', "Przepełniony")
         f.click("#m-send", "Wyślij")
         f.pg.locator("#m-success").wait_for(state="visible", timeout=15000)
-        for _ in range(3):  # panel → trasa kierowcy → karta kosza
+        for _ in range(4):  # panel → dyspozytor → trasa kierowcy → karta kosza
             f.click('[data-sc="next"]', "Scenariusz: Dalej")
         f.click('[data-akcja="jade"]', "Jadę")
         f.pg.wait_for_timeout(1500)
@@ -280,7 +282,7 @@ def flows(b, vp):
         f.click('[data-sc="next"]', "Scenariusz: Dalej")
         f.click('[data-sc="end"]', "Zakończ")
         return "wariant A, 7 kroków"
-    run("Scenariusz demo do końca (wariant A)", 3 + 7, scenario)
+    run("Scenariusz demo do końca (wariant A)", 3 + 8, scenario)  # +1: krok „Dyspozytor widzi zgłoszenie”
 
     def switch_any(f):
         bad = []

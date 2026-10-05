@@ -178,7 +178,7 @@
       {"sel": "#d-kpis", "tytul": "Najważniejsze liczby", "tekst": "Każdy kafelek ma wartość, zmianę wobec poprzedniego okresu i linię z 12 miesięcy. Najedź na strzałkę, żeby zobaczyć, czy zmiana jest na lepsze, czy na gorsze."},
       {"sel": ".kpi-oszczednosci", "tytul": "Ile oszczędzamy", "tekst": "Oszczędność to odbiory i kilometry mniej niż w planie bez Trash Fairy. „Jaki to plan?” rozpisuje cały rachunek."},
       {"sel": ".recs", "tytul": "Co zmienić w mieście", "tekst": "Rekomendacje liczą reguły w kodzie: pojemność koszy, miejsca podrzucania odpadów, dzikie wysypiska i punkty ekip. Decyzję zawsze podejmuje miasto."},
-      {"sel": "[data-chart=mapa]", "tytul": "Mapa koszy", "tekst": "Kształt znacznika mówi, jak pełny jest kosz teraz, a przerywane koła pokazują miejsca z największą liczbą zgłoszeń. Kliknij kosz, żeby zobaczyć jego dane."},
+      {"sel": ".c-link", "tytul": "Mapa na żywo", "tekst": "Mapa koszy, gorące obszary zgłoszeń i trasy ekip są w panelu dyspozytora — tam zapadają decyzje operacyjne, a dashboard zostaje przy liczbach dla miasta."},
       {"sel": "[data-chart=jakosc]", "tytul": "Jakość obsługi", "tekst": "Tabela pokazuje dla każdej dzielnicy, ile zgłoszeń obsłużono w 2 godziny i ile odbiorów potwierdzono daleko od kosza."},
       {"sel": ".dash-actions", "tytul": "Zabierz dane ze sobą", "tekst": "Wydrukuj stronę albo pobierz odbiory i zgłoszenia jako plik CSV. Plik ma te same filtry co ekran."}
     ],

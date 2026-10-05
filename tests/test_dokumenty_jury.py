@@ -108,3 +108,9 @@ def test_accessibility_covers_new_screens(client):
     html = client.get("/dostepnosc").get_data(as_text=True)
     assert "Panel kosza" in html and "ciemny (domyślny) i jasny" in html and "Podpowiedzi" in html
     assert "16 ekranów" in html and "200%" in html and "w pobliżu" not in html
+
+
+def test_api_docs_no_open_link_to_example_photo(client):
+    """Zdjęcie odbioru o przykładowym id nie istnieje (404), więc przy nim jest tylko curl, bez linku „Otwórz odpowiedź”."""
+    html = client.get("/api/docs").get_data(as_text=True)
+    assert "/api/odbiory/zdjecie/18" in html and 'href="/api/odbiory/zdjecie/18"' not in html

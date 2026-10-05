@@ -3,8 +3,9 @@
 Sprawdza na każdej stronie: (1) widoczne elementy interaktywne w <main> mają przodka [data-help] (raport braków),
 (2) każdy klucz data-help ma pełną treść w JSON, (3) klucze JSON niewidziane nigdzie i nieistniejące selektory przewodników
 i powitania (ostrzeżenia), (4) po wyłączeniu podpowiedzi nie ma widocznych ikonek „i”, (5) automat (navigator.webdriver)
-bez ?powitanie=1 nie dostaje powitania ani propozycji przewodnika, (6) _powitanie: 5–7 kroków, każdy z tytul i tekst.
-Kod wyjścia 1: (2), (4), (5) albo (6); z --scisle także (1).   Użycie: python scripts/check_help.py [--scisle]
+bez ?powitanie=1 nie dostaje powitania ani propozycji przewodnika, (6) _powitanie: 5–7 kroków, każdy z tytul i tekst,
+(7) człowiek dostaje powitanie samo na /, ale nie na stronach mieszkańca z QR/linku. Kod wyjścia 1: (2) i (4)–(7); z --scisle także (1).
+Użycie: python scripts/check_help.py [--scisle]
 """
 import json
 import pathlib
@@ -22,8 +23,10 @@ TXT = json.loads((pathlib.Path(__file__).resolve().parent.parent / "app/static/u
 TOURS = TXT.pop("_przewodniki", {})
 WELCOME = TXT.pop("_powitanie", [])
 
+# zakładkę (role=tab) objaśnia jej panel (aria-controls): ikonki „i” w tablist być nie może
 MISSING_JS = """sel => [...document.querySelectorAll(`main :is(${sel})`)]
-  .filter(e => !e.matches('.help-i') && e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden' && !e.closest('[data-help]'))
+  .filter(e => !e.matches('.help-i') && e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden' && !e.closest('[data-help]')
+    && !(e.getAttribute('role') === 'tab' && document.getElementById(e.getAttribute('aria-controls'))?.closest('[data-help]')))
   .map(e => `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}${[...e.classList].map(c => '.' + c).join('')}`
           + ` „${(e.getAttribute('aria-label') || e.textContent || e.value || '').trim().replace(/\\s+/g, ' ').slice(0, 40)}”`)"""
 VISIBLE_ICONS = "() => [...document.querySelectorAll('.help-i')].filter(e => e.getClientRects().length).length"
@@ -48,6 +51,24 @@ def bad_entry(v):
 def welcome_errors(steps):
     errs = [] if 5 <= len(steps) <= 7 else [f"JSON: _powitanie ma {len(steps)} kroków (ma mieć 5–7)"]
     return errs + [f"JSON: _powitanie, krok {i + 1} bez tytul albo tekst" for i, s in enumerate(steps) if not (s.get("tytul") and s.get("tekst"))]
+
+
+def human_entry_errors(b):
+    """(7) Człowiek (webdriver=false) przy pierwszej wizycie: powitanie samo na /, a tam, gdzie mieszkaniec wchodzi z QR/linku,
+    ani powitania, ani propozycji przewodnika."""
+    ctx = b.new_context(viewport={"width": 390, "height": 844})
+    ctx.add_init_script("Object.defineProperty(Navigator.prototype, 'webdriver', {get: () => false})")
+    pg, errs = ctx.new_page(), []
+    load(pg, BASE + "/panel/18")
+    qr = urlsplit(pg.get_attribute("#kiosk", "data-qr"))
+    for path, expected in ((f"{qr.path}?{qr.query}", False), ("/wysypisko", False), ("/", True)):
+        pg.evaluate("localStorage.removeItem('tf-powitanie')")
+        load(pg, BASE + path)
+        pg.wait_for_timeout(1600)  # propozycja przewodnika pojawia się po 1,2 s
+        if pg.evaluate(f"!!document.querySelector('{'.tour' if expected else '.tour, .tour-offer'}')") != expected:
+            errs.append(f"{path}: człowiek przy pierwszej wizycie " + ("nie dostał powitania" if expected else "dostał powitanie albo propozycję"))
+    ctx.close()
+    return errs
 
 
 def main():
@@ -95,6 +116,7 @@ def main():
                 errors.append(f"{path}: po wyłączeniu podpowiedzi widać {n} ikonek „i”")
             pg.evaluate("localStorage.setItem('tf-podpowiedzi', '1')")
             pg.close()
+        errors += human_entry_errors(b)
         b.close()
     warnings += [f"JSON: klucz „{k}” nie występuje na żadnej sprawdzanej stronie" for k in sorted(set(TXT) - seen)]
     print()

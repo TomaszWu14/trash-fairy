@@ -22,7 +22,7 @@ FULL_FROM = 80  # „przepełnione” = poziom ≥ 80%, jak kształt ■ na mapa
 URGENT_LIMIT = 12
 LIVE_HOURS = 24
 LIVE_LIMIT = 12
-SOURCE = {"qr": "kod QR z panelu", "button": "przycisk na panelu"}
+SOURCE = {"qr": "kod QR z panelu", "button": "przycisk na panelu kosza"}
 
 
 def _fleets(now):
@@ -30,23 +30,29 @@ def _fleets(now):
 
 
 def _urgent(now, states, fleets, added):
-    """Kosze, które przekroczą 85% przed najbliższym kursem swojej floty (albo już są powyżej): z prognozy silnika."""
+    """Kosze do decyzji przed najbliższym kursem swojej floty: stan „do opróżnienia” teraz (także po świeżym zgłoszeniu
+    mieszkańca) albo prognoza przekroczenia 85% przed kursem. Najpierw te, które już są ponad progiem."""
     points = {p.id: p for p in Point.live_query()}
     out = []
     for pid, s in states.items():
         crossing = datetime.fromisoformat(s["crossing"]) if s.get("crossing") else None
         p, fleet = points.get(pid), fleets.get(points[pid].kind) if pid in points else None
-        if p is None or fleet is None or crossing is None or crossing > datetime.fromisoformat(fleet["run_at"]):
+        if p is None or fleet is None:
+            continue
+        bad = s["state"] == "bad"
+        if not bad and (crossing is None or crossing > datetime.fromisoformat(fleet["run_at"])):
             continue
         stops = [st for r in [fleet, *fleet["extra_routes"]] for st in r["stops"]]
         pos = next((i for i, st in enumerate(stops, 1) if st["id"] == pid), None)
-        mins = max(0, round((crossing - now).total_seconds() / 60))
+        juz = bad or s["value"] > BAD_ABOVE or (crossing is not None and crossing <= now)
         out.append({"id": pid, "nazwa": p.name, "adres": _address(p), "rodzaj": p.kind, "poziom": round(s["value"]),
-                    "lat": p.lat, "lon": p.lon, "prog_o": crossing.isoformat(), "prog": time_label(crossing, now),
-                    "juz": crossing <= now, "za_min": mins, "priorytet": "krytyczne" if crossing <= now or s["value"] > BAD_ABOVE else "wysokie",
+                    "lat": p.lat, "lon": p.lon, "prog_o": crossing.isoformat() if crossing else None,
+                    "prog": time_label(crossing, now) if crossing else None, "juz": juz,
+                    "za_min": max(0, round((crossing - now).total_seconds() / 60)) if crossing else 0,
+                    "powod": s["reason"], "priorytet": "krytyczne" if juz else "wysokie",
                     "kurs": time_label(datetime.fromisoformat(fleet["run_at"]), now), "kurs_o": fleet["run_at"],
                     "na_kursie": pos is not None, "pozycja": pos, "punktow": len(stops), "dodany": pid in added})
-    out.sort(key=lambda k: (k["prog_o"], k["id"]))
+    out.sort(key=lambda k: (not k["juz"], k["prog_o"] or "", k["id"]))
     return out
 
 
@@ -58,9 +64,10 @@ def _live_reports(now):
     out = []
     for r, p in rows:
         first = Press.query.filter(Press.report_id == r.id).order_by(Press.at, Press.id).first()
+        kind = first.kind if first else None  # None = przycisk „pełny” na panelu kosza (symulacja, seed)
         out.append({"numer": numer(r.id), "kosz_id": p.id, "nazwa": p.name, "o": r.first_at.isoformat(), "osob": r.presses,
-                    "typ": KIND_LABEL.get(first.kind if first else None, "Zgłoszenie"),
-                    "zrodlo": SOURCE.get(first.source) if first and first.wall_at else None,
+                    "typ": KIND_LABEL.get(kind, "Zgłoszenie") if kind else "Przepełniony",
+                    "zrodlo": SOURCE.get(first.source) if first and first.wall_at else SOURCE["button"],
                     "zamkniete": r.hit is not None})
     return out
 
@@ -84,7 +91,7 @@ def overview():
                       "pojazdy": f["vehicles"], "zrobione": len(done), "wszystkie": len(ids | done),
                       "linia": line, "przyblizona": approx})
     return jsonify(
-        kafle={"zagrozone": sum(1 for k in urgent if not k["juz"]),
+        kafle={"pilne": len(urgent), "juz": sum(1 for k in urgent if k["juz"]), "zagrozone": sum(1 for k in urgent if not k["juz"]),
                "przepelnione": sum(1 for s in states.values() if (s.get("value") or 0) >= FULL_FROM),
                "km": bins["km"], "kurs": time_label(datetime.fromisoformat(bins["run_at"]), now),
                "punkty": sum(len(r["stops"]) for r in [bins, *bins["extra_routes"]]),

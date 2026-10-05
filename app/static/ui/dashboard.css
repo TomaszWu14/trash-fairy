@@ -105,7 +105,7 @@
 .rk-ladder li > b { font: 700 var(--fs-xl)/1.1 var(--font-display); color: var(--ink-2); }
 .rk-ladder li > b small { font: 600 var(--fs-xs) var(--font); color: var(--ink-3); }
 .rk-ladder li.on { background: var(--fill-warn-soft); border-color: var(--fill-warn); }
-.rk-ladder li.on > span, .rk-ladder li.on > b, .rk-ladder li.on > span .i, .rk-ladder li.on > b small { color: var(--fill-warn-ink); }
+.rk-ladder li.on > span, .rk-ladder li.on > b, .rk-ladder li.on > span .i, .rk-ladder li.on > b small, .rk-ladder li.on > small { color: var(--fill-warn-ink); }
 .rk-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); }
 .rk-stats div { display: grid; gap: 2px; padding: var(--s3); border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--line); min-width: 0; }
 .rk-stats b { font: 700 var(--fs-xl)/1.1 var(--font-display); }
@@ -195,7 +195,7 @@
 }
 /* podpowiedzi (help.js): ikonka filtrów jako ostatni element wiersza, nie w rogu karty; jest za ukrytym „Wyczyść filtry”,
    więc reguła [hidden] + .help-i z help.css by ją ukryła. Etykieta KPI nie wchodzi pod ikonkę w rogu kafla. */
-.filters > .help-i.at-corner { position: static; order: 1; margin-left: auto; }
+.filters > .help-i.at-corner { position: relative; top: auto; right: auto; order: 1; margin-left: auto; }  /* relative: obszar dotyku ::before przy ikonce, nie na całej karcie */
 :root:not(.help-off) .filters > .help-i { display: inline-flex; }
 :root:not(.help-off) .kpi[data-help]:not(.kpi-oszczednosci) .kpi-h { padding-right: var(--s4); }  /* oszczędności: w rogu jest tabela, nie etykieta */
 @media (max-width: 720px) {  /* help.js daje statycznemu formularzowi position: relative, a top z wersji sticky by go przesunął */

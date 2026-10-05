@@ -90,9 +90,10 @@ with sync_playwright() as p:
     pb.click('[data-typ="przepelniony"]'); pb.wait_for_selector("#k-ack.ok", timeout=8000)
     check("B1. przycisk na panelu przyjmuje zgłoszenie, „Dalej” staje się główne", pb.locator('[data-sc="next"].btn-primary').count() == 1,
           pb.text_content("#k-ack").strip()[:60])
+    pb.click('[data-sc="next"]'); pb.wait_for_url("**/dyspozytor*", timeout=8000); pb.wait_for_load_state("networkidle")
     pb.click('[data-sc="next"]'); pb.wait_for_url("**/kierowca", timeout=8000); pb.wait_for_timeout(1500)
     ids = pb.eval_on_selector_all("#k-stops a", "a => a.map(x => x.getAttribute('href'))")
-    check("B2. „Dalej” prowadzi do listy kierowcy, kosz 7 wśród zgłoszonych", "/kierowca/kosz/7" in ids[:15], ids[:3])
+    check("B2. „Dalej” prowadzi przez dyspozytora do listy kierowcy, kosz 7 wśród zgłoszonych", "/kierowca/kosz/7" in ids[:15], ids[:3])
 
     # ---------- wariant C: dzikie wysypisko (formularz z przykładem, zdjęcie demo, ekipa sprząta, punkty) ----------
     pc = b.new_page(viewport=VP["telefon"]); cerr = watch(pc)
@@ -112,7 +113,7 @@ with sync_playwright() as p:
     pb.close(); pc.close()
 
     # ---------- smoke: każdy ekran × każda rozdzielczość ----------
-    links = set()
+    links = {}  # adres → strona, na której go znaleźliśmy
     for vp, size in VIEWPORTS.items():
         pg = b.new_page(viewport={"width": size[0], "height": size[1]}); errs = watch(pg)
         for path in SCREENS:
@@ -122,10 +123,11 @@ with sync_playwright() as p:
             if r.status != want or hs:
                 check(f"{vp} {path}", False, f"HTTP {r.status}{', poziomy scroll' if hs else ''}")
             if vp == "desktop":
-                links |= {urljoin(pg.url, h).split("#")[0] for h in pg.eval_on_selector_all("a[href]", "a => a.map(x => x.getAttribute('href'))")}
+                links |= {urljoin(pg.url, h).split("#")[0]: path for h in pg.eval_on_selector_all("a[href]", "a => a.map(x => x.getAttribute('href'))")}
         check(f"smoke {vp}: {len(SCREENS)} ekranów bez 5xx i błędów JS", not errs, errs[:3])
         pg.close()
-    dead = [u for u in links - {BASE + "/nie-ma-takiej"} if urlparse(u).netloc == urlparse(BASE).netloc and desk.request.get(u).status >= 400]
+    st = {u: desk.request.get(u).status for u in links if u != BASE + "/nie-ma-takiej" and urlparse(u).netloc == urlparse(BASE).netloc}
+    dead = [f"{u} (HTTP {c}, ze strony {links[u]})" for u, c in st.items() if c >= 400]
     check(f"brak martwych linków ({len(links)} sprawdzonych)", not dead, dead[:5])
 
     # ---------- dashboard: każdy filtr, także pusty wynik ----------

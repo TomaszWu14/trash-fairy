@@ -479,3 +479,22 @@ a dashboard służy miastu do liczb; „Dodaj do kursu” jest decyzją człowie
 w `podpowiedzi.json` (95 wpisów, przewodniki 13 stron), powitanie i propozycja przewodnika nie pokazują się automatom
 (`navigator.webdriver`), żeby testy i zrzuty działały bez zmian. Checkpoint commitujemy przy zielonym pytest (448 testów), resztę
 etapu 2c (pokrycie podpowiedziami, poprawki recenzji, materiały z lektorem) dowozimy drugim PR przed 19:00.
+
+## Domknięcie etapu 2c (pon. 5.10)
+
+**Weryfikacja zamiast nowych funkcji.** Pokrycie podpowiedziami ścisłe (`check_help --scisle`: 0 braków), przewodnik dashboardu wskazuje
+odnośnik do dyspozytora zamiast usuniętej mapy, e2e i sonda jury znają krok „Dyspozytor” w scenariuszach A i B. Sonda r1 znalazła
+ikonkę „i” z `position: static`, której obszar dotyku zasłaniał filtry okresu — poprawka w CSS i strażnik w testach. Link „Otwórz
+odpowiedź” w `/api/docs` przy zdjęciu odbioru znikł (przykładowe id zawsze dawało 404). Odrzuciliśmy ponowną ocenę jurorów przez
+agentów: w JURY.md są tylko zmierzone liczby r0 → r1.
+
+**Pełny film demo 6–8 min obok krótkiego (pon. 5.10).** Autor: krótki film był „bardzo przyspieszony i pocięty”. `demo/film_pelny.py`
+nagrywa te same scenariusze bez przyspieszania: widoczny kursor dojeżdża do przycisku, kroki idą przyciskiem „Dalej” z paska scenariusza
+aplikacji (pasek „Krok x z y” zostaje w kadrze), napis trwa co najmniej 4 s, lektor najpierw mówi, potem jest klik; slajdy z PDF z wolnym
+zoomem, części łączy przenikanie. Lektor: 34 nagrania w `demo/lektor_pelny/` z łącznika ElevenLabs. Odrzuciliśmy wydłużenie krótkiego
+filmu (limit 3 min był warunkiem zgłoszenia) i klipy wideo AI (plan ElevenLabs nie ma generowania wideo).
+
+**Film 3 min zamiast 8 (pon. 5.10).** Autor: „nikt nie ma czasu tyle oglądać”. `demo/film_3min.py`: lektor ×1,15 (atempo), kliknięcia
+idą w trakcie mówienia, slajdy tylko 1–3 i 9, scenariusz z przyciskiem na panelu jako jedna scena AI, sceny AI z najazdem kamery
+(`demo/animacja/`). Nagrania lektora z obu istniejących zestawów, bo kredyty ElevenLabs się wyczerpały. Odrzuciliśmy przyspieszenie
+całego filmu 8-minutowego ×2,7 (nieczytelne kliknięcia i za szybki głos). Kolejne sceny AI czekają na dzienny limit obrazów ElevenLabs.

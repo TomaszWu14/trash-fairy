@@ -265,3 +265,28 @@ Sceptyk nie odrzucił w całości żadnego znaleziska. Odrzucił lub skorygował
 - Widoczne słowo „lepiej/gorzej” w chipie: ściska sparkline na telefonie; zamiast tego `sr-only` + `title`.
 - Przemianowanie „Odbiory CSV” i tekstu „pustych przyjazdów” w hero: niewarte ryzyka.
 - Wagi obniżone: reset demo (styl ghost, świadoma decyzja), pierścień fokusu, 12 px (nie łamie WCAG), 404/deklaracja (mało oglądane), tabela „Trafność” (nisko na stronie), naklejka QR w metodologii, „lepiej/gorzej” kolorem (strzałka i znak niosą kierunek).
+
+---
+
+## Runda r1: sonda po zmianach (5.10.2026)
+
+Ta sama sonda (`python scripts/jury_check.py r1 <axe.min.js>`, wynik w `audit/jury/r1/`), 33 zrzuty ekranów (r0: 31, doszedł dyspozytor
+i status zgłoszenia). Ocen jurorów nie powtarzaliśmy: poniżej tylko liczby zmierzone automatem.
+
+| Metryka (wszystkie ekrany × rozdzielczości) | r0 | r1 |
+|---|---|---|
+| Naruszenia axe (WCAG 2.1 A/AA) | 2 | **0** |
+| Kolory i tła spoza `tokens.css` | 27 | **0** |
+| Poziomy scroll (także przy 200%) | 0 | 0 |
+| Niewidoczny fokus klawiatury | 0 | 0 |
+| Ekrany bez przełącznika perspektyw | 1 (panel) | **0** |
+| Ścieżki w budżecie kliknięć i bez błędu (laptop) | 6 z 12 | **11 z 14** |
+| Zgłoszenie z kodu QR | 5 kliknięć (budżet 3) | **2 (budżet 2)** |
+| Elementy < 44 px (pole widoczne, nie obszar dotyku) | 456 | 820 |
+
+Wyjaśnienia: „małe cele” urosły przez okrągłe przyciski podpowiedzi w nagłówku (28 px, obszar dotyku 44 px dają pseudo-elementy, których
+sonda nie mierzy) i linki stopki (21 px wysokości) na każdym ekranie. Poza budżetem zostają: „Opróżniono” od strony głównej (3/2, liczy
+wejście w perspektywę), filtr dashboardu (3/2, lista dzielnic to 2 dotknięcia) i pełny scenariusz demo (15/11: 7 kroków narracji).
+
+Sonda znalazła błąd, który poprawiliśmy: ikonka podpowiedzi filtrów dashboardu miała `position: static`, więc jej obszar dotyku rozlewał
+się na całą kartę filtrów i przechwytywał kliknięcia w „Kwartał/Rok/Zakres” (strażnik: `tests/test_podpowiedzi.py::test_help_icon_never_static`).

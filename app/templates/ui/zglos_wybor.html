@@ -54,7 +54,9 @@
     {% set sb = (pool | selectattr('id', 'equalto', demo_bin_id) | first) or (pool | first) or {'id': demo_bin_id, 'qr': demo_qr} %}
     <div class="m-sim">
       <p class="hint">Bez aparatu? W demo udajesz skan kodu z panelu wylosowanego kosza.</p>
-      <a class="btn btn-primary" id="scan-sim" href="{{ url_for('ui.report', point_id=sb.id, qr=sb.qr) }}">{{ icon('qr-code') }}<span>Symuluj skan kodu kosza nr <span class="num" id="scan-sim-n">{{ sb.id }}</span></span></a>
+      {# nazwa, nie id: numer w nazwie kosza nie zawsze równa się id, a panel pokazuje nazwę #}
+      <p class="m-sim-bin" aria-live="polite">Wylosowany kosz: <b id="scan-sim-n">{{ sb.nazwa | default('Kosz nr ' ~ sb.id) }}</b></p>
+      <a class="btn btn-primary" id="scan-sim" href="{{ url_for('ui.report', point_id=sb.id, qr=sb.qr) }}">{{ icon('qr-code') }}<span>Symuluj skan kodu</span></a>
       <button class="btn btn-ghost btn-sm" type="button" id="scan-roll" hidden>{{ icon('refresh-cw') }}Losuj inny</button>
     </div>
   </div>

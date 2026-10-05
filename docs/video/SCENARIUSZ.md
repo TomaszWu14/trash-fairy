@@ -1,8 +1,16 @@
-# Film 2:00: scenariusz (wersja z napisami, bez lektora i muzyki)
+# Film 2:00: scenariusz (napisy + lektor, bez muzyki)
 
 Film nagrywa i skleja skrypt: `python demo/build_all.py --base https://trashfairy.twapp.pl --tylko film` → `demo/demo_trash-fairy.mp4`
-(H.264 1920×1080, 30 fps, ≤ 120 s). Playwright nagrywa prawdziwą aplikację w motywie ciemnym, kółko pokazuje każde kliknięcie,
-a ładowanie stron i czekanie (dojazd nawigacji, analiza zdjęcia) jest wycięte. Napisy to nakładka w stronie, w fontach aplikacji.
+(H.264 1920×1080, 30 fps, ≤ 120 s). Playwright nagrywa prawdziwą aplikację w motywie ciemnym na ekranie laptopa 1280×720
+(w filmie powiększony 1,5×, czytelny w małym odtwarzaczu), kółko pokazuje każde kliknięcie, a ładowanie stron i czekanie
+(dojazd nawigacji, analiza zdjęcia) jest wycięte. Napisy to nakładka w stronie, w fontach aplikacji, nad okienkami;
+pasek „Krok x z y” scenariusza jest w filmie ukryty, bo dublowałby napisy.
+
+**Lektor:** męski polski głos z ElevenLabs (`eleven_multilingual_v2`). Klucz `ELEVENLABS_API_KEY` i opcjonalnie
+`ELEVENLABS_VOICE_ID` (domyślnie głos „Adam” z biblioteki ElevenLabs, bez imitacji prawdziwych osób) skrypt bierze ze zmiennych
+środowiska albo z `.env`; klucza nie wypisuje. Lektor czyta napis każdej sceny (numery TF-/WD- i punkty pomija), scena trwa
+co najmniej tyle, ile jego nagranie, a klipy trafiają na oś filmu przez `adelay` + `amix`. Bez klucza film powstaje bez dźwięku
+(ostrzeżenie w logu). Gdyby całość przekroczyła 120 s, skrypt przyspiesza ją równo (obraz i głos, `atempo`).
 Skrypt sprawdza każdy krok (numer zgłoszenia, „Opróżniono”, status „Zrealizowane”, punkty); brak ekranu dyspozytora albo „Dziękujemy!”
 tylko ostrzega w logu. Przed nagraniem i po nim resetuje dane demo (to samo API co przycisk „Resetuj dane demo”).
 Pliki `pl.srt` i `en.srt` obok to napisy starej wersji z lektorem (opisują nieaktualne reguły i kwoty): nie używać.
@@ -15,8 +23,8 @@ Pliki `pl.srt` i `en.srt` obok to napisy starej wersji z lektorem (opisują niea
 | Plansza | 2 s | „Scenariusz 1” | Przepełniony kosz: od zgłoszenia do odbioru |
 | S1 | ok. 55 s | `/` | Kraków opróżnia kosze według kalendarza. Trash Fairy: według potrzeb. |
 | | | `/?scenariusz=A&kosz=18` (okienko scenariusza) | Scenariusz demo: mieszkanka przy koszu nr 18 |
-| | | Panel kosza `/panel/18` | Panel kosza: zapełnienie, termin odbioru i kod QR zmieniany codziennie |
-| | | klik w kod QR → `/zglos/18?qr=…` | Skan kodu QR otwiera zgłoszenie tego kosza → „Przepełniony” i Wyślij |
+| | | Panel kosza `/panel/18` | Prognoza: N% (liczba z panelu). Kosz jest pełny – zgłoszenie to sygnał spoza prognozy → Kod QR na panelu zmienia się codziennie |
+| | | klik w kod QR → `/zglos/18?qr=…` | Skan otwiera zgłoszenie tego kosza → „Przepełniony” i Wyślij |
 | | | potwierdzenie z numerem | Zgłoszenie TF-… przyjęte: numer i status od razu |
 | | | Panel kosza | Panel kosza potwierdza zgłoszenie |
 | | | `/dyspozytor` | Dyspozytor widzi pilne kosze, trasy i ekipy na żywo |

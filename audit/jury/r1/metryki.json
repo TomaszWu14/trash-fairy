@@ -1,0 +1,4569 @@
+{
+ "przeglad": {
+  "laptop": {
+   "title": "Przegląd · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1901,
+   "headings": [
+    "H1: Kosze opróżniane wtedy, gdy trzeba.",
+    "H2: Cztery perspektywy jednej historii",
+    "H3: Panel kosza",
+    "H3: Mieszkaniec",
+    "H3: Kierowca MPO",
+    "H3: Dashboard miasta",
+    "H2: Scenariusz demo: trzy historie, jedna losowana",
+    "H3: Przepełniony kosz: kod QR",
+    "H3: Przepełniony kosz: przycisk na panelu",
+    "H3: Dzikie wysypisko"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 61,
+    "Space Grotesk": 17
+   },
+   "fontSizes": {
+    "16px": 9,
+    "20px": 7,
+    "14px": 42,
+    "13px": 10,
+    "12px": 2,
+    "56px": 2,
+    "18px": 6
+   },
+   "radii": {
+    "10px": 6,
+    "999px": 4,
+    "6px": 1,
+    "8px": 1
+   },
+   "btnHeights": {
+    "64px": 1,
+    "36px": 1,
+    "44px": 1
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Trash Fairy w skrócie (20×20)",
+    "Podpowiedź: Puste przyjazdy do koszy (20×20)",
+    "Podpowiedź: Przepełnienia altan (20×20)",
+    "Podpowiedź: Roczna oszczędność dla Krakowa (20×20)",
+    "Symulacja 4 tygodni: jak to policzyliśmy (280×21)",
+    "Podpowiedź: Cztery perspektywy (20×20)",
+    "Podpowiedź: Scenariusz demo (20×20)",
+    "Resetuj dane demo (176×36)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)"
+   ],
+   "smallTargetsN": 26,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API",
+    "frakcji"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Przegląd · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 3365,
+   "headings": [
+    "H1: Kosze opróżniane wtedy, gdy trzeba.",
+    "H2: Cztery perspektywy jednej historii",
+    "H3: Panel kosza",
+    "H3: Mieszkaniec",
+    "H3: Kierowca MPO",
+    "H3: Dashboard miasta",
+    "H2: Scenariusz demo: trzy historie, jedna losowana",
+    "H3: Przepełniony kosz: kod QR",
+    "H3: Przepełniony kosz: przycisk na panelu",
+    "H3: Dzikie wysypisko"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 59,
+    "Space Grotesk": 17
+   },
+   "fontSizes": {
+    "16px": 9,
+    "18px": 8,
+    "12px": 7,
+    "13px": 13,
+    "36px": 2,
+    "14px": 32,
+    "20px": 5
+   },
+   "radii": {
+    "10px": 6,
+    "999px": 4,
+    "6px": 1,
+    "8px": 1
+   },
+   "btnHeights": {
+    "64px": 1,
+    "36px": 1,
+    "44px": 1
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Trash Fairy w skrócie (20×20)",
+    "Podpowiedź: Puste przyjazdy do koszy (20×20)",
+    "Podpowiedź: Przepełnienia altan (20×20)",
+    "Podpowiedź: Roczna oszczędność dla Krakowa (20×20)",
+    "Symulacja 4 tygodni: jak to policzyliśmy (280×21)",
+    "Podpowiedź: Cztery perspektywy (20×20)",
+    "Podpowiedź: Scenariusz demo (20×20)",
+    "Resetuj dane demo (316×36)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 21,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API",
+    "frakcji"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "panel-18": {
+  "kiosk": {
+   "title": "Panel: Kosz Rynek 18 · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 870,
+   "headings": [
+    "H2: Zgłoś na miejscu",
+    "H1: Kosz Rynek 18"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 40,
+    "Space Grotesk": 10
+   },
+   "fontSizes": {
+    "16px": 13,
+    "20px": 11,
+    "14px": 15,
+    "12px": 2,
+    "160px": 1,
+    "64px": 1,
+    "18px": 3,
+    "48px": 1,
+    "26px": 1,
+    "13px": 2
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Zapełnienie kosza (15×15)",
+    "Podpowiedź: Zgłoś na miejscu (15×15)",
+    "Podpowiedź: Najbliższy odbiór (15×15)",
+    "Podpowiedź: Kod QR do zgłoszenia (15×15)",
+    "Pełny ekran (jak na urządzeniu) (226×21)",
+    "Podpowiedź: Symulacja panelu (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 24,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  },
+  "telefon": {
+   "title": "Panel: Kosz Rynek 18 · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1408,
+   "headings": [
+    "H2: Zgłoś na miejscu",
+    "H1: Kosz Rynek 18"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 38,
+    "Space Grotesk": 8
+   },
+   "fontSizes": {
+    "16px": 8,
+    "18px": 6,
+    "12px": 7,
+    "78px": 1,
+    "31.2px": 1,
+    "14px": 19,
+    "26px": 1,
+    "20px": 1,
+    "13px": 2
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Zapełnienie kosza (20×20)",
+    "Podpowiedź: Zgłoś na miejscu (20×20)",
+    "Podpowiedź: Najbliższy odbiór (20×20)",
+    "Podpowiedź: Kod QR do zgłoszenia (20×20)",
+    "Pełny ekran (jak na urządzeniu) (226×21)",
+    "Podpowiedź: Symulacja panelu (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 19,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "zglos-wybor": {
+  "laptop": {
+   "title": "Zgłoś kosz · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1477,
+   "headings": [
+    "H1: Zgłoś problem z koszem",
+    "H2: Dzikie wysypisko poza koszem?",
+    "H2: Twoje zgłoszenia",
+    "H2: Twoje punkty",
+    "H3: ZA CO SĄ PUNKTY",
+    "H3: NAJBLIŻSZA NAGRODA"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 47,
+    "Space Grotesk": 22
+   },
+   "fontSizes": {
+    "16px": 5,
+    "20px": 4,
+    "14px": 35,
+    "13px": 19,
+    "12px": 2,
+    "26px": 1,
+    "18px": 2,
+    "44px": 1
+   },
+   "radii": {
+    "999px": 2,
+    "10px": 1
+   },
+   "btnHeights": {
+    "64px": 1
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Konto demo (20×20)",
+    "Podpowiedź: Jak zgłosić problem (20×20)",
+    "Podpowiedź: Twoje zgłoszenia (20×20)",
+    "Podpowiedź: Twoje punkty (20×20)",
+    "Podpowiedź: Najbliższa nagroda (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 23,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Zgłoś kosz · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1721,
+   "headings": [
+    "H1: Zgłoś problem z koszem",
+    "H2: Dzikie wysypisko poza koszem?",
+    "H2: Twoje zgłoszenia",
+    "H2: Twoje punkty",
+    "H3: ZA CO SĄ PUNKTY",
+    "H3: NAJBLIŻSZA NAGRODA"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 45,
+    "Space Grotesk": 22
+   },
+   "fontSizes": {
+    "16px": 5,
+    "18px": 4,
+    "12px": 7,
+    "13px": 18,
+    "14px": 29,
+    "26px": 1,
+    "20px": 2,
+    "44px": 1
+   },
+   "radii": {
+    "999px": 2,
+    "10px": 1
+   },
+   "btnHeights": {
+    "64px": 1
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Konto demo (20×20)",
+    "Podpowiedź: Jak zgłosić problem (20×20)",
+    "Podpowiedź: Twoje zgłoszenia (20×20)",
+    "Podpowiedź: Twoje punkty (20×20)",
+    "Podpowiedź: Najbliższa nagroda (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 18,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "zglos-18": {
+  "laptop": {
+   "title": "Zgłoś: Kosz Rynek 18 · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1106,
+   "headings": [
+    "H1: Kosz Rynek 18"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 44,
+    "Space Grotesk": 6
+   },
+   "fontSizes": {
+    "16px": 5,
+    "20px": 3,
+    "14px": 23,
+    "13px": 15,
+    "12px": 2,
+    "18px": 2
+   },
+   "radii": {
+    "999px": 1,
+    "10px": 1
+   },
+   "btnHeights": {
+    "64px": 1
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Konto demo (20×20)",
+    "Podpowiedź: Zgłoszenie tego kosza (20×20)",
+    "Podpowiedź: Komentarz i zdjęcie (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 21,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Zgłoś: Kosz Rynek 18 · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1211,
+   "headings": [
+    "H1: Kosz Rynek 18"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 42,
+    "Space Grotesk": 6
+   },
+   "fontSizes": {
+    "16px": 5,
+    "18px": 4,
+    "12px": 7,
+    "13px": 14,
+    "14px": 17,
+    "20px": 1
+   },
+   "radii": {
+    "999px": 1,
+    "10px": 1
+   },
+   "btnHeights": {
+    "64px": 1
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Konto demo (20×20)",
+    "Podpowiedź: Zgłoszenie tego kosza (20×20)",
+    "Podpowiedź: Komentarz i zdjęcie (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 16,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie",
+    "Nie mieści się więcej",
+    "Worki lub śmieci przy koszu",
+    "Zepsuty, przewrócony, bez klapy",
+    "Opiszesz w komentarzu"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "kierowca": {
+  "laptop": {
+   "title": "Trasa kierowcy · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 884,
+   "headings": [
+    "H1: Kierowca MPO · trasa K-07",
+    "H2: Kosze po priorytecie"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 260,
+    "Space Grotesk": 120
+   },
+   "fontSizes": {
+    "16px": 113,
+    "20px": 3,
+    "14px": 82,
+    "13px": 69,
+    "12px": 2,
+    "18px": 56,
+    "10px": 1,
+    "15px": 54
+   },
+   "radii": {
+    "10px": 2,
+    "14px": 54
+   },
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Twój kurs (20×20)",
+    "Podpowiedź: Postęp kursu (20×20)",
+    "Podpowiedź: Mapa trasy (20×20)",
+    "Podpowiedź: Kosze po priorytecie (20×20)",
+    "Podpowiedź: Pominięte w tym kursie (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 23,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie",
+    "1.",
+    "2.",
+    "3.",
+    "4.",
+    "5.",
+    "6.",
+    "7.",
+    "8."
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 6,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Trasa kierowcy · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 6820,
+   "headings": [
+    "H1: Kierowca MPO · trasa K-07",
+    "H2: Kosze po priorytecie"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 258,
+    "Space Grotesk": 120
+   },
+   "fontSizes": {
+    "16px": 113,
+    "18px": 58,
+    "12px": 7,
+    "14px": 76,
+    "20px": 1,
+    "13px": 68,
+    "10px": 1,
+    "15px": 54
+   },
+   "radii": {
+    "10px": 2,
+    "14px": 54
+   },
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Twój kurs (20×20)",
+    "Podpowiedź: Postęp kursu (20×20)",
+    "Podpowiedź: Mapa trasy (20×20)",
+    "Podpowiedź: Kosze po priorytecie (20×20)",
+    "Podpowiedź: Pominięte w tym kursie (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 18,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie",
+    "1.",
+    "2.",
+    "3.",
+    "4.",
+    "5.",
+    "6.",
+    "7.",
+    "8."
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 6,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "kierowca-kosz-18": {
+  "laptop": {
+   "title": "Kosz Rynek 18 · trasa · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 825,
+   "headings": [
+    "H1: Kosz Rynek 18"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 33,
+    "Space Grotesk": 9
+   },
+   "fontSizes": {
+    "16px": 14,
+    "20px": 2,
+    "14px": 18,
+    "13px": 4,
+    "12px": 2,
+    "26px": 1,
+    "44px": 1
+   },
+   "radii": {
+    "10px": 5,
+    "14px": 1
+   },
+   "btnHeights": {
+    "88px": 3
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Stan kosza (20×20)",
+    "Podpowiedź: Czy kosz jest na kursie (20×20)",
+    "Podpowiedź: Zgłoszenia mieszkańców (20×20)",
+    "Podpowiedź: Ile było w koszu? (20×20)",
+    "INPUT (1×1)",
+    "Podpowiedź: Jadę, Opróżniono, Problem (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 24,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Kosz Rynek 18 · trasa · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1327,
+   "headings": [
+    "H1: Kosz Rynek 18"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 31,
+    "Space Grotesk": 9
+   },
+   "fontSizes": {
+    "16px": 11,
+    "18px": 2,
+    "12px": 7,
+    "14px": 15,
+    "20px": 1,
+    "13px": 3,
+    "26px": 1
+   },
+   "radii": {
+    "10px": 5,
+    "14px": 1
+   },
+   "btnHeights": {
+    "76px": 3
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Stan kosza (20×20)",
+    "Podpowiedź: Czy kosz jest na kursie (20×20)",
+    "Podpowiedź: Zgłoszenia mieszkańców (20×20)",
+    "Podpowiedź: Ile było w koszu? (20×20)",
+    "INPUT (1×1)",
+    "Podpowiedź: Jadę, Opróżniono, Problem (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 19,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "dyspozytor": {
+  "laptop": {
+   "title": "Panel dyspozytora · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 838,
+   "headings": [
+    "H1: Panel dyspozytora MPO"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 106,
+    "Space Grotesk": 34
+   },
+   "fontSizes": {
+    "16px": 33,
+    "20px": 14,
+    "14px": 30,
+    "13px": 56,
+    "12px": 2,
+    "32px": 1,
+    "44px": 4
+   },
+   "radii": {
+    "999px": 12,
+    "6px": 12
+   },
+   "btnHeights": {
+    "36px": 12
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Sytuacja teraz (20×20)",
+    "Kosz Rynek 02 (208×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 09 (208×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 01 (208×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 31 (208×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 03 (211×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 07 (211×24)"
+   ],
+   "smallTargetsN": 45,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie",
+    "Panel dyspozytora MPO"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Panel dyspozytora · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 3573,
+   "headings": [
+    "H1: Panel dyspozytora MPO"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 104,
+    "Space Grotesk": 34
+   },
+   "fontSizes": {
+    "16px": 33,
+    "18px": 2,
+    "12px": 7,
+    "32px": 1,
+    "26px": 4,
+    "13px": 58,
+    "20px": 12,
+    "14px": 21
+   },
+   "radii": {
+    "999px": 12,
+    "6px": 12
+   },
+   "btnHeights": {
+    "36px": 12
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Sytuacja teraz (20×20)",
+    "Kosz Rynek 02 (166×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 09 (166×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 01 (166×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 31 (166×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 03 (169×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 07 (169×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 14 (166×24)",
+    "Na początek kursu 14:00 (214×36)",
+    "Kosz Rynek 05 (166×24)",
+    "Na początek kursu 14:00 (214×36)"
+   ],
+   "smallTargetsN": 40,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie",
+    "Panel dyspozytora MPO"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "dashboard": {
+  "laptop": {
+   "title": "Dashboard miasta · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 3896,
+   "headings": [
+    "H1: Dashboard miasta",
+    "H2: Rekomendacje z danych",
+    "H3: Pojemność i częstotliwość",
+    "H3: Miejsca podrzucania odpadów",
+    "H3: Dzikie wysypiska",
+    "H3: Punkty ekip",
+    "H2: Koszty odbioru: rzeczywiste i plan",
+    "H2: Frakcje w masie odpadów",
+    "H2: Dzielnice: koszty według frakcji",
+    "H2: Zgłoszenia i czas reakcji",
+    "H2: Jakość obsługi w dzielnicach",
+    "H2: Kiedy kosze się przepełniają",
+    "H2: Kolejka napraw",
+    "H3: Brak uszkodzeń do naprawy",
+    "H2: Mapa na żywo i decyzje — w panelu dyspozytora Kosz",
+    "H2: Projekty i inicjatywy"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 199,
+    "Space Grotesk": 94
+   },
+   "fontSizes": {
+    "16px": 35,
+    "20px": 12,
+    "14px": 104,
+    "13px": 127,
+    "12px": 2,
+    "26px": 3,
+    "30px": 9,
+    "18px": 1
+   },
+   "radii": {
+    "6px": 7,
+    "10px": 27,
+    "8px": 3,
+    "999px": 5
+   },
+   "btnHeights": {
+    "36px": 7
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Widoki, wydruk i eksport (20×20)",
+    "Wskaźniki (113×32)",
+    "Urządzenia (119×32)",
+    "Drukuj lub zapisz PDF (194×36)",
+    "Odbiory CSV (132×36)",
+    "Zgłoszenia CSV (151×36)",
+    "miesiac (81×34)",
+    "kwartal (83×34)",
+    "rok (57×34)",
+    "zakres (76×34)",
+    "Wszystkie dzielnice Stare Miasto Grzegórzki Krowod (194×43)",
+    "Wszystkie frakcje Papier Metale i tworzywa Szkło B (185×43)"
+   ],
+   "smallTargetsN": 63,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie",
+    "Dzielnica",
+    "Frakcja",
+    "Projekt",
+    ", lepiej niż w poprzednim okresie",
+    "Oszczędności w złotych, przeliczenie liniowe",
+    ", lepiej niż w poprzednim okresie",
+    ", lepiej niż w poprzednim okresie",
+    ", lepiej niż w poprzednim okresie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 1,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "CSV",
+    "frakcje",
+    "frakcji",
+    "frakcję"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Dashboard miasta · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 9767,
+   "headings": [
+    "H1: Dashboard miasta",
+    "H2: Rekomendacje z danych",
+    "H3: Pojemność i częstotliwość",
+    "H3: Miejsca podrzucania odpadów",
+    "H3: Dzikie wysypiska",
+    "H3: Punkty ekip",
+    "H2: Koszty odbioru: rzeczywiste i plan",
+    "H2: Frakcje w masie odpadów",
+    "H2: Dzielnice: koszty według frakcji",
+    "H2: Zgłoszenia i czas reakcji",
+    "H2: Jakość obsługi w dzielnicach",
+    "H2: Kiedy kosze się przepełniają",
+    "H2: Kolejka napraw",
+    "H3: Brak uszkodzeń do naprawy",
+    "H2: Mapa na żywo i decyzje — w panelu dyspozytora Kosz",
+    "H2: Projekty i inicjatywy"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 190,
+    "Space Grotesk": 94
+   },
+   "fontSizes": {
+    "16px": 35,
+    "18px": 3,
+    "12px": 7,
+    "13px": 121,
+    "26px": 3,
+    "14px": 96,
+    "20px": 19
+   },
+   "radii": {
+    "6px": 5,
+    "10px": 27,
+    "8px": 3,
+    "999px": 5
+   },
+   "btnHeights": {
+    "36px": 5
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Widoki, wydruk i eksport (20×20)",
+    "Wskaźniki (113×32)",
+    "Urządzenia (119×32)",
+    "Drukuj lub zapisz PDF (194×36)",
+    "miesiac (72×34)",
+    "kwartal (72×34)",
+    "rok (72×34)",
+    "zakres (72×34)",
+    "Wszystkie dzielnice Stare Miasto Grzegórzki Krowod (332×43)",
+    "Wszystkie frakcje Papier Metale i tworzywa Szkło B (332×43)",
+    "Wszystkie projekty Edukacja segregacji – Podgórze  (332×43)",
+    "Podpowiedź: Filtry dashboardu (20×20)",
+    "Jaki to plan? (128×32)",
+    "Podpowiedź: Oszczędności wobec planu (20×20)",
+    "Podpowiedź: CO₂ mniej niż w planie (20×20)",
+    "Podpowiedź: Odbiory (20×20)",
+    "Podpowiedź: Anomalie ekipy (20×20)"
+   ],
+   "smallTargetsN": 56,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie",
+    "Dzielnica",
+    "Frakcja",
+    "Projekt",
+    ", lepiej niż w poprzednim okresie",
+    "Oszczędności w złotych, przeliczenie liniowe",
+    ", lepiej niż w poprzednim okresie",
+    ", lepiej niż w poprzednim okresie",
+    ", lepiej niż w poprzednim okresie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 1,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "frakcje",
+    "frakcji",
+    "frakcję"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "projekt": {
+  "laptop": {
+   "title": "Odbiory na żądanie – Stare Miasto · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1793,
+   "headings": [
+    "H1: Odbiory na żądanie – Stare Miasto",
+    "H2: Kluczowy efekt: odbiory na dzień",
+    "H2: Koszt odbioru",
+    "H2: Liczba odbiorów",
+    "H2: Zapełnienie przy odbiorze",
+    "H2: Czas reakcji na zgłoszenie"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 36,
+    "Space Grotesk": 13
+   },
+   "fontSizes": {
+    "16px": 11,
+    "20px": 2,
+    "14px": 17,
+    "13px": 12,
+    "12px": 2,
+    "26px": 1,
+    "30px": 4
+   },
+   "radii": {
+    "999px": 1,
+    "10px": 9
+   },
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Kluczowy efekt (20×20)",
+    "Podpowiedź: Postęp (20×20)",
+    "Podpowiedź: Budżet (20×20)",
+    "Podpowiedź: Start i koniec (20×20)",
+    "Podpowiedź: Wykres kluczowego efektu (20×20)",
+    "Podpowiedź: Koszt odbioru (20×20)",
+    "Podpowiedź: Liczba odbiorów (20×20)",
+    "Podpowiedź: Zapełnienie przy odbiorze (20×20)",
+    "Podpowiedź: Czas reakcji na zgłoszenie (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)"
+   ],
+   "smallTargetsN": 27,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Odbiory na żądanie – Stare Miasto · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 3081,
+   "headings": [
+    "H1: Odbiory na żądanie – Stare Miasto",
+    "H2: Kluczowy efekt: odbiory na dzień",
+    "H2: Koszt odbioru",
+    "H2: Liczba odbiorów",
+    "H2: Zapełnienie przy odbiorze",
+    "H2: Czas reakcji na zgłoszenie"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 34,
+    "Space Grotesk": 13
+   },
+   "fontSizes": {
+    "16px": 11,
+    "18px": 2,
+    "12px": 7,
+    "14px": 11,
+    "13px": 11,
+    "26px": 1,
+    "20px": 4
+   },
+   "radii": {
+    "999px": 1,
+    "10px": 9
+   },
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Kluczowy efekt (20×20)",
+    "Podpowiedź: Postęp (20×20)",
+    "Podpowiedź: Budżet (20×20)",
+    "Podpowiedź: Start i koniec (20×20)",
+    "Podpowiedź: Wykres kluczowego efektu (20×20)",
+    "Podpowiedź: Koszt odbioru (20×20)",
+    "Podpowiedź: Liczba odbiorów (20×20)",
+    "Podpowiedź: Zapełnienie przy odbiorze (20×20)",
+    "Podpowiedź: Czas reakcji na zgłoszenie (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 22,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "urzadzenia": {
+  "laptop": {
+   "title": "Urządzenia na koszach · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1863,
+   "headings": [
+    "H1: Dashboard miasta",
+    "H2: Wymaga uwagi 7",
+    "H2: Sprawne 95"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 140,
+    "Space Grotesk": 51
+   },
+   "fontSizes": {
+    "16px": 20,
+    "20px": 2,
+    "14px": 62,
+    "13px": 86,
+    "12px": 2,
+    "26px": 1,
+    "30px": 5,
+    "18px": 13
+   },
+   "radii": {
+    "10px": 17,
+    "8px": 2,
+    "999px": 11
+   },
+   "btnHeights": {
+    "44px": 1
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Wskaźniki (113×32)",
+    "Urządzenia (119×32)",
+    "INPUT (98×34)",
+    "panel (77×34)",
+    "czujnik (84×34)",
+    "Wszystkie dzielnice Grzegórzki Nowa Huta Stare Mia (194×43)",
+    "INPUT (174×34)",
+    "brak_sygnalu (203×34)",
+    "bateria_krytyczna (245×34)",
+    "autotest (195×34)",
+    "wymiana_30 (241×34)",
+    "ok (140×34)"
+   ],
+   "smallTargetsN": 37,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie",
+    "Dzielnica"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Urządzenia na koszach · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 4763,
+   "headings": [
+    "H1: Dashboard miasta",
+    "H2: Wymaga uwagi 7",
+    "H2: Sprawne 95"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 138,
+    "Space Grotesk": 51
+   },
+   "fontSizes": {
+    "16px": 20,
+    "18px": 15,
+    "12px": 7,
+    "13px": 85,
+    "26px": 1,
+    "14px": 56,
+    "20px": 5
+   },
+   "radii": {
+    "10px": 17,
+    "8px": 2,
+    "999px": 11
+   },
+   "btnHeights": {
+    "44px": 1
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Wskaźniki (113×32)",
+    "Urządzenia (119×32)",
+    "INPUT (96×34)",
+    "panel (96×34)",
+    "czujnik (96×34)",
+    "Wszystkie dzielnice Grzegórzki Nowa Huta Stare Mia (332×43)",
+    "INPUT (174×34)",
+    "brak_sygnalu (203×34)",
+    "bateria_krytyczna (245×34)",
+    "autotest (195×34)",
+    "wymiana_30 (241×34)",
+    "ok (140×34)",
+    "Podpowiedź: Filtry urządzeń (20×20)",
+    "Podpowiedź: Urządzenia aktywne (20×20)",
+    "Podpowiedź: Baterie do wymiany (20×20)",
+    "Podpowiedź: Bez sygnału > 48 h (20×20)",
+    "Podpowiedź: Odczyty w ostatniej dobie (20×20)"
+   ],
+   "smallTargetsN": 32,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie",
+    "Dzielnica"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "metodologia": {
+  "laptop": {
+   "title": "Jak liczymy · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 6084,
+   "headings": [
+    "H1: Jak liczymy i skąd są dane",
+    "H2: Najważniejsze wyniki",
+    "H2: Porównanie: stały harmonogram kontra Trash Fairy (",
+    "H2: Koszt odbioru, kilometra i CO₂",
+    "H3: Skąd 12 zł za odbiór",
+    "H2: Skala: cały Kraków",
+    "H2: Koszt pilotażu i zwrot (50 koszy w Dzielnicy I)",
+    "H2: Rekomendacje z danych",
+    "H3: Miejsca podrzucania odpadów",
+    "H3: Punkty zaangażowania ekipy",
+    "H2: Źródła danych i licencje",
+    "H2: Rola AI",
+    "H2: Ograniczenia",
+    "H2: Przejrzystość",
+    "H2: Szczegóły techniczne"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 195,
+    "Space Grotesk": 94,
+    "ui-monospace": 13
+   },
+   "fontSizes": {
+    "16px": 46,
+    "20px": 13,
+    "14px": 210,
+    "13px": 9,
+    "12px": 2,
+    "26px": 5,
+    "18px": 4,
+    "13.76px": 13
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Wyniki (68×36)",
+    "Porównanie (100×36)",
+    "Koszt odbioru (112×36)",
+    "Skala Krakowa (118×36)",
+    "Pilotaż (69×36)",
+    "Rekomendacje (119×36)",
+    "Szczegóły (88×36)",
+    "porównanie (69×17)",
+    "Podpowiedź: Puste przyjazdy (20×20)",
+    "Podpowiedź: Przepełnienia altan (20×20)",
+    "skąd (28×17)",
+    "Podpowiedź: Skala Krakowa (20×20)"
+   ],
+   "smallTargetsN": 31,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Jak liczymy · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 8753,
+   "headings": [
+    "H1: Jak liczymy i skąd są dane",
+    "H2: Najważniejsze wyniki",
+    "H2: Porównanie: stały harmonogram kontra Trash Fairy (",
+    "H2: Koszt odbioru, kilometra i CO₂",
+    "H3: Skąd 12 zł za odbiór",
+    "H2: Skala: cały Kraków",
+    "H2: Koszt pilotażu i zwrot (50 koszy w Dzielnicy I)",
+    "H2: Rekomendacje z danych",
+    "H3: Miejsca podrzucania odpadów",
+    "H3: Punkty zaangażowania ekipy",
+    "H2: Źródła danych i licencje",
+    "H2: Rola AI",
+    "H2: Ograniczenia",
+    "H2: Przejrzystość",
+    "H2: Szczegóły techniczne"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 193,
+    "Space Grotesk": 94,
+    "ui-monospace": 13
+   },
+   "fontSizes": {
+    "16px": 47,
+    "18px": 5,
+    "12px": 7,
+    "26px": 1,
+    "14px": 204,
+    "20px": 15,
+    "13px": 8,
+    "13.76px": 13
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Wyniki (68×36)",
+    "Porównanie (100×36)",
+    "Koszt odbioru (112×36)",
+    "Skala Krakowa (118×36)",
+    "Pilotaż (69×36)",
+    "Rekomendacje (119×36)",
+    "Szczegóły (88×36)",
+    "porównanie (69×17)",
+    "Podpowiedź: Puste przyjazdy (20×20)",
+    "Podpowiedź: Przepełnienia altan (20×20)",
+    "skąd (28×17)",
+    "Podpowiedź: Skala Krakowa (20×20)",
+    "Podpowiedź: Błąd prognozy (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)"
+   ],
+   "smallTargetsN": 26,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "api-docs": {
+  "laptop": {
+   "title": "Otwarte API · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 9762,
+   "headings": [
+    "H1: Otwarte API",
+    "H2: Otwarte API v1",
+    "H3: GET /api/v1/bins.geojson",
+    "H3: GET /api/v1/bins/{id}",
+    "H3: GET /api/v1/routes",
+    "H3: GET /api/v1/conditions",
+    "H3: GET /api/v1/open-data/miesieczne.csv",
+    "H3: GET /api/v1/open-data/miesieczne.json",
+    "H3: GET /api/v1/open311/services.json",
+    "H3: GET /api/v1/open311/requests.json",
+    "H2: Aplikacja",
+    "H3: GET /api/kosze",
+    "H3: GET /api/kosze/{id}",
+    "H3: POST /api/kosze/{id}/przycisk",
+    "H3: POST /api/zgloszenia",
+    "H3: GET /api/zgloszenia/{nr}",
+    "H3: GET /api/trasa",
+    "H3: POST /api/odbiory",
+    "H3: GET /api/odbiory/zdjecie/{id}",
+    "H3: GET /api/zmiany",
+    "H3: POST /api/wysypiska",
+    "H3: GET /api/wysypiska/{nr}",
+    "H3: GET /api/wysypiska/{nr}/zdjecie",
+    "H3: POST /api/wysypiska/{nr}/uprzatnieto",
+    "H3: GET /api/mieszkaniec/punkty"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 135,
+    "Space Grotesk": 46,
+    "ui-monospace": 167
+   },
+   "fontSizes": {
+    "16px": 107,
+    "20px": 6,
+    "14px": 55,
+    "13px": 71,
+    "12px": 2,
+    "26px": 1,
+    "18px": 1,
+    "13.76px": 105
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "DANE DEMO (119×28)",
+    "Otwarte API v1 , endpointów: 8 (138×36)",
+    "Aplikacja , endpointów: 14 (107×36)",
+    "Dashboard miasta , endpointów: 6 (156×36)",
+    "Urządzenia (IoT) , endpointów: 3 (145×36)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 21,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    ", endpointów:",
+    ", endpointów:",
+    ", endpointów:",
+    ", endpointów:"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API",
+    "CSV",
+    "GeoJSON",
+    "HMAC",
+    "IoT",
+    "Open311",
+    "frakcja",
+    "token",
+    "tokenem"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Open311 GeoReport v2",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Otwarte API · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 12240,
+   "headings": [
+    "H1: Otwarte API",
+    "H2: Otwarte API v1",
+    "H3: GET /api/v1/bins.geojson",
+    "H3: GET /api/v1/bins/{id}",
+    "H3: GET /api/v1/routes",
+    "H3: GET /api/v1/conditions",
+    "H3: GET /api/v1/open-data/miesieczne.csv",
+    "H3: GET /api/v1/open-data/miesieczne.json",
+    "H3: GET /api/v1/open311/services.json",
+    "H3: GET /api/v1/open311/requests.json",
+    "H2: Aplikacja",
+    "H3: GET /api/kosze",
+    "H3: GET /api/kosze/{id}",
+    "H3: POST /api/kosze/{id}/przycisk",
+    "H3: POST /api/zgloszenia",
+    "H3: GET /api/zgloszenia/{nr}",
+    "H3: GET /api/trasa",
+    "H3: POST /api/odbiory",
+    "H3: GET /api/odbiory/zdjecie/{id}",
+    "H3: GET /api/zmiany",
+    "H3: POST /api/wysypiska",
+    "H3: GET /api/wysypiska/{nr}",
+    "H3: GET /api/wysypiska/{nr}/zdjecie",
+    "H3: POST /api/wysypiska/{nr}/uprzatnieto",
+    "H3: GET /api/mieszkaniec/punkty"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 133,
+    "Space Grotesk": 46,
+    "ui-monospace": 167
+   },
+   "fontSizes": {
+    "16px": 108,
+    "18px": 2,
+    "12px": 7,
+    "26px": 1,
+    "14px": 49,
+    "13.76px": 105,
+    "13px": 70,
+    "20px": 4
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "DEMO (81×28)",
+    "Otwarte API v1 , endpointów: 8 (138×36)",
+    "Aplikacja , endpointów: 14 (107×36)",
+    "Dashboard miasta , endpointów: 6 (156×36)",
+    "Urządzenia (IoT) , endpointów: 3 (145×36)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 16,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    ", endpointów:",
+    ", endpointów:",
+    ", endpointów:",
+    ", endpointów:"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API",
+    "CSV",
+    "GeoJSON",
+    "HMAC",
+    "IoT",
+    "Open311",
+    "frakcja",
+    "token",
+    "tokenem"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Open311 GeoReport v2",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "dostepnosc": {
+  "laptop": {
+   "title": "Deklaracja dostępności · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1779,
+   "headings": [
+    "H1: Deklaracja dostępności",
+    "H2: Stan dostępności",
+    "H2: Co działa",
+    "H2: Przygotowanie deklaracji",
+    "H2: Informacje zwrotne"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 35,
+    "Space Grotesk": 7,
+    "ui-monospace": 2
+   },
+   "fontSizes": {
+    "16px": 20,
+    "20px": 6,
+    "14px": 12,
+    "13px": 1,
+    "12px": 2,
+    "26px": 1,
+    "13.76px": 2
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "DANE DEMO (119×28)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 17,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł."
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API",
+    "CSV"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Jak liczymy",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Deklaracja dostępności · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 2608,
+   "headings": [
+    "H1: Deklaracja dostępności",
+    "H2: Stan dostępności",
+    "H2: Co działa",
+    "H2: Przygotowanie deklaracji",
+    "H2: Informacje zwrotne"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 33,
+    "Space Grotesk": 7,
+    "ui-monospace": 2
+   },
+   "fontSizes": {
+    "16px": 20,
+    "18px": 2,
+    "12px": 7,
+    "26px": 1,
+    "20px": 4,
+    "13.76px": 2,
+    "14px": 6
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "DEMO (81×28)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 12,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł."
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API",
+    "CSV"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Jak liczymy",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "prywatnosc": {
+  "laptop": {
+   "title": "Prywatność · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 2640,
+   "headings": [
+    "H1: Prywatność: jak używamy danych",
+    "H2: Zgłoszenie mieszkańca",
+    "H2: Dzikie wysypisko (odpady poza koszem)",
+    "H2: Dowód wykonania usługi"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 91,
+    "Space Grotesk": 6
+   },
+   "fontSizes": {
+    "16px": 15,
+    "20px": 5,
+    "14px": 72,
+    "13px": 1,
+    "12px": 2,
+    "26px": 1,
+    "18px": 1
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "DANE DEMO (119×28)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 17,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł."
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API",
+    "HMAC"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Jak liczymy",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Prywatność · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 5017,
+   "headings": [
+    "H1: Prywatność: jak używamy danych",
+    "H2: Zgłoszenie mieszkańca",
+    "H2: Dzikie wysypisko (odpady poza koszem)",
+    "H2: Dowód wykonania usługi"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 89,
+    "Space Grotesk": 6
+   },
+   "fontSizes": {
+    "16px": 16,
+    "18px": 2,
+    "12px": 7,
+    "26px": 1,
+    "20px": 3,
+    "14px": 66
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "DEMO (81×28)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 12,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł."
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API",
+    "HMAC"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Jak liczymy",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "404": {
+  "laptop": {
+   "title": "Nie znaleziono · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 768,
+   "headings": [
+    "H1: Nie znaleźliśmy tej strony"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 23,
+    "Space Grotesk": 3
+   },
+   "fontSizes": {
+    "16px": 8,
+    "20px": 2,
+    "14px": 12,
+    "13px": 1,
+    "12px": 2,
+    "26px": 1
+   },
+   "radii": {
+    "10px": 1,
+    "8px": 2
+   },
+   "btnHeights": {
+    "44px": 2
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 18,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [
+    "404 /nie-ma-takiej-strony",
+    "konsola: Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+   ],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Nie znaleziono · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 926,
+   "headings": [
+    "H1: Nie znaleźliśmy tej strony"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 21,
+    "Space Grotesk": 3
+   },
+   "fontSizes": {
+    "16px": 8,
+    "18px": 2,
+    "12px": 7,
+    "26px": 1,
+    "14px": 6
+   },
+   "radii": {
+    "10px": 1,
+    "8px": 2
+   },
+   "btnHeights": {
+    "44px": 2
+   },
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 13,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [
+    "404 /nie-ma-takiej-strony",
+    "konsola: Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+   ]
+  }
+ },
+ "zgloszenie-status": {
+  "laptop": {
+   "title": "Zgłoszenie TF-03740 · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 882,
+   "headings": [
+    "H1: Przyjęte"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 37,
+    "Space Grotesk": 9
+   },
+   "fontSizes": {
+    "16px": 9,
+    "20px": 3,
+    "14px": 20,
+    "13px": 11,
+    "12px": 2,
+    "26px": 1
+   },
+   "radii": {
+    "999px": 2
+   },
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (104×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Konto demo (20×20)",
+    "Podpowiedź: Status zgłoszenia (20×20)",
+    "Podpowiedź: Zgłoszony kosz (20×20)",
+    "Podpowiedź: Oś czasu (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 22,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": [],
+   "zoom200_hscroll": false
+  },
+  "telefon": {
+   "title": "Zgłoszenie TF-03740 · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 1070,
+   "headings": [
+    "H1: Przyjęte"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 35,
+    "Space Grotesk": 9
+   },
+   "fontSizes": {
+    "16px": 9,
+    "18px": 2,
+    "12px": 7,
+    "13px": 10,
+    "14px": 14,
+    "26px": 1,
+    "20px": 1
+   },
+   "radii": {
+    "999px": 2
+   },
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (131×32)",
+    "Panel (38×48)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (28×28)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DEMO (81×28)",
+    "Podpowiedź: Konto demo (20×20)",
+    "Podpowiedź: Status zgłoszenia (20×20)",
+    "Podpowiedź: Zgłoszony kosz (20×20)",
+    "Podpowiedź: Oś czasu (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 17,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspoz.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ },
+ "panel-18-po-akcjach": {
+  "kiosk": {
+   "title": "Panel: Kosz Rynek 18 · Trash Fairy",
+   "hscroll": false,
+   "pageHeight": 870,
+   "headings": [
+    "H2: Zgłoś na miejscu",
+    "H1: Kosz Rynek 18"
+   ],
+   "fonts": {
+    "IBM Plex Sans": 40,
+    "Space Grotesk": 10
+   },
+   "fontSizes": {
+    "16px": 13,
+    "20px": 11,
+    "14px": 15,
+    "12px": 2,
+    "160px": 1,
+    "64px": 1,
+    "18px": 3,
+    "48px": 1,
+    "26px": 1,
+    "13px": 2
+   },
+   "radii": {},
+   "btnHeights": {},
+   "smallTargets": [
+    "Przejdź do treści (1×1)",
+    "Trash Fairy: przegląd (141×32)",
+    "Przegląd (109×36)",
+    "Panel kosza (129×36)",
+    "Mieszkaniec (132×36)",
+    "Kierowca (113×36)",
+    "Dyspozytor (125×36)",
+    "Dashboard (123×36)",
+    "Powitanie: przewodnik po całej aplikacji (28×28)",
+    "Motyw ciemny (32×32)",
+    "Podpowiedzi: wł. (28×28)",
+    "Przewodnik po tej stronie (28×28)",
+    "DANE DEMO (119×28)",
+    "Podpowiedź: Zapełnienie kosza (15×15)",
+    "Podpowiedź: Zgłoś na miejscu (15×15)",
+    "Podpowiedź: Najbliższy odbiór (15×15)",
+    "Podpowiedź: Kod QR do zgłoszenia (15×15)",
+    "Pełny ekran (jak na urządzeniu) (226×21)",
+    "Podpowiedź: Symulacja panelu (20×20)",
+    "Jak liczymy (72×21)",
+    "Otwarte API (77×21)",
+    "Dostępność (74×21)",
+    "Prywatność (73×21)",
+    "Kod (AGPL-3.0) (97×21)"
+   ],
+   "smallTargetsN": 24,
+   "clipped": [
+    "Przejdź do treści",
+    "Motyw ciemny",
+    "Podpowiedzi: wł.",
+    "Przewodnik po tej stronie"
+   ],
+   "imgsNoAlt": 0,
+   "unnamedButtons": 0,
+   "offTokenColors": {},
+   "offTokenBackgrounds": {},
+   "jargon": [
+    "API"
+   ],
+   "english": [],
+   "tabOrder": [
+    {
+     "el": "Trash Fairy: przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przegląd",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Panel kosza",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Mieszkaniec",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Kierowca",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dyspozytor",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Dashboard",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Powitanie: przewodnik po całej aplikacji",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Motyw ciemny",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Podpowiedzi: wł.",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "Przewodnik po tej stronie",
+     "visible": true,
+     "onScreen": true
+    },
+    {
+     "el": "DANE DEMO",
+     "visible": true,
+     "onScreen": true
+    }
+   ],
+   "focusInvisible": [],
+   "axe": [],
+   "errors": []
+  }
+ }
+}
