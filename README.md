@@ -16,7 +16,7 @@ Przed i po przebudowie każdej perspektywy: [`audit/PRZED-PO.html`](audit/PRZED-
 ## Problem
 Kosze uliczne w centrum Krakowa (Planty, Rynek, Kazimierz) przepełniają się, zwłaszcza w weekendy i podczas wydarzeń.
 MPO opróżnia je według stałego harmonogramu, a nie według potrzeb: w Dzielnicy I 43% koszy jest opróżnianych 3× dziennie
-(harmonogram MPO 08/2026). W naszej symulacji 71% opróżnień według stałego planu trafia na kosz zapełniony poniżej 75%. Część problemu bierze się z przepełnionych altan osiedlowych: mieszkańcy wynoszą domowe
+(harmonogram MPO 08/2026). W naszej symulacji 57% przyjazdów do koszy według stałego planu trafia na kosz zapełniony poniżej 50%. Część problemu bierze się z przepełnionych altan osiedlowych: mieszkańcy wynoszą domowe
 worki do koszy ulicznych (KRKnews, 8.09.2026).
 
 ## Rozwiązanie
@@ -77,7 +77,7 @@ Sygnały wchodzą przez blueprinty, ale każdą decyzję (stan, priorytet, progn
 | Odbiory koszy (4 tygodnie) | 3 360 | **2 543 (−24%)** |
 | Puste przyjazdy do koszy (< 50%) | 57% | **27%** |
 | Godziny przepełnienia altan (4 tygodnie) | 338 h | **0 h** |
-| Na miesiąc (12 zł za odbiór, 5 zł/km) | — | **−866 odbiorów, ok. 9 902 zł mniej [z produkcji], +97 km** |
+| Na miesiąc (12 zł za odbiór, 5 zł/km) | — | **−866 odbiorów, ok. 9 902 zł mniej, +97 km** |
 
 Kilometry altan rosną (+163 km w 4 tygodniach), bo śmieciarka jeździ wtedy, gdy trzeba, a nie co 3 dni. Pokazujemy to wprost;
 założenia i wzory są na stronie `/metodologia`, wyliczone ze stałych w kodzie.
@@ -207,13 +207,13 @@ a uzasadnienia decyzji (co, dlaczego, jaką alternatywę odrzuciliśmy) są w `D
 
 **Trash Fairy** is a hardware-agnostic brain for Kraków's waste collection company (MPO). Street bins in the city centre
 overflow because they are emptied on a fixed schedule, not on demand (in District I, 43% of bins are emptied 3× a day;
-in our simulation 71% of scheduled emptyings find the bin below 75% full), and partly because residents dump household bags from overflowing housing-estate shelters.
+in our simulation 57% of scheduled trips find the bin below 50% full), and partly because residents dump household bags from overflowing housing-estate shelters.
 Trash Fairy collects cheap signals (a "FULL?" button and QR code on the bin, driver reports, photos), forecasts fill levels,
 plans routes and recommends where a sensor, a compactor or a bigger bin pays off.
 **All decisions are made by explicit rules in code. AI only describes and recognises.**
 
 **Results (simulation, 60 bins and 12 shelters, 4 weeks vs the fixed schedule):** forecast MAE 2.4 p.p. vs 7.1 for a naive mean;
-bins −24% pickups and empty trips down from 57% to 27%; shelter overflow hours 338 → 0; per month −866 pickups, ≈ PLN 9,902 saved [from production] at PLN 12 per pickup, +97 km.
+bins −24% pickups and empty trips down from 57% to 27%; shelter overflow hours 338 → 0; per month −866 pickups, ≈ PLN 9,902 saved at PLN 12 per pickup, +97 km.
 
 **Screens (no login):** `/` overview with a randomly drawn demo scenario (QR on the bin panel, panel button, illegal dumping), `/panel/18` bin kiosk (fill level visible from afar, pickup time, QR code),
 `/zglos` resident PWA (scan the bin panel's daily QR code, one-screen report; `/wysypisko` for illegal dumping), `/kierowca` driver PWA (route by priority, in-app navigation, Emptied with an optional bin photo / Problem), `/dyspozytor` dispatcher (live map, urgent bins, crews and routes),

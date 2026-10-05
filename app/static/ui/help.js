@@ -127,16 +127,22 @@
   }
   function step(i, via) {
     const t = tour, s = t.s[i], last = i === t.s.length - 1, b = (a, cls, html) => `<button type="button" class="btn btn-sm ${cls}" data-tour="${a}">${html}</button>`;
-    const el = s.sel && document.querySelector(s.sel);
+    const el = s.sel && document.querySelector(s.sel), hero = t.welcome && i === 0;  // krok 1 powitania: znak marki i większy tytuł
     t.i = i; t.el = vis(el) ? el : null;
     const link = s.link && s.link !== location.pathname ? `<p class="tour-l"><a class="link" href="${s.link}">${TF.esc(s.link_tekst)}${TF.icon('arrow-right', 'i-sm')}</a></p>` : '';
     t.box.innerHTML = `<div class="tour-top"><p class="tour-n">${t.welcome ? `${TF.icon('sparkles', 'i-sm')}Powitanie · ` : ''}Krok ${i + 1} z ${t.s.length}</p>
       <span class="tour-dots" aria-hidden="true">${t.s.map((_, j) => `<i${j <= i ? ' class="on"' : ''}></i>`).join('')}</span></div>
+      ${hero ? `<img class="tour-logo" src="${TF.icons.replace('icons.svg', 'logo.svg')}" alt="" width="56" height="56">` : ''}
       <h2 id="tour-t">${TF.esc(s.tytul)}</h2><p class="tour-x">${TF.esc(s.tekst)}</p>${link}
       <div class="tour-act">${i ? b('prev', 'btn-ghost', `${TF.icon('arrow-left')}Wstecz`) : ''}
-      ${last ? b('end', 'btn-primary', `${TF.icon('check')}Zakończ`) : b('end', 'btn-ghost', 'Zakończ') + b('next', 'btn-primary', `Dalej${TF.icon('arrow-right')}`)}</div>`;
-    t.hl.hidden = !t.el; t.bg.classList.toggle('dim', !t.el); t.box.classList.toggle('tour-mid', !t.el);
-    t.el?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      ${last ? b('end', 'btn-primary', `${TF.icon('check')}Zakończ`) : b('end', 'btn-ghost', t.welcome ? 'Pomiń' : 'Zakończ') + b('next', 'btn-primary', `Dalej${TF.icon('arrow-right')}`)}</div>`;
+    t.hl.hidden = !t.el; t.bg.classList.toggle('dim', !t.el); t.box.classList.toggle('tour-mid', !t.el); t.box.classList.toggle('tour-hero', hero);
+    const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    if (t.el && !phone()) t.el.scrollIntoView({ block: 'center', behavior });
+    else if (t.el && !t.el.closest('.topbar')) {  // telefon: element tuż pod przyklejonym nagłówkiem, nad panelem na dole (zapas 60vh w help.css)
+      const head = Math.max(0, document.querySelector('.topbar')?.getBoundingClientRect().bottom || 0);
+      scrollTo({ top: scrollY + t.el.getBoundingClientRect().top - head - 12, behavior });
+    }
     reflow();
     (via && t.box.querySelector(`[data-tour="${via}"]`) || t.box).focus({ preventScroll: true });
   }
@@ -150,6 +156,8 @@
 
   // ---------- powitanie: przewodnik po całej aplikacji (_powitanie), samo przy pierwszej wizycie, potem z przycisku w nagłówku ----------
   const quiet = () => !human || document.body.classList.contains('kiosk-device') || TF.scenario?.().on || !!document.querySelector('dialog[open]');
+  // mieszkaniec wchodzi tu z kodu QR albo linku i ma zgłosić szybko: powitanie tylko z przycisku w nagłówku
+  const NO_AUTO = new Set(['zglos_kosz', 'zgloszenie', 'wysypisko', 'wysypisko_status']);
   function welcome() {
     const y = scrollY;
     offer?.remove(); offer = null;  // propozycja przewodnika wraca po powitaniu
@@ -170,7 +178,8 @@
   }
   function maybeOffer() {
     const k = steps().length;
-    if (!on || !k || tour || offer || quiet() || (!forced && pages().includes(TF.help.page()))) return;
+    // strony mieszkańca z QR/linku: karta na dole telefonu zasłaniałaby „Wyślij zgłoszenie”; przewodnik nadal z ikony mapy w nagłówku
+    if (!on || !k || tour || offer || quiet() || (!forced && (pages().includes(TF.help.page()) || NO_AUTO.has(TF.help.page())))) return;
     offer = document.createElement('section');
     offer.className = 'tour-offer';
     offer.setAttribute('aria-labelledby', 'tour-offer-t');
@@ -229,7 +238,7 @@
     addEventListener('resize', reflow);
     if (TXT._powitanie?.length) document.querySelectorAll('.help-welcome, [data-show-welcome]').forEach(b => { b.hidden = false; });
     // najpierw powitanie (pierwsza wizyta w aplikacji), potem propozycja przewodnika; chwila zwłoki: listy i mapy renderują się w JS
-    if (TXT._powitanie?.length && !quiet() && (forced || (on && !get('tf-powitanie')))) welcome();
+    if (TXT._powitanie?.length && !quiet() && (forced || (on && !get('tf-powitanie') && !NO_AUTO.has(TF.help.page())))) welcome();
     else setTimeout(maybeOffer, 1200);
     TF.help.welcome = welcome;
     TF.help.ready = true;

@@ -2,8 +2,9 @@
    Od 1100 px panele leżą na mapie (siatka nakładki z pointer-events: none, mapa pod spodem łapie kliknięcia w puste pola);
    węziej: mapa u góry ~45vh, pod nią legenda, kafle i zakładki, bez nakładania. Tylko tokeny z tokens.css. */
 .dp { position: relative; display: grid; grid-template-columns: minmax(340px, 400px) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto;
-      gap: var(--s3); padding: var(--s4); height: calc(100dvh - 65px); min-height: 640px; pointer-events: none; }
-.dp > * { pointer-events: auto; position: relative; z-index: 500; }
+      gap: var(--s3); padding: var(--s4); height: calc(100dvh - 65px); min-height: 640px; pointer-events: none; isolation: isolate; }
+/* isolation: warstwy panelu zostają w kontekście .dp, więc pasek scenariusza, toasty, przewodnik i nagłówek leżą nad nimi */
+.dp > * { pointer-events: auto; position: relative; z-index: 1; }
 .dp > .dp-map { position: absolute; inset: 0; z-index: 0; }
 .dp-glass { background: var(--glass); backdrop-filter: saturate(1.4) blur(14px); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-2); }
 
@@ -14,8 +15,8 @@
 .dp-kpi > div { min-width: 0; }
 .dp-kpi-ico { display: grid; place-items: center; width: 40px; height: 40px; flex: none; }
 .dp-kpi-ico .si { width: 36px; height: 36px; }
-.dp-kpi-ico > .i { width: 40px; height: 40px; padding: 9px; border-radius: var(--r-md); background: var(--brand-soft); color: var(--brand-ink); }
-.dp-kpi-good > .i { background: var(--fill-ok-soft); color: var(--fill-ok-ink); }
+.dp-kpi-ico > .i:not(.si) { width: 40px; height: 40px; padding: 9px; border-radius: var(--r-md); background: var(--brand-soft); color: var(--brand-ink); }  /* Lucide w kafelku; symbol stanu bez tła, w swoim kolorze */
+.dp-kpi-ico.dp-kpi-good > .i { background: var(--fill-ok-soft); color: var(--fill-ok-ink); }
 .dp-kpi-v { display: flex; align-items: baseline; gap: var(--s2); flex-wrap: wrap; font-size: var(--fs-md); font-weight: 650; color: var(--ink-2); line-height: 1.15; }
 .dp-kpi-v b { font: 700 var(--fs-3xl)/1 var(--font-display); letter-spacing: -.03em; color: var(--ink); }
 .dp-kpi-s { margin-top: var(--s1); font-size: var(--fs-xs); color: var(--ink-3); }
@@ -103,11 +104,15 @@
 .dp-depot > b { padding: 3px 8px; border-radius: var(--r-sm); background: var(--glass); color: var(--ink); font-size: var(--fs-xs); white-space: nowrap; }
 .dp .leaflet-bottom.leaflet-right { margin-bottom: var(--s2); }
 
+@media (min-width: 1100px) {  /* pasek scenariusza (app.css) nie zasłania dołu panelu i legendy */
+  body.has-scenario .dp { height: calc(100dvh - 65px - var(--scenario-h, 72px) - var(--s5) - var(--s3)); min-height: 520px; }
+}
+
 /* ---------- laptop wąski: kafle 2×2 nad mapą zabrałyby za dużo, więc mniejsze ---------- */
 @media (max-width: 1365px) and (min-width: 1100px) {
   .dp-kpi { padding: var(--s3) var(--s4); }
   .dp-kpi-v b { font-size: var(--fs-2xl); }
-  .dp-kpi-ico .si, .dp-kpi-ico > .i { width: 32px; height: 32px; } .dp-kpi-ico > .i { padding: 7px; }
+  .dp-kpi-ico .si, .dp-kpi-ico > .i { width: 32px; height: 32px; } .dp-kpi-ico > .i:not(.si) { padding: 7px; }
 }
 
 /* ---------- tablet i telefon: mapa u góry, panele pod nią ---------- */
@@ -124,7 +129,7 @@
   .dp-kpi { flex-direction: column; align-items: flex-start; gap: var(--s2); padding: var(--s3); }
   .dp-kpi-v { flex-direction: column; align-items: flex-start; gap: 2px; }
   .dp-kpi-v b { font-size: var(--fs-2xl); }
-  .dp-kpi-ico { width: 28px; height: 28px; } .dp-kpi-ico .si, .dp-kpi-ico > .i { width: 28px; height: 28px; } .dp-kpi-ico > .i { padding: 6px; }
+  .dp-kpi-ico { width: 28px; height: 28px; } .dp-kpi-ico .si, .dp-kpi-ico > .i { width: 28px; height: 28px; } .dp-kpi-ico > .i:not(.si) { padding: 6px; }
   .dp-tabs button { flex-direction: column; gap: 2px; padding: 0 var(--s1); font-size: var(--fs-xs); min-height: 56px; }
   .dp-legend { gap: var(--s2) var(--s3); }
 }

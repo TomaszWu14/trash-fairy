@@ -90,6 +90,7 @@ a.m-row:focus-visible { outline: none; box-shadow: var(--ring); border-radius: v
 /* symulowany skan (demo) oddzielony od instrukcji prawdziwego skanu */
 .m-sim { display: grid; justify-items: center; gap: var(--s3); width: 100%; margin-top: var(--s1); padding-top: var(--s4); border-top: 1px solid var(--line); }
 .m-sim .btn-primary { width: 100%; }
+.m-scan-b .m-sim-bin { font-size: var(--fs-md); } .m-sim-bin b { color: var(--ink); font-family: var(--font-display); }
 .m-viewfinder { position: relative; display: grid; place-items: center; width: 180px; height: 180px; border-radius: var(--r-lg);
                 background: var(--ink); color: var(--bg); overflow: hidden; }  /* wizjer aparatu: odwrócone kolory motywu */
 .m-viewfinder span { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--brand) 55%, transparent) 50%, transparent 60%);

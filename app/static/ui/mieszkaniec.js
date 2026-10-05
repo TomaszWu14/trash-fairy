@@ -27,7 +27,7 @@
     try { bins = JSON.parse(document.getElementById('scan-bins').textContent); } catch (e) { /* zostaje kosz z HTML */ }
     const pool = bins.filter(b => b.losuj).length ? bins.filter(b => b.losuj) : bins;
     const sim = document.getElementById('scan-sim'), roll = document.getElementById('scan-roll');
-    const pick = b => { if (!b) return; sim.href = `/zglos/${b.id}?qr=${encodeURIComponent(b.qr)}`; document.getElementById('scan-sim-n').textContent = b.id; };
+    const pick = b => { if (!b) return; sim.href = `/zglos/${b.id}?qr=${encodeURIComponent(b.qr)}`; document.getElementById('scan-sim-n').textContent = b.nazwa; };
     const sc = TF.scenario(), scBin = sc.on && bins.find(b => b.id === +sc.bin);
     let cur = null;
     const rollBin = () => { const rest = pool.filter(b => b !== cur); cur = rest[Math.floor(Math.random() * rest.length)] || cur; pick(cur); };

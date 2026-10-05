@@ -38,7 +38,8 @@
     {% if op.parameters %}<p class="c-doc-small">Parametry: {% for prm in op.parameters %}<code>{{ prm.name }}</code> ({{ prm['in'] }}, {{ prm.schema.type }}){{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
     {% if method == 'get' %}
     <pre tabindex="0"><code>curl {{ request.host_url.rstrip('/') }}{{ example }}</code></pre>
-    {% if '{' not in example %}<p><a href="{{ example }}">Otwórz odpowiedź: {{ example }}</a></p>{% endif %}
+    {# zdjęcie odbioru istnieje tylko po realnym odbiorze ze zdjęciem: przykładowe id dałoby 404 #}
+    {% if '{' not in example and '/zdjecie/' not in path %}<p><a href="{{ example }}">Otwórz odpowiedź: {{ example }}</a></p>{% endif %}
     {% else %}
     {# treść żądania bywa JSON-em, formularzem multipart albo jej brak — przykład nie może wywrócić strony #}
     {% set body = (op.requestBody or {}).get('content', {}) %}

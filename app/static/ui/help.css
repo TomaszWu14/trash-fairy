@@ -64,6 +64,12 @@
 /* krok bez elementu na stronie: brak obwódki, tło przyciemnia samo .tour-bg, chmurka na środku (help.js) */
 .tour-bg.dim { background: var(--scrim); }
 .tour-mid { width: min(460px, calc(100vw - 2 * var(--s4))); }
+/* krok 1 powitania: znak marki, większy tytuł i więcej oddechu — „witamy w produkcie”, nie kolejna chmurka */
+.tour-mid.tour-hero { width: min(520px, calc(100vw - 2 * var(--s4))); padding: var(--s6); }
+.tour-logo { display: block; width: 56px; height: 56px; margin-top: var(--s5); }
+.tour-hero h2 { margin-top: var(--s4); font-size: var(--fs-2xl); line-height: 1.2; }
+.tour-hero .tour-x { margin-top: var(--s3); font-size: var(--fs-md); }
+.tour-hero .tour-act { margin-top: var(--s6); }
 
 /* ---------- propozycja przewodnika: niemodalna karta w rogu, nie zasłania treści na środku ---------- */
 .tour-offer { position: fixed; z-index: 65; right: var(--s6); bottom: var(--s6); display: grid; grid-template-columns: auto 1fr; gap: var(--s2) var(--s3);
@@ -84,7 +90,8 @@
 @media (min-width: 1181px) { .switcher a { padding: 0 var(--s3); } }
 @media (min-width: 1328px) { .help-welcome { padding: 0 var(--s3) 0 var(--s2); } .help-welcome-lbl { display: inline; } }
 @media (min-width: 721px) and (max-width: 1180px) { .switcher a span { display: none; } .switcher a { padding: 0 var(--s3); } }
-@media (min-width: 721px) and (max-width: 799px), (min-width: 1181px) and (max-width: 1327px) { .topbar-end .demo-tag span { display: none; } }
+@media (min-width: 721px) and (max-width: 799px), (min-width: 1181px) and (max-width: 1199px) { .topbar-end .demo-tag span { display: none; } }
+@media (min-width: 1200px) and (max-width: 1259px) { .demo-dane { display: none; } }  /* zmierzone: „Demo” mieści się od 1200 px, „Dane demo” od 1260 px */
 @media (max-width: 720px) {
   .topbar-end { margin-left: auto; gap: var(--s1); }
   .topbar-end .theme-toggle { height: 28px; }  /* jak pozostałe okrągłe przyciski: marka i 5 przycisków w jednym wierszu przy 390 px */
@@ -97,6 +104,10 @@
 @media (max-width: 640px) {
   .help-tip, .tour { top: auto; right: 0; bottom: 0; left: 0; width: auto; max-height: 60vh; overflow: auto; border-width: 1px 0 0;
     border-radius: var(--r-xl) var(--r-xl) 0 0; padding-bottom: calc(var(--s5) + env(safe-area-inset-bottom)); }
+  body:has(> .tour) { padding-bottom: 60vh; }  /* zapas: element z końca strony (stopka) da się przewinąć nad panel przewodnika */
+  .tour-mid.tour-hero { width: auto; padding: var(--s5) var(--s5) calc(var(--s5) + env(safe-area-inset-bottom)); }
+  .tour-logo { width: 48px; height: 48px; margin-top: var(--s4); }
+  .tour-hero h2 { font-size: var(--fs-xl); }
   .tour-offer { right: var(--s3); left: var(--s3); bottom: calc(var(--s3) + env(safe-area-inset-bottom)); width: auto; }
   .tour-offer-act .btn { flex: 1; min-height: 44px; }
 }

@@ -479,3 +479,11 @@ a dashboard służy miastu do liczb; „Dodaj do kursu” jest decyzją człowie
 w `podpowiedzi.json` (95 wpisów, przewodniki 13 stron), powitanie i propozycja przewodnika nie pokazują się automatom
 (`navigator.webdriver`), żeby testy i zrzuty działały bez zmian. Checkpoint commitujemy przy zielonym pytest (448 testów), resztę
 etapu 2c (pokrycie podpowiedziami, poprawki recenzji, materiały z lektorem) dowozimy drugim PR przed 19:00.
+
+## Domknięcie etapu 2c (pon. 5.10)
+
+**Weryfikacja zamiast nowych funkcji.** Pokrycie podpowiedziami ścisłe (`check_help --scisle`: 0 braków), przewodnik dashboardu wskazuje
+odnośnik do dyspozytora zamiast usuniętej mapy, e2e i sonda jury znają krok „Dyspozytor” w scenariuszach A i B. Sonda r1 znalazła
+ikonkę „i” z `position: static`, której obszar dotyku zasłaniał filtry okresu — poprawka w CSS i strażnik w testach. Link „Otwórz
+odpowiedź” w `/api/docs` przy zdjęciu odbioru znikł (przykładowe id zawsze dawało 404). Odrzuciliśmy ponowną ocenę jurorów przez
+agentów: w JURY.md są tylko zmierzone liczby r0 → r1.

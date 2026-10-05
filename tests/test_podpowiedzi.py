@@ -52,3 +52,25 @@ def test_automaty_bez_powitania():
     js = (UI / "help.js").read_text(encoding="utf-8")
     assert "navigator.webdriver" in js and "powitanie') === '1'" in js
     assert "'tf-powitanie'" in js and "'tf-strony'" in js
+
+
+def test_powitanie_nie_startuje_samo_u_mieszkanca_z_qr():
+    js = (UI / "help.js").read_text(encoding="utf-8")
+    no_auto = js.split("const NO_AUTO = new Set([", 1)[1].split("])", 1)[0]
+    assert all(f"'{p}'" in no_auto for p in ("zglos_kosz", "zgloszenie", "wysypisko", "wysypisko_status"))
+    assert "!NO_AUTO.has(TF.help.page())" in js
+
+
+def test_plakietka_demo_nie_udaje_ikonki_podpowiedzi():
+    tag = BASE.split('class="demo-tag"', 1)[1].split("</a>", 1)[0]
+    assert "icon('info')" not in tag, "„i” to ikonka podpowiedzi; plakietka demo ma inną ikonę"
+
+
+def test_help_icon_never_static():
+    """Obszar dotyku ikonki „i” to ::before z inset −12 px: przy position: static rozlałby się na cały przodek i zasłonił jego przyciski
+    (tak było z filtrami dashboardu: „Kwartał” nie dawał się kliknąć)."""
+    import pathlib
+    import re
+    for css in pathlib.Path("app/static/ui").glob("*.css"):
+        for sel, body in re.findall(r"([^{}]*help-i[^{}]*)\{([^}]*)\}", css.read_text(encoding="utf-8")):
+            assert "position: static" not in body, f"{css.name}: {sel.strip()}"
