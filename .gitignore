@@ -15,9 +15,10 @@ graphify-out/20*/
 data/traffic_cache.json
 .claude/worktrees/
 
-# materiały demo: generowane podglądy i duże filmy (w repo tylko film 3 min)
+# materiały demo: generowane podglądy i robocze filmy (w repo film 3 min i pełny film)
 demo/__pycache__/
 demo/podglad/
 demo/*.mp4
 !demo/demo_trash-fairy_3min.mp4
+!demo/demo_trash-fairy_pelne.mp4
 demo/animacja/*.mp4
