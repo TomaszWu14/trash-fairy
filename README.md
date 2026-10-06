@@ -5,6 +5,8 @@
 
 **Demo:** https://trashfairy.twapp.pl · **Kod:** https://github.com/TomaszWu14/trash-fairy · [English below](#english)
 
+**Film z lektorem:** [3 min](demo/demo_trash-fairy_3min.mp4) · [pełny, 8 min](demo/demo_trash-fairy_pelne.mp4) ([rozdziały](demo/rozdzialy.txt)) · **Prezentacja:** [PDF, 10 slajdów](demo/prezentacja_trash-fairy.pdf)
+
 | | |
 |---|---|
 | ![Przegląd: cztery perspektywy, liczby z kodu i scenariusz demo w 6 krokach](docs/img/przeglad.png) | ![Dashboard miasta: KPI, koszty wobec planu, frakcje, dzielnice i mapa koszy](docs/img/dashboard.png) |
@@ -219,6 +221,7 @@ bins −24% pickups and empty trips down from 57% to 27%; shelter overflow hours
 `/zglos` resident PWA (scan the bin panel's daily QR code, one-screen report; `/wysypisko` for illegal dumping), `/kierowca` driver PWA (route by priority, in-app navigation, Emptied with an optional bin photo / Problem), `/dyspozytor` dispatcher (live map, urgent bins, crews and routes),
 `/dashboard` city dashboard (costs vs plan, fractions, districts, projects), `/dashboard/urzadzenia` devices (battery, heartbeat, status),
 `/metodologia` assumptions straight from code. **Demo:** https://trashfairy.twapp.pl · **Run locally:** `docker compose up --build` → http://localhost:8080 (app + PostgreSQL 16).
+**Video (Polish voice-over):** [3 min](demo/demo_trash-fairy_3min.mp4) · [full, 8 min](demo/demo_trash-fairy_pelne.mp4) · **Slides:** [PDF](demo/prezentacja_trash-fairy.pdf)
 
 **AI photo verification:** a resident's photo is stripped of EXIF, assessed by Claude Vision against a JSON schema, and a rule in code
 (`photos.verification`) marks the report "AI-verified" or "To be checked". AI never rejects a report; without an API key everything still works.

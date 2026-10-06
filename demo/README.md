@@ -41,9 +41,11 @@ Slajdy 1–5 → scenariusz 1 (kod QR), 2 (przycisk na panelu), 3 (dzikie wysypi
 dojeżdża do przycisku, kroki idą przyciskiem „Dalej” z paska scenariusza, napis trwa co najmniej 4 s. Teksty lektora są w
 `TEKSTY` w `film_pelny.py`; nagrania robi łącznik ElevenLabs (głos „Piotr Dokumentalny”). `rozdzialy.txt` to znaczniki czasu do opisu filmu.
 
+Gotowy film jest w repo: `demo_trash-fairy_pelne.mp4` (H.264 1920×1080, z lektorem), znaczniki czasu w `rozdzialy.txt`.
+
 `animacja/` — próba ujęcia AI (obraz z ElevenLabs + najazd kamery ffmpeg); wideo AI wymaga płatnego planu ElevenLabs.
 
 ## Film 3 min (do wysyłki)
 
 `python demo/film_3min.py` → `demo_trash-fairy_3min.mp4`: slajdy 1–3, scena AI (skan QR), scenariusz 1, scena AI (przycisk),
-scenariusz 3, slajd 9, plansza końcowa. Nowa scena AI = plik w `demo/animacja/` + wpis w `SCENY` (punkt najazdu kamery).
+scenariusz 3, slajd 9, plansza końcowa. Gotowy film jest w repo. Nowa scena AI = plik w `demo/animacja/` + wpis w `SCENY` (punkt najazdu kamery).

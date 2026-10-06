@@ -498,3 +498,8 @@ filmu (limit 3 min był warunkiem zgłoszenia) i klipy wideo AI (plan ElevenLabs
 idą w trakcie mówienia, slajdy tylko 1–3 i 9, scenariusz z przyciskiem na panelu jako jedna scena AI, sceny AI z najazdem kamery
 (`demo/animacja/`). Nagrania lektora z obu istniejących zestawów, bo kredyty ElevenLabs się wyczerpały. Odrzuciliśmy przyspieszenie
 całego filmu 8-minutowego ×2,7 (nieczytelne kliknięcia i za szybki głos). Kolejne sceny AI czekają na dzienny limit obrazów ElevenLabs.
+
+**Oba filmy w repo, linki w README (wt. 6.10).** Autor poprosił o wrzucenie filmu na GitHuba. Film 3 min już był w `demo/`, ale
+README go nie linkował; pełny film nagraliśmy od nowa lokalnie (`film_pelny.py`, 8:15, 44 MB, H.264 1080p z lektorem) i dodaliśmy
+wyjątek w `.gitignore`, a `rozdzialy.txt` pasuje do nowego nagrania. Odrzuciliśmy Git LFS (plik mieści się w limicie GitHuba, a LFS
+komplikuje klonowanie) i załącznik w wydaniu GitHuba (bez linku w repo film łatwo przeoczyć).

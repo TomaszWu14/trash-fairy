@@ -2,8 +2,8 @@
 0:16 Problem
 0:41 Rozwiązanie
 1:54 Scenariusz 1 — Przepełniony kosz: od zgłoszenia do odbioru
-4:50 Scenariusz 2 — Przycisk na panelu kosza
-5:16 Scenariusz 3 — Dzikie wysypisko i decyzje dla miasta
-7:10 Architektura
-7:35 Korzyści
-8:02 Co dalej
+4:47 Scenariusz 2 — Przycisk na panelu kosza
+5:13 Scenariusz 3 — Dzikie wysypisko i decyzje dla miasta
+7:04 Architektura
+7:29 Korzyści
+7:56 Co dalej
