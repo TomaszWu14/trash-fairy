@@ -1,2 +1,3 @@
 # Narzędzia deweloperskie (testy równolegle: python -m pytest -q -n auto)
+pytest==9.1.1
 pytest-xdist==3.8.0

@@ -12,7 +12,7 @@ Bez Dockera (SQLite):
 
 ```bash
 python -m venv .venv && . .venv/bin/activate         # Windows: .venv\Scripts\activate
-pip install -r requirements.txt pytest-xdist
+pip install -r requirements.txt -r requirements-dev.txt
 flask --app app seed                                 # punkty z data/*.geojson + 8 tygodni symulacji
 flask --app app run                                  # http://localhost:5000
 python -m pytest -q -n auto                          # wszystkie testy, równolegle
