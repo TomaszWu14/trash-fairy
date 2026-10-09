@@ -1,0 +1,14 @@
+# Lint: ruff check .  (to samo w CI). Zestaw celowo wąski – łapie błędy, nie przepisuje stylu repo.
+target-version = "py312"
+line-length = 120
+
+[lint]
+select = ["E", "F", "W", "B", "UP"]
+ignore = [
+    "E501",  # długie linie: kod i szablony tekstów są świadomie gęste (decyzja stylu, nie błąd)
+    "E702",  # kilka instrukcji w linii (;) w skryptach zrzutów i demo
+    "E731",  # lambda przypisana do nazwy – krótkie helpery w skryptach
+    "E741",  # nazwy l/O/I w geometrii mapy
+    "B904",  # raise bez „from” w except – do przejrzenia osobno (zmienia ślady błędów)
+    "B905",  # zip() bez strict= – dodanie strict zmieniłoby zachowanie przy nierównych listach
+]

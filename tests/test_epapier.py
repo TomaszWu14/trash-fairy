@@ -1,6 +1,5 @@
 """Ekran e-papierowy na koszu: logika stanów (tabela wyzwalaczy + priorytety), renderer vs wzorce, okno częściowe, symulator."""
-import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 
 import pytest
@@ -159,5 +158,5 @@ def test_qr_targets_redirect_to_app_pages(client, demo):
     assert f"/zglos/{p.id}" in client.get(f"/kosz/{p.id}/zglos").headers["Location"]  # token: tests/test_qr_rotacja.py
     assert client.get(f"/kosz/{p.id}/status").headers["Location"].endswith(f"/panel/{p.id}")
     assert client.get("/przyjaciele").status_code == 301
-    for target, path in epaper_render.QR_TARGETS.items():
+    for path in epaper_render.QR_TARGETS.values():
         assert path.format(base="", dev=p.id) in {f"/kosz/{p.id}/zglos", f"/kosz/{p.id}/status", "/przyjaciele"}

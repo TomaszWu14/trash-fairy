@@ -10,7 +10,7 @@ from datetime import timedelta
 from . import db
 from .events import AFTER, RADIUS_M
 from .geo import distance_m
-from .models import Device, Emptying, Event, Point, Report
+from .models import Device, Emptying, Event, Report
 from .reports import MERGE_WINDOW
 from .residents import HEARTBEAT_LOST
 from .routes import next_runs
