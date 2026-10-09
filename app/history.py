@@ -16,7 +16,7 @@ Masa i koszt odbioru: mass_kg() i cost_pln() — jedna formuła dla historii (Py
 import random
 from datetime import date, datetime, timedelta
 from types import SimpleNamespace
-from functools import lru_cache
+from functools import cache
 from math import log
 
 from sqlalchemy import insert, update
@@ -100,7 +100,7 @@ CITY_EVERY_DAYS = {"papier": 7, "metale_tworzywa": 7, "szklo": 14, "bio": 3}  # 
 CITY_REPORTS = {"uszkodzony": 0.0015, "odpady_obok": 0.003, "inne": 0.001}  # na punkt i dzień
 
 
-@lru_cache(maxsize=None)
+@cache
 def lever_since(district, lever, d):
     """Czy w dzielnicy działa dźwignia projektu w dniu `d` (start ≤ d ≤ koniec)."""
     return any(p["district"] == district and p["lever"] == lever and p["start"] <= d <= p["end"] for p in PROJECTS)
@@ -113,7 +113,7 @@ def _education(district, d):
     return 0.0
 
 
-@lru_cache(maxsize=None)
+@cache
 def fraction_factor(district, fraction, d):
     """Sezon × efekt edukacji (mniej zmieszanych, więcej selektywnych)."""
     edu = _education(district, d)

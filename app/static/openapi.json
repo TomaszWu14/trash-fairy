@@ -962,7 +962,7 @@
         "tags": [
           "Dashboard miasta"
         ],
-        "summary": "Eksport CSV (odbiory, zgloszenia) z filtrami dashboardu; separator „;”",
+        "summary": "Eksport CSV (odbiory, zgloszenia, trasy) z filtrami dashboardu; separator „;”. trasy = plan najbliższego kursu, filtr dzielnica/frakcja",
         "responses": {
           "200": {
             "description": "OK",

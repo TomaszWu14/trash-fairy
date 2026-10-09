@@ -100,6 +100,6 @@ def test_open311_filters_validation(client, demo):
 
 def test_docs_example_links_resolve(client, demo):
     spec = json.loads(client.get("/static/openapi.json").data)
-    for path, ops in spec["paths"].items():
+    for path in spec["paths"]:
         if path.startswith("/api/v1/") and "{" not in path:
             assert client.get(path).status_code == 200, path

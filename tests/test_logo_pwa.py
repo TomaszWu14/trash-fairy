@@ -4,13 +4,9 @@ import json
 
 from PIL import Image
 
-from app import create_app
 
-CONFIG = {"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "TESTING": True, "OSRM_URL": "", "WEATHER_URL": ""}
-
-
-def test_manifest_and_icons():
-    c = create_app(CONFIG).test_client()
+def test_manifest_and_icons(client):
+    c = client
     m = json.loads(c.get("/static/ui/manifest.webmanifest").get_data(as_text=True))
     assert m["name"] == "Trash Fairy" and m["start_url"] == "/" and m["display"] == "standalone"
     assert {i["purpose"] for i in m["icons"]} == {"any", "maskable"}
@@ -25,7 +21,7 @@ def test_manifest_and_icons():
         assert (corner == 0) == (i["purpose"] == "any"), i
 
 
-def test_logo_macro_has_no_gradient_id():
-    c = create_app(CONFIG).test_client()
+def test_logo_macro_has_no_gradient_id(client):
+    c = client
     html = c.get("/prywatnosc").get_data(as_text=True)
     assert 'class="logo"' in html and "var(--logo-glyph)" in html and "url(#" not in html

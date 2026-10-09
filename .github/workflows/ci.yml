@@ -23,4 +23,5 @@ jobs:
           python-version: "3.12"  # jak w Dockerfile
           cache: pip
       - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: ruff check .  # konfiguracja w ruff.toml
       - run: python -m pytest -q -n auto  # równolegle: każdy test ma własną bazę w pamięci
