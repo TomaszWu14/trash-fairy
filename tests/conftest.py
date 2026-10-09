@@ -1,9 +1,21 @@
 import random
 
 import pytest
+from flask import Flask
+from flask.testing import FlaskClient
 
-from app import create_app
+from app import create_app, db
 from app.osm_import import GRZEGORZKI, KAZIMIERZ, RYNEK
+
+
+class BufferedClient(FlaskClient):
+    """Odpowiedź czytana od razu i zamykana – pliki statyczne i zdjęcia nie wiszą otwarte do gc (ResourceWarning)."""
+
+    def open(self, *args, buffered=True, **kwargs):
+        return super().open(*args, buffered=buffered, **kwargs)
+
+
+Flask.test_client_class = BufferedClient
 
 
 @pytest.fixture(autouse=True)
@@ -18,6 +30,8 @@ def app():
                       "TWILIO_VERIFY_SID": "", "SMS_DEMO_FALLBACK": "1"})
     with app.app_context():
         yield app
+        db.session.remove()
+        db.engine.dispose()  # zamyka połączenia SQLite :memory: (inaczej ResourceWarning przy gc)
 
 
 @pytest.fixture

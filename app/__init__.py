@@ -28,7 +28,10 @@ def _gzip(resp):
             or resp.is_streamed and not resp.direct_passthrough):
         return resp
     resp.direct_passthrough = False
+    source = resp.response
     data = resp.get_data()
+    if hasattr(source, "close"):  # get_data() podmienia iterator na listę – plik statyczny trzeba zamknąć samemu
+        source.close()
     if len(data) < 1024:
         return resp
     key = (request.path, resp.headers.get("ETag")) if request.path.startswith("/static/") else None

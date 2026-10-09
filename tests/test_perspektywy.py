@@ -1,7 +1,7 @@
 """Nowe UI „Przegląd jury”: cztery perspektywy na wspólnym API (audit/AUDYT-UX.md). Bez logowania."""
 import pytest
 
-from app import clock
+from app import clock, db
 from app.api_pl import qr_token
 from app.models import Point
 from app.osm_import import import_points
@@ -107,7 +107,7 @@ def test_api_errors_share_one_format(client, demo):
 
 
 def test_nearest_bins_sorted_by_distance(client, demo):
-    p = Point.query.get(18)
+    p = db.session.get(Point, 18)
     d = client.get(f"/api/kosze?blisko={p.lat},{p.lon}").json["kosze"]
     assert d[0]["id"] == 18 and d[0]["odleglosc_m"] == 0
     assert [k["odleglosc_m"] for k in d] == sorted(k["odleglosc_m"] for k in d)

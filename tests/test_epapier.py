@@ -33,7 +33,7 @@ def state_of(point, now=None):
 
 # --- renderer: zgodność z wzorcami z paczki (1-bit, bez tolerancji) ---
 
-@pytest.mark.parametrize("i,state", enumerate(["calm", "confirm", "enroute", "emptied", "overflow", "fault", "night"], 1))
+@pytest.mark.parametrize("i,state", list(enumerate(["calm", "confirm", "enroute", "emptied", "overflow", "fault", "night"], 1)))
 def test_render_matches_reference(i, state, monkeypatch):
     monkeypatch.setattr(epaper_render, "BASE_URL", "http://127.0.0.1:5050")
     ref = Image.open(OUT / f"stan-{i}-{state}.png").convert("L")
