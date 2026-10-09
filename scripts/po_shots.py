@@ -60,7 +60,7 @@ with sync_playwright() as p:
             ctx.add_init_script(f"try {{ localStorage.setItem('tf-motyw', '{'dark' if MOTYW == 'ciemny' else 'light'}'); }} catch (e) {{}}")
         pg = ctx.new_page()
         errs = []
-        pg.on("pageerror", lambda e: errs.append(str(e)[:160]))
+        pg.on("pageerror", lambda e, errs=errs: errs.append(str(e)[:160]))
         for name, path in PAGES.items():
             if MOTYW and vp == "kiosk" and not name.startswith("panel"):
                 continue

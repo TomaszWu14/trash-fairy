@@ -1,13 +1,11 @@
 """Zdjęcia z miasta: GPS z EXIF → najbliższy kosz (do 80 m), paczka wielu plików."""
 import io
-from unittest.mock import patch
 
 import pytest
 from PIL import Image
 from PIL.TiffImagePlugin import IFDRational
 
 from app import clock, photos
-from app.models import Point
 from app.osm_import import import_points
 
 

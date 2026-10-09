@@ -25,6 +25,8 @@ def app():
         import_city_points()
         clock.reset()
         yield app
+        db.session.remove()
+        db.engine.dispose()
 
 
 @pytest.fixture
