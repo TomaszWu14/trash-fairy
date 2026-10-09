@@ -1,5 +1,8 @@
-import json, math, heapq
-from shapely.geometry import shape, box, LineString, MultiLineString, Polygon, Point
+import heapq
+import json
+import math
+import os
+from shapely.geometry import shape, box, LineString, Polygon
 from shapely.ops import unary_union, polygonize, linemerge
 
 W, H = 1600, 900
@@ -25,7 +28,7 @@ def nm(f):
 def path_d(coords):
     pts = [P(x, y) for x, y in coords]
     out, last = [], None
-    for i, (x, y) in enumerate(pts):
+    for x, y in pts:
         t = (round(x, 1), round(y, 1))
         if t == last:
             continue
@@ -214,4 +217,4 @@ out = {'pos': pos, 'street': street[0], 'streetRet': street[1], 'streetKm': roun
 json.dump(out, open('mapdata.json', 'w'), ensure_ascii=False, indent=1)
 print('km', out['streetKm'], out['altKm'], 'labels', [l['name'] for l in labels], 'm/px', out['scale_m_per_px'])
 print('river', river.geom_type, round(river.length, 4))
-import os; print('svg KB', os.path.getsize('krakow-basemap.svg') // 1024, 'rynek', bool(rynek_d))
+print('svg KB', os.path.getsize('krakow-basemap.svg') // 1024, 'rynek', bool(rynek_d))
