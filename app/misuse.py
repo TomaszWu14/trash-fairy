@@ -66,7 +66,7 @@ def misuse_overview(now):
     overflowing = overflowing_shelters(now, shelters) if bins_with_bags else {}
     links = household_bag_links(bins_with_bags, shelters, overflowing)
     recommendations = {}
-    for b, s in links:
+    for _, s in links:
         recommendations[s.id] = (f"Zwiększ częstotliwość odbioru: altana była przepełniona w ostatnich 48 h "
                                  f"(szacunek do {round(overflowing[s.id])}%), a w koszach obok są worki z domowymi śmieciami.")
     return {

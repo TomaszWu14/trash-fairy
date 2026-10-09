@@ -26,9 +26,9 @@ with sync_playwright() as p:
         if motyw:
             pg.add_init_script(f"try {{ localStorage.setItem('tf-motyw', '{motyw}') }} catch (e) {{}}")
         errs = []
-        pg.on("pageerror", lambda e: errs.append(str(e)[:200]))
-        pg.on("console", lambda m: m.type == "error" and errs.append(m.text[:200]))
-        pg.on("response", lambda r: r.status >= 400 and errs.append(f"{r.status} {r.url}"))
+        pg.on("pageerror", lambda e, errs=errs: errs.append(str(e)[:200]))
+        pg.on("console", lambda m, errs=errs: m.type == "error" and errs.append(m.text[:200]))
+        pg.on("response", lambda r, errs=errs: r.status >= 400 and errs.append(f"{r.status} {r.url}"))
         pg.goto(BASE + path, wait_until="networkidle")
         pg.wait_for_timeout(1500)
         f = out / f"{name}-r{rnd}-{vp}{'-' + motyw if motyw else ''}.png"
