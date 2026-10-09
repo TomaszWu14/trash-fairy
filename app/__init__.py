@@ -17,6 +17,17 @@ def database_url():
     return url
 
 
+# Klucze jawne w publicznym repo (domyślny w kodzie i w docker-compose) – poza SQLite nie wolno na nich startować.
+_PUBLIC_KEYS = {"dev-only-trash-fairy", "zmien-mnie-lokalnie"}
+
+
+def _require_secret_key(config):
+    """SECRET_KEY podpisuje tokeny QR i urządzeń: z jawnym kluczem każdy je policzy (#25). SQLite = lokalnie, wolno."""
+    if not config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite") and config["SECRET_KEY"] in _PUBLIC_KEYS:
+        raise RuntimeError("Ustaw własny SECRET_KEY (np. python -c \"import secrets; print(secrets.token_hex(32))\"): "
+                           "z domyślnym tokeny QR i urządzeń da się policzyć z publicznego kodu.")
+
+
 _GZIP_TYPES = ("text/", "application/javascript", "application/json", "application/geo+json", "image/svg+xml")
 _gzip_cache = {}  # statyki: (ścieżka, ETag) → skompresowane bajty; echarts 1 MB → ok. 330 kB liczone raz na proces
 
@@ -59,9 +70,8 @@ def create_app(config=None):
     # sekret podpisu tokenów QR (api_pl) i hashowania telefonów; na produkcji MUSI być ustawiony w env
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-trash-fairy")
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # zdjęcie do 8 MB + pola formularza; większe ciało → 413
-    if not os.environ.get("SECRET_KEY") and not app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
-        app.logger.warning("SECRET_KEY nie jest ustawiony: tokeny QR i urządzeń da się policzyć z kodu. Ustaw go w env.")
     app.config.update(config or {})
+    _require_secret_key(app.config)
     os.makedirs(app.instance_path, exist_ok=True)
     db.init_app(app)
 
