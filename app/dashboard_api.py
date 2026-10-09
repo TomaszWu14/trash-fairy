@@ -23,7 +23,7 @@ from .methodology import money_assumptions, visit_cost_parts
 from .misuse import misuse_overview
 from .models import Point, Project
 from .recommendations import WINDOW, recommendations
-from .state import _cached, point_states
+from .state import _cached, current_routes, point_states
 
 bp = Blueprint("dashboard_api", __name__, url_prefix="/api")
 
@@ -474,32 +474,65 @@ EXPORTS = {  # nazwa pliku → (źródło, kolumna czasu, nagłówki CSV)
 }
 
 
+ROUTES_HEADER = ["flota", "pojazd", "kolejnosc", "kosz_id", "kosz", "dzielnica", "frakcja", "lat", "lon", "planowany_kurs",
+                 "km_trasy"]
+
+
+def _dec(v, nd):
+    return str(round(float(v), nd)).replace(".", ",")
+
+
+def _route_rows(now, f):
+    """Plan najbliższego kursu obu flot, wszystkie pojazdy (jak /api/trasa). Okres nie dotyczy planu – filtrują dzielnica/frakcja."""
+    for fleet in current_routes(now):
+        run_at = datetime.fromisoformat(fleet["run_at"]).strftime("%Y-%m-%d %H:%M")
+        for route in [fleet] + fleet["extra_routes"]:
+            stops = route["stops"]
+            points = {p.id: p for p in Point.query.filter(Point.id.in_([s["id"] for s in stops]))}
+            for s in stops:
+                p = points[s["id"]]
+                if (f.district and p.district != f.district) or (f.fraction and p.fraction != f.fraction):
+                    continue
+                name = p.name or ""
+                name = "'" + name if name[:1] in ("=", "+", "-", "@") else name  # nazwa z OSM: bez formuł w Excelu
+                yield [fleet["label"], s["vehicle"], s["order"], p.id, name, p.district, p.fraction,
+                       _dec(s["lat"], 6), _dec(s["lon"], 6), run_at, _dec(route["km"], 1)]
+
+
 @bp.get("/eksport/<nazwa>.csv")
 def export_csv(nazwa):
     """CSV z tymi samymi filtrami co dashboard (okres, od/do, dzielnica, frakcja, projekt); separator „;” pod polski Excel."""
-    if nazwa not in EXPORTS:
-        raise ApiError(404, "nieznany_eksport", f"Nieznany eksport. Dostępne: {', '.join(EXPORTS)}.")
+    if nazwa not in EXPORTS and nazwa != "trasy":
+        raise ApiError(404, "nieznany_eksport", f"Nieznany eksport. Dostępne: {', '.join([*EXPORTS, 'trasy'])}.")
     now = clock.now()
     f, meta = parse_filters(now)
+    if nazwa == "trasy":
+        return _csv_response(nazwa, f, meta, ROUTES_HEADER, _route_rows(now, f))
     source, col, header = EXPORTS[nazwa]
     sub = source(now)
     c = sub.c
     cols = ([c.at, c.point_id, c.district, c.fraction, c.mass_kg, c.cost_pln, c.km, c.fill_pct, c.on_demand] if nazwa == "odbiory"
             else [c.created_at, c.point_id, c.district, c.fraction, c.kind, c.resolved_at])
     rows = db.session.execute(_where(select(*cols), sub, f, getattr(c, col)).order_by(getattr(c, col)))
-    out = io.StringIO()
-    w = csv.writer(out, delimiter=";")
-    w.writerow([f"# {meta['zrodlo']} Okres: {meta['etykieta']}."])
-    w.writerow(header)
+    out = []
     for r in rows:
         r = list(r)
         r[0] = r[0].strftime("%Y-%m-%d %H:%M")
         if nazwa == "odbiory":
-            r[4:7] = [str(round(float(v), 2)).replace(".", ",") for v in r[4:7]]
+            r[4:7] = [_dec(v, 2) for v in r[4:7]]
             r[8] = "tak" if r[8] else "nie"
         else:
             r[5] = r[5].strftime("%Y-%m-%d %H:%M") if r[5] else ""
-        w.writerow(r)
+        out.append(r)
+    return _csv_response(nazwa, f, meta, header, out)
+
+
+def _csv_response(nazwa, f, meta, header, rows):
+    out = io.StringIO()
+    w = csv.writer(out, delimiter=";")
+    w.writerow([f"# {meta['zrodlo']} Okres: {meta['etykieta']}."])
+    w.writerow(header)
+    w.writerows(rows)
     name = f"trash-fairy-{nazwa}-{f.od:%Y%m%d}-{(f.do - timedelta(seconds=1)):%Y%m%d}.csv"
     return Response("﻿" + out.getvalue(), mimetype="text/csv",
                     headers={"Content-Disposition": f'attachment; filename="{name}"'})

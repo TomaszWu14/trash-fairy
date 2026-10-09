@@ -326,3 +326,22 @@ def test_repair_queue_lists_live_damaged_report(client):
         Press.query.filter(Press.at == clock.now()).delete()
         Report.query.filter(Report.first_at == clock.now()).delete()
         db.session.commit()
+
+
+def test_routes_csv_matches_planned_route(client):
+    """Issue #30: eksport tras – nagłówek i tyle wierszy pierwszego pojazdu koszy, ile przystanków w /api/trasa."""
+    r = client.get("/api/eksport/trasy.csv")
+    assert r.status_code == 200 and r.mimetype == "text/csv" and "trash-fairy-trasy-" in r.headers["Content-Disposition"]
+    lines = r.data.decode("utf-8-sig").splitlines()
+    assert "# Dane syntetyczne" in lines[0]
+    assert lines[1] == "flota;pojazd;kolejnosc;kosz_id;kosz;dzielnica;frakcja;lat;lon;planowany_kurs;km_trasy"
+    rows = [l.split(";") for l in lines[2:]]
+    stops = client.get("/api/trasa").json["przystanki"]
+    first_bin = [x for x in rows if x[0] == "Kosze uliczne" and x[1] == "1"]
+    assert stops and len(first_bin) == len(stops)
+    assert [x[2] for x in first_bin] == [str(n) for n in range(1, len(stops) + 1)]
+    district = rows[0][5]
+    filtered = [l.split(";") for l in client.get(f"/api/eksport/trasy.csv?dzielnica={district}").data
+                .decode("utf-8-sig").splitlines()[2:]]
+    assert filtered and all(x[5] == district for x in filtered) and len(filtered) <= len(rows)
+    assert 'href="/api/eksport/trasy.csv"' in client.get("/dashboard").data.decode()
