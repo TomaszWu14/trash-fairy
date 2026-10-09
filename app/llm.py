@@ -1,4 +1,4 @@
-"""Jedyna brama do AI (CLAUDE.md): ask() i ask_json(). Model i klucz z env.
+"""Jedyna brama do AI (README, „Bezpieczeństwo AI”): ask() i ask_json(). Model i klucz z env.
 
 AI tylko opisuje i rozpoznaje — decyzje podejmują reguły w kodzie. Każdy błąd (brak klucza, sieć, limit,
 odmowa modelu, zły JSON) zamieniamy na LLMError z komunikatem dla człowieka; wywołujący pokazuje

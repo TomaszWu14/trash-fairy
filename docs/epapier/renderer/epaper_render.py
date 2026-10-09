@@ -17,7 +17,7 @@ import qrcode
 W, H = 800, 480
 BLACK, WHITE, RED = 0, 1, 2          # indeksy palety (tryb "P" dla tri)
 HERE = os.path.dirname(os.path.abspath(__file__))
-BASE_URL = os.environ.get("TF_BASE_URL", "http://10.250.192.133:5050")
+BASE_URL = os.environ.get("TF_BASE_URL", "http://127.0.0.1:5050")
 
 # --- siatka (px) -------------------------------------------------------------
 HEADER = (0, 0, 800, 64)          # statyczny
