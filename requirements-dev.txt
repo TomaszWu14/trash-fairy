@@ -1,0 +1,2 @@
+# Narzędzia deweloperskie (testy równolegle: python -m pytest -q -n auto)
+pytest-xdist==3.8.0

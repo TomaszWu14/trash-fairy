@@ -49,7 +49,7 @@ def test_status_live_region_only_on_title(client, demo):
 
 
 def test_simulated_scan_offers_bins_with_panel_and_todays_token(client, demo):
-    # HANDOFF 2e: symulowany skan losuje kosz z panelem; dzisiejszy token z tej samej funkcji co panel, bez nowego endpointu
+    # symulowany skan losuje kosz z panelem; dzisiejszy token z tej samej funkcji co panel, bez nowego endpointu
     import json
     import re
     from app import db
@@ -67,7 +67,7 @@ def test_simulated_scan_offers_bins_with_panel_and_todays_token(client, demo):
 
 
 def test_success_screens_thank_and_lead_back(client, demo):
-    # HANDOFF 2: „Dziękujemy!” + powrót (do panelu tego kosza po skanie QR, inaczej na stronę mieszkańca) + cichy link na start
+    # „Dziękujemy!” + powrót (do panelu tego kosza po skanie QR, inaczej na stronę mieszkańca) + cichy link na start
     from app.api_pl import qr_token
     scanned = client.get(f"/zglos/18?qr={qr_token(18)}").get_data(as_text=True)
     assert "Dziękujemy!" in scanned and 'href="/panel/18"' in scanned and "Wróć do panelu kosza" in scanned

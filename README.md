@@ -1,5 +1,7 @@
 <p align="center"><img src="app/static/img/logo.svg" alt="Trash Fairy" width="320"></p>
 
+<p align="center">Planuje odbiór koszy ulicznych według zapełnienia zamiast stałego harmonogramu: −24% odbiorów w symulacji.</p>
+
 > **„Kraków nie potrzebuje więcej koszy, potrzebuje wróżki.”**
 > HackYeah 2026 · Smart City (zadanie otwarte)
 
@@ -150,10 +152,10 @@ docker compose up --build   # http://localhost:8080
 Lokalnie bez Dockera (SQLite):
 ```bash
 python -m venv .venv && .venv/Scripts/activate      # Linux/macOS: source .venv/bin/activate
-pip install -r requirements.txt
-flask --app app seed        # import punktów z data/*.geojson + 8 tygodni symulacji
+pip install -r requirements.txt -r requirements-dev.txt
+flask --app app seed        # import punktów z data/*.geojson + 8 tygodni symulacji (--force: od nowa)
 flask --app app run         # http://localhost:5000 (albo -p 5050)
-python -m pytest -q -n auto # ponad 270 testów (pytest-xdist)
+python -m pytest -q -n auto # 457 testów, ok. 2 min (pytest-xdist z requirements-dev.txt)
 ```
 Sam obraz: `docker build -t trash-fairy . && docker run -p 8080:8080 trash-fairy` (z `-e DATABASE_URL=...` dla PostgreSQL).
 Zmienne środowiskowe: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `PUBLIC_URL` (adres w kodach QR), `SECRET_KEY`, `DATABASE_URL`,
@@ -200,7 +202,7 @@ jako usługę, musi udostępnić jej kod. Atrybucje danych i bibliotek: [NOTICE]
 
 ## Przejrzystość
 Koncepcja została przemyślana przed wydarzeniem i jest w `docs/KONCEPCJA.md` (bez kodu).
-**Cały kod powstał podczas HackYeah, 3–4.10.2026.** Historię zmian pokazują commity od tagu `start-hackyeah`,
+**Rdzeń aplikacji powstał podczas HackYeah, 3–4.10.2026**; po hackathonie (5–6.10) doszły domknięcie Etapu 2c (podpowiedzi, dyspozytor w scenariuszach, filtry dashboardu) i filmy demo. Historię zmian pokazują commity od tagu `start-hackyeah`,
 a uzasadnienia decyzji (co, dlaczego, jaką alternatywę odrzuciliśmy) są w `DECYZJE.md`.
 
 ---
@@ -231,4 +233,4 @@ bins −24% pickups and empty trips down from 57% to 27%; shelter overflow hours
 (resident photo analysis, event parsing) behind input fencing and schema validation; Playwright and Lighthouse for the UX audit.
 
 **Transparency:** the concept was prepared before the event (`docs/KONCEPCJA.md`, no code).
-**All code was written during HackYeah, 3–4 Oct 2026**, starting at the `start-hackyeah` tag.
+**The core was written during HackYeah, 3–4 Oct 2026**, starting at the `start-hackyeah` tag; after the event (5–6 Oct) we finished Stage 2c (help tips, dispatcher in demo scenarios, dashboard filters) and the demo videos.
