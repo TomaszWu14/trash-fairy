@@ -3,11 +3,15 @@
 Dwie floty, start i koniec w bazie MPO. Odległości w linii prostej × 1,3 (ulice nie są proste; OSRM w roadmapie).
 Pojemność pojazdu to wymiar OR-Tools: gdy odpady z wybranych punktów się nie mieszczą, flota dostaje kolejny pojazd.
 """
+import warnings
 from datetime import datetime, timedelta
 from functools import lru_cache
 
-from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 from sqlalchemy import func
+
+with warnings.catch_warnings():  # SWIG w ortools: DeprecationWarning przy imporcie (Python 3.12+), nie nasz kod
+    warnings.simplefilter("ignore", DeprecationWarning)
+    from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
 from . import db
 from .geo import distance_m
