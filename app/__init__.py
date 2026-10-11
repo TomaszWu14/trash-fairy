@@ -1,5 +1,6 @@
 import gzip
 import os
+import secrets
 
 from flask import Flask, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
@@ -76,7 +77,12 @@ def create_app(config=None):
     app.config.update(SESSION_COOKIE_SAMESITE="Lax", SESSION_COOKIE_SECURE=os.environ.get("PUBLIC_URL", "").startswith("https://"))
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # zdjęcie do 8 MB + pola formularza; większe ciało → 413
     app.config.update(config or {})
-    _require_secret_key(app.config)
+    # bez SECRET_KEY w env poza SQLite: klucz losowany raz i trzymany w bazie (AppSecret), zamiast jawnego domyślnego;
+    # jawny klucz ustawiony wprost (env albo config) nadal jest odrzucany (#25)
+    stored_key = (not os.environ.get("SECRET_KEY") and "SECRET_KEY" not in (config or {})
+                  and not app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"))
+    if not stored_key:
+        _require_secret_key(app.config)
     os.makedirs(app.instance_path, exist_ok=True)
     db.init_app(app)
 
@@ -127,9 +133,26 @@ def create_app(config=None):
     with app.app_context():
         db.create_all()
         _add_missing_columns()
+        if stored_key:
+            app.config["SECRET_KEY"] = stored_secret_key()
         from .privacy import forget_old_ips
         forget_old_ips()  # IP zgłoszeń starsze niż 24 h (decyzja 32)
     return app
+
+
+def stored_secret_key():
+    """Klucz z tabeli AppSecret; przy pierwszym starcie losowany (gunicorn --preload: raz, przed forkiem workerów)."""
+    from sqlalchemy.exc import IntegrityError
+    from .models import AppSecret
+    row = db.session.get(AppSecret, "secret_key")
+    if row is None:
+        db.session.add(AppSecret(name="secret_key", value=secrets.token_hex(32)))
+        try:
+            db.session.commit()
+        except IntegrityError:  # drugi proces zdążył pierwszy: bierzemy jego klucz
+            db.session.rollback()
+        row = db.session.get(AppSecret, "secret_key")
+    return row.value
 
 
 def _add_missing_columns():

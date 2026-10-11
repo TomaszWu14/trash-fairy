@@ -31,7 +31,16 @@ def test_postgres_with_own_secret_key_and_sqlite_pass():
     _require_secret_key({"SQLALCHEMY_DATABASE_URI": "sqlite:///tf.db", "SECRET_KEY": "dev-only-trash-fairy"})
 
 
-def test_create_app_on_postgres_without_secret_key_fails_before_connecting(monkeypatch):
-    monkeypatch.delenv("SECRET_KEY", raising=False)
+def test_create_app_on_postgres_with_public_key_in_env_fails_before_connecting(monkeypatch):
+    monkeypatch.setenv("SECRET_KEY", "dev-only-trash-fairy")  # jawny klucz ustawiony wprost nadal blokuje start
     with pytest.raises(RuntimeError, match="SECRET_KEY"):
         create_app({"SQLALCHEMY_DATABASE_URI": PG})
+
+
+def test_stored_secret_key_is_random_and_persists(app):
+    """Bez SECRET_KEY w env (produkcja bez zmiennej w Coolify) klucz losujemy raz i trzymamy w bazie."""
+    from app import stored_secret_key
+    from app.models import AppSecret
+    first = stored_secret_key()
+    assert len(first) == 64 and first != "dev-only-trash-fairy"
+    assert stored_secret_key() == first and AppSecret.query.count() == 1
