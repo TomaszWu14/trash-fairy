@@ -106,7 +106,7 @@ flowchart TD
 | 1 | Czy przyjąć zgłoszenie z telefonu? | system | ważny dzienny token QR kosza i limit (1/min na telefon i kosz, 200/h z IP) | `app/api_pl.py:24-50, 140-151` |
 | 2 | Nowe zgłoszenie czy dołączenie do istniejącego? | system | naciśnięcia w 15 min od pierwszego tworzą jedno zgłoszenie | `app/reports.py:49-76` |
 | 3 | Ile waży zgłoszenie? | system | wiarygodność przycisku (trafne z ostatnich 10, start 70%), osłabienia antyspamowe | `app/reports.py:14-24`, `app/state.py:67-86` |
-| 4 | Jaki jest stan kosza? | system | max(prognoza, 100 × waga); „do opróżnienia” > 85% albo świeże silne zgłoszenie | `app/state.py:20-51, 223` |
+| 4 | Jaki jest stan kosza? | system | max(prognoza, 100 × waga); „do opróżnienia” > 85% albo świeże silne zgłoszenie | `app/state.py:20-51, 233` |
 | 5 | Czy kosz jedzie w tym kursie? | system | stan „do opróżnienia”, albo 85% przed kolejnym kursem, albo bezpiecznik 3/7 dni | `app/routes.py:26-31, 66-75` |
 | 6 | Czy dołożyć kosz poza regułą? | dyspozytor | „Dodaj do kursu”: kosz jedzie pierwszy, decyzja wygasa po opróżnieniu lub 24 h | `app/routes.py:34-49, 172-175` |
 | 7 | Czy zgłoszenie było trafne? | system na podstawie danych kierowcy | poziom przy opróżnieniu ≥ 75% | `app/reports.py:13, 79-90` |

@@ -122,6 +122,15 @@ def data_version():
     return f"{clock.now():%Y%m%d%H%M}-" + "-".join(map(str, last + rows + [analysed])) + f"-{devices}-{online}"
 
 
+def side_version():
+    """Wersja danych, które nie zmieniają stanu koszy, ale są na dashboardzie: wysypiska, punkty, odczyty czujników."""
+    from .models import DeviceInfo, DumpReport, PointAward
+    dumps = db.session.query(func.max(DumpReport.id), func.count(DumpReport.cleared_at), func.sum(DumpReport.confirmations)).one()
+    seen = db.session.query(func.max(DeviceInfo.last_seen)).scalar()
+    awards = db.session.query(func.max(PointAward.id)).scalar()
+    return (*dumps, awards, seen)
+
+
 def _engine_version():
     """Klucz cache silnika: wersja danych + pogoda. Pogoda (prognoza godzin przyszłych) jest w pamięci każdego workera
     z własnym czasem pobrania, więc w /api/zmiany powodowała przeładowanie ekranów co poll między workerami."""
@@ -138,10 +147,11 @@ def clear_cache():
     _cache.clear()
 
 
-def _cached(name, now, compute):
+def _cached(name, now, compute, extra=None):
     """Jeden wynik na proces dla (zegar, wersja danych): 300–600 ms liczymy raz na zmianę danych, nie raz na zapytanie.
-    Zwracamy kopię, bo wywołujący dopisują pola (trasy: geometria, poziom przystanku)."""
-    key = (name, now, _engine_version())
+    Zwracamy kopię, bo wywołujący dopisują pola (trasy: geometria, poziom przystanku). `extra`: dodatkowa wersja danych
+    spoza silnika (dashboard: wysypiska, punkty, czujniki)."""
+    key = (name, now, _engine_version(), extra)
     val = _cache.get(key)  # .get, nie „in” + [key]: reset w wątku w tle może wyczyścić cache między tymi krokami
     if val is None:
         for k in [k for k in list(_cache) if k[0] == name]:

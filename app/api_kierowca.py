@@ -126,7 +126,8 @@ def odbior():
         return blad("Nie ma takiego kosza.", "kosz_nie_istnieje", 404)
     akcja, now = data.get("akcja"), clock.now()
     if akcja == "jade":
-        db.session.add(StopIssue(point_id=p.id, at=now, kind="jade"))
+        if not StopIssue.query.filter_by(point_id=p.id, kind="jade").first():  # drugie „Jadę” nic nie dokłada
+            db.session.add(StopIssue(point_id=p.id, at=now, kind="jade"))
         msg = f"Jedziesz do: {p.name}."
     elif akcja == "oprozniono":
         try:
@@ -152,8 +153,7 @@ def odbior():
         resolve_reports(e)
         msg = f"Opróżniono: {p.name}."
         if raw:  # dowód dotyczy kosza; AI tylko opisuje zdjęcie, potwierdzenie liczy reguła (crew_points.confirmed_photo)
-            db.session.commit()
-            pa = photos.save(p.id, now, raw, mt, crew_level=level, source="crew")
+            pa = photos.save(p.id, now, raw, mt, crew_level=level, source="crew")  # jeden commit: opróżnienie ze zdjęciem albo nic
             photos.analyze_in_background(pa.id)
             clock.touch()
             return jsonify(ok=True, komunikat=msg + " Zdjęcie kosza zapisane.", zdjecie=crew_photo_status(pa), meta=meta()), 201

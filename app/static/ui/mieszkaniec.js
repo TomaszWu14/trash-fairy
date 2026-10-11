@@ -182,10 +182,14 @@
       $('st-pts').hidden = !chip; put('st-pts', chip ? `${icon('coins', 'i-sm')}<span class="num">${chip}</span>` : '');
       $('st-note').hidden = d.status === 'zrealizowane';
     };
+    let timer = null, warned = false;
     const load = async () => {
-      try { render(await api(`/api/zgloszenia/${encodeURIComponent(st.dataset.nr)}`)); }
-      catch (e) { if (e.kod === 'zgloszenie_nie_istnieje') { st.hidden = true; document.getElementById('st-missing').hidden = false; } }
+      try { render(await api(`/api/zgloszenia/${encodeURIComponent(st.dataset.nr)}`)); warned = false; }
+      catch (e) {
+        if (e.kod === 'zgloszenie_nie_istnieje') { st.hidden = true; document.getElementById('st-missing').hidden = false; clearInterval(timer); }
+        else if (!warned) { warned = true; window.TF.toast(e.message, 'err'); }  // raz, nie przy każdej próbie odświeżenia
+      }
     };
-    load(); window.TF.watch(load);
+    load(); timer = window.TF.watch(load);
   }
 })();

@@ -27,7 +27,7 @@ def api_docs():
 def epaper_png(point_id):
     """Obraz 1-bitowy aktualnego stanu ekranu e-papierowego; ?part=1 = tylko okno odświeżania częściowego."""
     from . import epaper, epaper_render
-    point = db.get_or_404(Point, point_id)
+    point = Point.live_or_404(point_id)  # punkty warstwy miasta nie mają stanu silnika
     state, data = epaper.display_state(point, clock.now())
     part = bool(request.args.get("part"))
     state_key, values_key = epaper.keys(state, data)

@@ -116,9 +116,9 @@ def city_scale(result):
     Przedział: ostrożny (tylko kosze opróżniane codziennie lub częściej) i pełny (wszystkie 9 383). Altan nie skalujemy."""
     a = money_assumptions()
     fixed, fairy = result["fixed"]["bin"], result["fairy"]["bin"]
-    visit_cut = (fixed["visits"] - fairy["visits"]) / fixed["visits"]
-    km_per_visit = fixed["km"] / fixed["visits"]
-    km_cut = (fixed["km"] - fairy["km"]) / fixed["km"]
+    visit_cut = (fixed["visits"] - fairy["visits"]) / fixed["visits"] if fixed["visits"] else 0.0  # pusta baza: zero, nie 500
+    km_per_visit = fixed["km"] / fixed["visits"] if fixed["visits"] else 0.0
+    km_cut = (fixed["km"] - fairy["km"]) / fixed["km"] if fixed["km"] else 0.0
     rows = [{"label": l, "bins": n, "visits": round(n * v)} for l, n, v in MPO_SCHEDULE]
 
     def variant(selected):

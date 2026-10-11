@@ -53,7 +53,7 @@ def device_list():
 @bp.get("/urzadzenia/<int:point_id>")
 def device_detail(point_id):
     now = clock.now()
-    d = devices.detail(point_id, now)
+    d = devices.detail(point_id, now) if 0 < point_id < 2**31 else None
     if d is None:
         raise ApiError(404, "nieznane_urzadzenie", f"Przy koszu {point_id} nie ma urządzenia.")
     return jsonify(meta={**META, "teraz": now.isoformat(), "zegar": now.isoformat()}, urzadzenie=d)
@@ -87,7 +87,7 @@ def reading():
     serial = str(data.get("numer_seryjny") or "")[:20]
     info = DeviceInfo.query.filter_by(serial=serial).first() if serial else None
     token = request.headers.get("X-Token-Urzadzenia", "")
-    if info is None or not hmac.compare_digest(token, device_token(serial)):
+    if info is None or not hmac.compare_digest(token.encode(), device_token(serial).encode()):  # bajty: str spoza ASCII → TypeError
         raise ApiError(401, "nieznane_urzadzenie", "Nieznany numer seryjny albo zły token urządzenia.")
     fill = _pct(data, "zapelnienie", required=info.kind == "czujnik")
     battery = _pct(data, "bateria")
@@ -104,6 +104,9 @@ def reading():
             info.selftest_ok = selftest
     else:
         dev = db.session.get(Device, info.point_id)
+        if dev is None:  # panel zarejestrowany bez wiersza Device: pierwszy odczyt go zakłada
+            dev = Device(point_id=info.point_id, last_heartbeat=now, battery=100 if battery is None else battery)
+            db.session.add(dev)
         dev.last_heartbeat = now
         if battery is not None:
             dev.battery = battery

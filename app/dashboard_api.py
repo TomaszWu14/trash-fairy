@@ -23,7 +23,7 @@ from .methodology import money_assumptions, visit_cost_parts
 from .misuse import misuse_overview
 from .models import Point, Project
 from .recommendations import WINDOW, recommendations
-from .state import _cached, current_routes, point_states
+from .state import _cached, current_routes, point_states, side_version
 
 bp = Blueprint("dashboard_api", __name__, url_prefix="/api")
 
@@ -51,7 +51,8 @@ def _cached_json(view):
     ponytail: jeden wpis na adres; przy wielu różnych zakresach od/do cache rośnie — wtedy LRU."""
     @wraps(view)
     def wrapper(*args, **kwargs):
-        return jsonify(_cached(f"dashboard:{request.full_path}", clock.now(), lambda: view(*args, **kwargs)))
+        return jsonify(_cached(f"dashboard:{request.full_path}", clock.now(), lambda: view(*args, **kwargs),
+                               extra=side_version()))
     return wrapper
 
 
@@ -421,7 +422,7 @@ def _project_trend(pr, now, months):
 def _project(pr, now, months):
     unit, noun = PROJECT_METRICS[pr.metric]
     return {"id": pr.id, "slug": pr.slug, "nazwa": pr.name, "dzielnica": pr.district, "status": pr.status,
-            "status_etykieta": STATUS_PL[pr.status], "postep_pct": pr.progress_pct, "budzet": pr.budget_pln,
+            "status_etykieta": STATUS_PL.get(pr.status, pr.status), "postep_pct": pr.progress_pct, "budzet": pr.budget_pln,
             "wykorzystano": pr.spent_pln, "start": pr.start.isoformat(), "koniec": pr.end.isoformat(),
             "efekt_etykieta": pr.effect_label if pr.effect_value is None else effect_label(pr.metric, pr.effect_value),
             "efekt_wartosc": pr.effect_value, "efekt_jednostka": unit,

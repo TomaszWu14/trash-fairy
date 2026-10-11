@@ -59,7 +59,11 @@ def cleanup_photos_command():
 @click.option("--pages", default=5, help="Ile stron każdej listy pobrać (12 wydarzeń na stronę).")
 def karnet_command(pages):
     """Pobiera wydarzenia z Karnet Kraków do data/karnet.json, importuje je i odtwarza symulację."""
-    click.echo(f"Pobrano {karnet.fetch(pages)} wydarzeń.")
+    try:
+        n = karnet.fetch(pages)
+    except OSError as e:  # URLError, HTTPError, timeout: cache zostaje bez zmian (zapis dopiero na końcu fetch)
+        raise click.ClickException(f"Karnet nie odpowiada ({e}). Cache data/karnet.json bez zmian.") from e
+    click.echo(f"Pobrano {n} wydarzeń.")
     click.echo(f"W obszarze demo w weekend demo: {karnet.import_events(DEMO_DAYS)}.")
     clock.reset()
     click.echo("Symulacja odtworzona z nowymi wydarzeniami.")

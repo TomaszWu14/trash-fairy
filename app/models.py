@@ -31,7 +31,7 @@ class Point(db.Model):
 
     @classmethod
     def live_or_404(cls, point_id):
-        return cls.live_query().filter_by(id=point_id).first_or_404()
+        return cls.live_query().filter_by(id=point_id if 0 < point_id < 2**31 else 0).first_or_404()  # poza INTEGER → 404, nie 500
 
 
 class Pickup(db.Model):
