@@ -1,0 +1,39 @@
+# Konfiguracja narzędzi deweloperskich (zależności: requirements-dev.txt). Projekt nie jest pakietem do instalacji.
+
+[tool.ruff]
+# Lint: ruff check .  (to samo w CI). Zestaw celowo wąski – łapie błędy, nie przepisuje stylu repo.
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP"]
+ignore = [
+    "E501",  # długie linie: kod i szablony tekstów są świadomie gęste (decyzja stylu, nie błąd)
+    "E702",  # kilka instrukcji w linii (;) w skryptach zrzutów i demo
+    "E731",  # lambda przypisana do nazwy – krótkie helpery w skryptach
+    "E741",  # nazwy l/O/I w geometrii mapy
+    "B904",  # raise bez „from” w except – do przejrzenia osobno (zmienia ślady błędów)
+    "B905",  # zip() bez strict= – dodanie strict zmieniłoby zachowanie przy nierównych listach
+]
+
+[tool.mypy]
+# Tryb łagodny: kod nie ma adnotacji wszędzie, sprawdzamy tylko to, co da się sprawdzić bez ich dopisywania.
+# Hook Stop uruchamia mypy tylko na plikach zmienionych względem main (stan bazowy: 23 błędy w app/).
+python_version = "3.12"
+files = ["app"]
+ignore_missing_imports = true
+check_untyped_defs = false
+warn_unused_ignores = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "demo"]  # demo/test_build_all.py: spójność filmu demo z nagraniami lektora
+
+[tool.bandit]
+# bandit -c pyproject.toml -r app  (scripts/security_scan.sh)
+exclude_dirs = ["tests", ".venv", "demo", "scripts"]
+
+[tool.mutmut]
+# scripts/mutate.sh nadpisuje paths_to_mutate na wskazany moduł (w kopii repo w kontenerze).
+paths_to_mutate = ["app/"]
+tests_dir = ["tests/"]
+also_copy = ["data/"]

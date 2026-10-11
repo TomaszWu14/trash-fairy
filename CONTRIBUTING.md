@@ -16,7 +16,7 @@ pip install -r requirements.txt -r requirements-dev.txt
 flask --app app seed                                 # punkty z data/*.geojson + 8 tygodni symulacji
 flask --app app run                                  # http://localhost:5000
 python -m pytest -q -n auto                          # wszystkie testy, równolegle
-ruff check .                                         # lint (reguły w ruff.toml), to samo w CI
+ruff check .                                         # lint (reguły w pyproject.toml), to samo w CI
 ```
 
 AI jest opcjonalne (`ANTHROPIC_API_KEY` w `.env`) — bez klucza aplikacja działa
