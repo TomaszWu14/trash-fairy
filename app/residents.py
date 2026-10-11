@@ -126,7 +126,7 @@ def award(report, kind):
     awarded = []
     residents = {rid for (rid,) in db.session.query(Press.resident_id)
                  .filter(Press.report_id == report.id, Press.resident_id.isnot(None)).distinct()}
-    day_start = report.first_at.replace(hour=0, minute=0, second=0, microsecond=0)
+    day_start = report.resolved_at.replace(hour=0, minute=0, second=0, microsecond=0)  # ta sama data co PointAward.at
     for rid in residents:
         already = PointAward.query.filter(PointAward.resident_id == rid, PointAward.point_id == report.point_id,
                                           PointAward.at >= day_start, PointAward.at < day_start + timedelta(days=1)).first()

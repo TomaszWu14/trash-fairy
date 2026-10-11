@@ -345,9 +345,18 @@
         throw new Error('Nie udało się wczytać wykresów. Sprawdź połączenie, spróbujemy ponownie.');
       }
       charts.forEach((d, i) => !NO_ECHARTS.includes(NAMES[i]) && RENDER[NAMES[i]](d));
+      stale(false);
     } catch (e) {
       TF.toast(e.message, 'err');
+      if (my === seq && e.kod && e.kod !== 'siec') stale(true);  // zły filtr: liczby są z poprzedniego filtra, a CSV pobrałby komunikat błędu
     }
+  }
+  // nieaktualne liczby wyszarzone, eksport CSV wyłączony, dopóki filtr nie da poprawnej odpowiedzi
+  function stale(on) {
+    document.getElementById('d-kpis').style.opacity = on ? '.45' : '';
+    document.querySelectorAll('[data-export]').forEach(a => {
+      if (on) { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); } else a.removeAttribute('aria-disabled');
+    });
   }
   async function loadProjects() {
     try { const d = await api('/api/projekty'); rProjekty(d.projekty || d); } catch (e) { TF.toast(e.message, 'err'); }

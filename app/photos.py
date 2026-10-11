@@ -196,6 +196,8 @@ def save(point_id, at, data, mt, crew_level=None, source="crew"):
 def analyze(analysis_id):
     """Wywołuje Claude Vision i zapisuje wynik albo komunikat błędu — nigdy nie rzuca wyjątku dalej."""
     pa = db.session.get(PhotoAnalysis, analysis_id)
+    if pa is None:  # reset demo skasował wiersz, zanim wątek zdążył
+        return None
     resident = pa.source == "resident"
     try:
         data = Path(pa.photo_path).read_bytes()

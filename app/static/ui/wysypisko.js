@@ -191,11 +191,12 @@
       if (clear) clear.hidden = w.status === 'uprzatniete';
       document.getElementById('wd-st-note').textContent = w.status === 'uprzatniete' ? 'Zgłoszenie zamknięte. Dziękujemy!' : 'Status odświeża się sam co kilka sekund.';
     };
-    let timer = null;
+    let timer = null, warned = false;
     const load = async () => {
       try { render((await api(`/api/wysypiska/${encodeURIComponent(st.dataset.nr)}`)).wysypisko); }
       catch (e) {
         if (e.kod === 'wysypisko_nie_istnieje') { st.hidden = true; document.getElementById('wd-missing').hidden = false; clearInterval(timer); }
+        else if (!warned) { warned = true; window.TF.toast(e.message, 'err'); }  // raz, nie przy każdej próbie odświeżenia
       }
     };
     clear?.addEventListener('click', async () => {

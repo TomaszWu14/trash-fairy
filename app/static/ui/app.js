@@ -99,11 +99,12 @@
   // polling zmian: jedna funkcja dla wszystkich perspektyw; wywołuje cb, gdy wersja danych się zmieni.
   // onState(ok) dostaje wynik każdej próby: kiosk pokazuje „Stan z HH:MM”, gdy sieci nie ma
   TF.watch = (cb, ms = 3000, onState = null) => {
-    let v = null, busy = false;
+    let v = null, busy = false, n = 0;
     const tick = async () => {
       if (document.hidden || busy) return;  // wolna sieć: bez nakładania się zapytań co kilka sekund
       busy = true;
-      try { const d = await TF.api('/api/zmiany'); if (v !== null && d.wersja !== v) cb(d); v = d.wersja; onState?.(true); }
+      // co 10. próba odświeża też bez zmiany danych: ekran, którego pierwsze ładowanie padło, sam wraca do życia
+      try { const d = await TF.api('/api/zmiany'); if (v !== null && (d.wersja !== v || ++n % 10 === 0)) cb(d); v = d.wersja; onState?.(true); }
       catch (e) { onState?.(false); /* następna próba za chwilę */ }
       finally { busy = false; }
     };

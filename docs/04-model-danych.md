@@ -174,7 +174,7 @@ Poza diagramem (bez relacji): `project` (district jako tekst), `event`, `fairy_r
 
 1. **Słowniki bez ograniczeń.** Każde `kind`/`status`/`source` to wolny tekst. Wartości żyją w stałych Pythona. Przykłady:
    - `point.kind` ma też `container` (`osm_import.py:186`), którego nie znają `residents.POINTS` (`residents.py:21`) ani `open_api.BIN_CAPACITY_L` (`open_api.py:24`).
-   - `project.status` spoza słownika daje KeyError (`dashboard_api.py:424`).
+   - `project.status` spoza słownika daje KeyError (`dashboard_api.py:425`).
    - Komentarze w modelu są niepełne: `press.kind` bez `other` (`models.py:86`), `stop_issue.kind` z 4 wartościami zamiast 8 (`:98`).
 2. **Nullable, choć logika wymaga wartości:**
    - `device_info.last_seen`: porównanie z None daje TypeError (`devices.py:127,133`);
@@ -190,7 +190,7 @@ Poza diagramem (bez relacji): `project` (district jako tekst), `event`, `fairy_r
    - `pickup.cost_pln` jest zapisywany, a dashboard i tak przelicza koszt formułą (`dashboard.py:81`);
    - `report.presses`, `last_at` i `confirmed` pochodzą z `press`;
    - `point.area` i `point.district` się dublują.
-8. **Brakuje indeksu** na `press.at`, choć filtrują po nim główne zapytania silnika stanu (`state.py:195-208`).
+8. **Brakuje indeksu** na `press.at`, choć filtrują po nim główne zapytania silnika stanu (`state.py:205-218`).
 
 ## Reguły integralności
 

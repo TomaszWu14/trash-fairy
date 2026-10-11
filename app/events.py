@@ -20,8 +20,13 @@ AFTER = timedelta(hours=1)  # ludzie rozchodzą się jeszcze godzinę po wydarze
 def import_events(path=EVENTS_FILE):
     db.session.query(Event).filter_by(source="manual").delete()
     for e in json.loads(path.read_text(encoding="utf-8")):
-        db.session.add(Event(name=e["name"], venue=e["venue"], lat=e["lat"], lon=e["lon"], scale=e["scale"],
-                             start=datetime.fromisoformat(e["start"]), end=datetime.fromisoformat(e["end"])))
+        try:
+            ev = Event(name=e["name"], venue=e["venue"], lat=float(e["lat"]), lon=float(e["lon"]), scale=e["scale"],
+                       start=datetime.fromisoformat(e["start"]), end=datetime.fromisoformat(e["end"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+        if ev.scale in RADIUS_M and ev.end > ev.start:  # nieznana skala dałaby KeyError w events_near przy każdym przeliczeniu
+            db.session.add(ev)
     db.session.commit()
 
 

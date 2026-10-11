@@ -20,7 +20,7 @@
     let p;
     try { p = await api(`/api/projekty/${encodeURIComponent(root.dataset.slug)}`); p = p.projekt || p; }
     catch (e) {
-      if (e.kod === 'projekt_nie_istnieje' || e.kod === 404) { document.querySelectorAll('#proj > :not(.back):not(#p-missing)').forEach(x => x.hidden = true); document.getElementById('p-missing').hidden = false; }
+      if (e.kod === 'nieznany_projekt') { document.querySelectorAll('#proj > :not(.back):not(#p-missing)').forEach(x => x.hidden = true); document.getElementById('p-missing').hidden = false; }
       else TF.toast(e.message, 'err');
       return;
     }

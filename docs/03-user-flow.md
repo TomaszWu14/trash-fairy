@@ -176,11 +176,11 @@ Scenariusze demo (`app.js:159-179`):
 
 ## Ścieżki ślepe i akcje bez informacji zwrotnej
 
-1. **Projekt, który nie istnieje.** `projekt.js:23` czeka na kod `projekt_nie_istnieje`, a API zwraca `nieznany_projekt` (`dashboard_api.py:449`). Karta „Nie ma takiego projektu” nigdy się nie pokazuje: jest toast, a szkielety ładowania wiszą bez końca. *(potwierdzone)*
-2. **Pierwsze ładowanie nie ponawia się po błędzie.** `TF.watch` przy błędzie tylko woła `onState(false)` (`app.js:107`). Kierowca, karta kosza, dyspozytor i dashboard zostają w stanie błędu bez przycisku „Spróbuj ponownie”. Ponowienie mają tylko Urządzenia (`urzadzenia.js:172-176`).
-3. **Statusy zgłoszeń obsługują wyłącznie 404.** Na innym błędzie oba ekrany statusu milczą (`mieszkaniec.js:187`, `wysypisko.js:197-199`). Do tego `/zgloszenie` odpytuje dalej nawet po „nie znaleziono”.
-4. **Dashboard przy sprzecznych filtrach** pokazuje toast, ale zostawia stare liczby pod nowymi filtrami w URL (`dashboard.js:27-35,348`).
-5. **Eksport CSV przy błędnym filtrze** pobiera plik z JSON-em błędu zamiast danych (`dashboard.html:20-22`).
+1. ~~**Projekt, który nie istnieje.**~~ *Naprawione 11.10.2026.* `projekt.js:23` czeka na kod `projekt_nie_istnieje`, a API zwraca `nieznany_projekt` (`dashboard_api.py:450`). Karta „Nie ma takiego projektu” nigdy się nie pokazuje: jest toast, a szkielety ładowania wiszą bez końca. *(potwierdzone)*
+2. ~~**Pierwsze ładowanie nie ponawia się po błędzie.**~~ *Naprawione: `TF.watch` odświeża co ok. 30 s.* `TF.watch` przy błędzie tylko woła `onState(false)` (`app.js:107`). Kierowca, karta kosza, dyspozytor i dashboard zostają w stanie błędu bez przycisku „Spróbuj ponownie”. Ponowienie mają tylko Urządzenia (`urzadzenia.js:172-176`).
+3. ~~**Statusy zgłoszeń obsługują wyłącznie 404.**~~ *Naprawione: komunikat przy innym błędzie.* Na innym błędzie oba ekrany statusu milczą (`mieszkaniec.js:187`, `wysypisko.js:197-199`). Do tego `/zgloszenie` odpytuje dalej nawet po „nie znaleziono”.
+4. ~~**Dashboard przy sprzecznych filtrach**~~ *Naprawione: nieaktualne liczby wyszarzone.* pokazuje toast, ale zostawia stare liczby pod nowymi filtrami w URL (`dashboard.js:27-35,348`).
+5. ~~**Eksport CSV przy błędnym filtrze**~~ *Naprawione: eksport wyłączony do czasu poprawnego filtra.* pobiera plik z JSON-em błędu zamiast danych (`dashboard.html:20-22`).
 6. **Dyspozytor nie może przejść do szczegółów.** Brak przejścia do zgłoszenia TF- ani do wysypiska WD- i brak akcji na wysypiskach, choć ekran sukcesu obiecuje „trafia do dyspozytora” (`wysypisko.js:146`).
 7. **„Skanuj” na formularzu bez kodu gubi kosz.** Symulowany skan losuje inny kosz (`zglos.html:23`, `mieszkaniec.js:31-35`).
 8. **OSRM niedostępny.** Trasa rysuje się linią prostą bez informacji dla użytkownika (`kierowca.js:181`).

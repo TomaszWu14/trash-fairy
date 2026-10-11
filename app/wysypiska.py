@@ -167,6 +167,8 @@ def create(now, lat, lon, kinds, qty, note, raw, mt, source, client, resident_id
 def analyze(rid):
     """Opis zdjęcia od AI + status z reguły. Każdy błąd (brak klucza, sieć, zły JSON) → „Do weryfikacji”, bez wyjątku."""
     r = db.session.get(DumpReport, rid)
+    if r is None:  # reset demo skasował zgłoszenie, zanim wątek zdążył
+        return None
     try:
         result = llm.ask_json("Opisz to zdjęcie według schematu.", SCHEMA, system=SYSTEM,
                               images=[llm.image_block(Path(r.photo_path).read_bytes(), r.media_type)], max_tokens=1500)

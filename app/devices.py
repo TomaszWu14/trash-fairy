@@ -121,10 +121,10 @@ def _presses(now):
 
 def _item(info, p, dev, now, presses, full=False):
     k = KINDS[info.kind]
-    if info.kind == "panel":
+    if info.kind == "panel" and dev is not None:
         seen, battery, selftest_ok, selftest_at = dev.last_heartbeat, dev.battery, dev.selftest_ok, dev.last_selftest
-    else:
-        seen, selftest_ok = info.last_seen, info.selftest_ok
+    else:  # czujnik albo panel bez wiersza Device; bez żadnego odczytu liczymy od montażu (offline)
+        seen, selftest_ok = info.last_seen or info.installed_at, info.selftest_ok is not False
         battery = sensor_battery(info.installed_at, now, info.drain, k["life_days"])
         selftest_at = datetime.combine(min(seen, now).date(), datetime.min.time()) + timedelta(hours=3)  # codziennie o 3:00
         if selftest_at > seen:

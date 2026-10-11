@@ -150,7 +150,6 @@ def zglos():
         return blad(f"Z tej sieci wysłano już {REPORTS_PER_IP_HOUR} zgłoszeń w ciągu godziny. Spróbuj później.",
                     "za_duzo_zgloszen", 429)
     note = str(data.get("komentarz") or "").strip()[:280] or None
-    photo_id = photos.save(p.id, clock.now(), raw, mt, source="resident").id if raw else None
     now = clock.now()
     kind = TYPY[data["typ"]][0]
     # konto demo „Anna K.” z nagłówka perspektywy mieszkańca: TYLKO punkty za trafne zgłoszenie (residents.award czyta
@@ -159,6 +158,7 @@ def zglos():
     report = record_press(p.id, now, ip=request.remote_addr, wall_at=datetime.now(UTC).replace(tzinfo=None),
                           source="qr", kind=kind)
     press = Press.query.filter_by(report_id=report.id).order_by(Press.id.desc()).first()
+    photo_id = photos.save(p.id, now, raw, mt, source="resident").id if raw else None  # po zgłoszeniu: bez osieroconych wierszy
     press.note, press.photo_id, press.resident_id = note, photo_id, resident_id
     db.session.commit()
     clock.touch()
