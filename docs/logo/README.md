@@ -7,6 +7,6 @@
 | `trash-fairy-logo.jpg` | 2000×1200 | logo z ilustracją nocnego Krakowa |
 | `trash-fairy-ikona.svg` | wektor | sama ikona (kosz z wróżką) |
 | `trash-fairy-logo-kanal-800.png` | 800×800 | avatar kanału YouTube (mieści się w kole) |
-| `trash-fairy-miniatura-youtube.jpg` | 1280×720 | miniatura filmu; liczba 57% → 27% z symulacji 4 tygodni |
+| `trash-fairy-miniatura-youtube.jpg` | 1280×720 | miniatura [filmu na YouTube](https://youtu.be/mQma-SUte-s); liczba 57% → 27% z symulacji 4 tygodni |
 
 Kolory i krój jak w aplikacji: turkus `#4FD1E0` / `#0B7285`, granat `#0E1424`, Plus Jakarta Sans.

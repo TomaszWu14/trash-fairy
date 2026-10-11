@@ -9,7 +9,7 @@
 
 <p align="center"><img src="docs/screenshots/demo.gif" width="360" alt="Zgłoszenie z telefonu: panel kosza z kodem QR, wybór „Przepełniony”, wysłanie i status zgłoszenia"></p>
 
-📹 [Prezentacja działania z lektorem — 3 min](demo/demo_trash-fairy_3min.mp4) · [pełna wersja, 8 min](demo/demo_trash-fairy_pelne.mp4)
+📹 **[Prezentacja działania z lektorem — YouTube](https://youtu.be/mQma-SUte-s)** · pliki w repo: [3 min](demo/demo_trash-fairy_3min.mp4), [8 min](demo/demo_trash-fairy_pelne.mp4)
 
 **Demo:** https://trashfairy.twapp.pl. Bez logowania, na danych demonstracyjnych. Przycisk „Resetuj dane demo” przywraca stan wyjściowy.
 
@@ -117,6 +117,7 @@ Najniżej oceniono użyteczność i kompletność wdrożenia.
 **Czego się nauczyłem:** zaczynać od jednego głównego przepływu użytkownika, a nie od ekranów, bo najniżej oceniono użyteczność. Ciąć zakres wcześnie i spisywać go jako „poza zakresem”, zanim powstanie kod, którego nikt nie zobaczy. Jawnie oddzielać fakty od założeń, bo liczba z symulacji i kwota z założenia to dwie różne rzeczy.
 
 Materiały z hackathonu:
+- [film na YouTube](https://youtu.be/mQma-SUte-s);
 - [film 3 min](demo/demo_trash-fairy_3min.mp4);
 - [film 8 min](demo/demo_trash-fairy_pelne.mp4);
 - [slajdy PDF](demo/prezentacja_trash-fairy.pdf);
