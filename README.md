@@ -108,7 +108,7 @@ Koncepcja powstała przed wydarzeniem ([`docs/KONCEPCJA.md`](docs/KONCEPCJA.md),
 
 Najniżej oceniono użyteczność i kompletność wdrożenia.
 
-**Czego się nauczyłem:** <DO UZUPEŁNIENIA>
+**Czego się nauczyłem:** zaczynać od jednego głównego przepływu użytkownika, a nie od ekranów, bo najniżej oceniono użyteczność. Ciąć zakres wcześnie i spisywać go jako „poza zakresem”, zanim powstanie kod, którego nikt nie zobaczy. Jawnie oddzielać fakty od założeń, bo liczba z symulacji i kwota z założenia to dwie różne rzeczy.
 
 Materiały z hackathonu:
 - [film 3 min](demo/demo_trash-fairy_3min.mp4);

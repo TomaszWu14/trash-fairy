@@ -40,8 +40,9 @@ Słabe punkty procesu PRZED:
 2. **Zgłoszenie jest kosztowne dla mieszkańca** (telefon, e-mail), więc większość przepełnień nie jest zgłaszana.
 3. **Brak sprzężenia zwrotnego:** nikt nie zapisuje, ile było w koszu przy opróżnieniu, więc harmonogramu nie da się poprawić danymi.
 
-<DO UZUPEŁNIENIA: jak zgłoszenie przechodzi z dyspozytorni do wykonawcy, czy wykonawca raportuje poziom zastany, jak jest rozliczany —
-diagram PRZED zawiera tu założenie, nie fakt>
+**Założenie, niezweryfikowane z MPO:** dyspozytornia przekazuje zgłoszenie ekipie lub wykonawcy telefonicznie, a ekipa nie zapisuje
+poziomu zastanego w koszu. Opis harmonogramu i dyspozytorni pochodzi z publicznych materiałów MPO. Weryfikacja: rozmowa z dyspozytorem
+w tygodniu 0–2 pilotażu ([`ROADMAPA.md`](../ROADMAPA.md)).
 
 ## PO: Trash Fairy
 

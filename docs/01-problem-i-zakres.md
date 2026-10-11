@@ -22,7 +22,7 @@ Skutek: jeżdżą puste kursy, a przepełnienia i tak zostają. Nikt nie wie wcz
 | Dyspozytor | szybko zareagować na pilne kosze | listę pilnych koszy, mapę na żywo, „Dodaj do kursu” |
 | Miasto / operator odbioru odpadów | wydać mniej na puste kursy i podejmować decyzje inwestycyjne na danych | dashboard kosztów wobec planu, rekomendacje (kompaktor, większy kosz, rzadszy odbiór), otwarte API |
 
-<DO UZUPEŁNIENIA: czy wskazać konkretnego operatora (MPO Kraków), czy opisywać rolę ogólnie>
+Odbiorca docelowy: miejski operator odbioru odpadów, w Krakowie MPO. Projekt nie powstał we współpracy z MPO: korzysta z jego publicznego harmonogramu, a stawki kosztów to założenia.
 
 ## Cel i miary sukcesu
 
@@ -76,4 +76,4 @@ Koncepcja powstała przed wydarzeniem ([`docs/KONCEPCJA.md`](KONCEPCJA.md), bez 
 
 Najniżej oceniono użyteczność i kompletność wdrożenia.
 
-**Czego się nauczyłem:** <DO UZUPEŁNIENIA>
+**Czego się nauczyłem:** zaczynać od jednego głównego przepływu użytkownika, a nie od ekranów, bo najniżej oceniono użyteczność. Ciąć zakres wcześnie i spisywać go jako „poza zakresem”, zanim powstanie kod, którego nikt nie zobaczy. Jawnie oddzielać fakty od założeń, bo liczba z symulacji i kwota z założenia to dwie różne rzeczy.
