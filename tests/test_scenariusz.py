@@ -68,8 +68,8 @@ def test_404_has_h1_and_no_bin_list(client, demo):
 
 
 def test_variant_c_demo_photo_and_crew_clearing_give_resident_points(client, monkeypatch):
-    """Przykładowe zdjęcie przechodzi walidację; „Uprzątnięte” z identyfikatora ekipy (tf-ekipa) daje punkty zgłaszającej,
-    a z jej własnego telefonu nie (samopotwierdzenie)."""
+    """Przykładowe zdjęcie przechodzi walidację; „Uprzątnięte” w roli ekipy daje punkty zgłaszającej
+    (phone_id rozróżnia role, jak dawniej tf-klient i tf-ekipa w przeglądarce)."""
     monkeypatch.setattr(rate, "hit", lambda *a, **k: True)
     monkeypatch.setattr(llm, "ask_json", lambda *a, **k: (_ for _ in ()).throw(llm.LLMError("brak klucza")))  # AI niedostępna
     Image.open(DEMO_PHOTO).verify()
@@ -82,11 +82,9 @@ def test_variant_c_demo_photo_and_crew_clearing_give_resident_points(client, mon
         assert r.status_code == 201 and r.json["zdjecie"], r.json
         return r.json["numer"]
 
-    own = send("telefon-anny")
-    client.post(f"/api/wysypiska/{own}/uprzatnieto", json={"klient": "telefon-anny"})
-    assert client.get("/api/mieszkaniec/punkty").json["punkty"] == 0
-    other = send("telefon-anny", dlat=0.01)  # inne miejsce (ok. 1 km dalej), nie dołącza do pierwszego
-    assert client.post(f"/api/wysypiska/{other}/uprzatnieto", json={"klient": "ekipa-mpo"}).status_code == 200
+    other = send("telefon-anny", dlat=0.01)
+    # ta sama przeglądarka w roli ekipy (jak w scenariuszu C): phone_id ma rolę, więc to nie samouprzątnięcie
+    assert client.post(f"/api/wysypiska/{other}/uprzatnieto", json={}).status_code == 200
     assert client.get("/api/mieszkaniec/punkty").json["punkty"] > 0
 
 

@@ -72,6 +72,8 @@ def create_app(config=None):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url()
     # sekret podpisu tokenów QR (api_pl) i hashowania telefonów; na produkcji MUSI być ustawiony w env
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-trash-fairy")
+    # ciasteczko sesji niesie tylko losowy identyfikator telefonu (api_wspolne.phone_id); https na produkcji → Secure
+    app.config.update(SESSION_COOKIE_SAMESITE="Lax", SESSION_COOKIE_SECURE=os.environ.get("PUBLIC_URL", "").startswith("https://"))
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # zdjęcie do 8 MB + pola formularza; większe ciało → 413
     app.config.update(config or {})
     _require_secret_key(app.config)

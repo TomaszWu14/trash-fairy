@@ -23,3 +23,4 @@ Czytaj przed zmianą `Dockerfile`, `docker-compose.yml`, `app/wsgi.py`, `.github
    ścieżkę z `docs/operator/<gałąź>.md`.
 10. **CI (`ci.yml`) = ruff + pytest -n auto na PR do `main`**; check „pytest” odblokowuje auto-merge. Zielone CI ≠
     przetestowany Postgres.
+- **`PUBLIC_URL` steruje flagą `Secure` ciasteczka sesji** (`app/__init__.py`, identyfikator telefonu `phone_id`): na produkcji musi zaczynać się od `https://`, inaczej ciasteczko idzie też po http.

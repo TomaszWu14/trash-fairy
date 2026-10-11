@@ -13,7 +13,7 @@ from flask import current_app, jsonify, request
 
 from . import clock, db, photos, rate, residents
 from .api_wspolne import (FRAKCJE, KIND_LABEL, TYPY, _address, _ai, _dowod, _jade_at, _json_body, _point,  # noqa: F401
-                          _punkty, _report_from_nr, blad, bp, kosz_json, meta, numer, poziom_stan)
+                          _punkty, _report_from_nr, blad, bp, kosz_json, meta, numer, phone_id, poziom_stan)
 from .devices_api import device_token
 from .geo import distance_m
 from .models import DeviceInfo, Point, Press
@@ -143,7 +143,7 @@ def zglos():
     raw, mt, error = photos.read_upload(request.files.get("zdjecie"))  # przed limitami: zły plik nie zużywa limitu
     if error:
         return blad(error, "zle_zdjecie")
-    client = str(data.get("klient") or request.remote_addr)[:64]
+    client = phone_id()
     if not rate.hit(f"zgl:{client}:{p.id}", 1, REPORT_GAP_S):
         return blad("To zgłoszenie już dotarło. Kolejne z tego telefonu możesz wysłać za minutę.", "za_czesto", 429)
     if not rate.hit(f"zgl-ip:{request.remote_addr}", REPORTS_PER_IP_HOUR, 3600):

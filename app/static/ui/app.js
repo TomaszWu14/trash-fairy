@@ -7,7 +7,7 @@
   TF.esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   TF.num = (v, d = 0) => v == null ? '–' : (d ? nf1 : nf).format(d ? v : Math.round(v));
   TF.icon = (name, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true"><use href="${TF.icons}#${name}"/></svg>`;
-  TF.lvl = l => l >= 80 ? 'full' : l >= 50 ? 'warn' : 'ok';
+  TF.lvl = l => l > 85 ? 'full' : l >= 60 ? 'warn' : 'ok';  // progi silnika tras: state.WARN_FROM, state.BAD_ABOVE
   TF.LVL = { ok: 'W porządku', warn: 'Zapełnia się', full: 'Pełny' };
   // stan = kształt + znak (icons.svg st-*): ok koło ✓, warn romb ↑, full kwadrat !, report dymek …, sensor trójkąt ! (= _ui.html state_icon)
   TF.stateIcon = (k, cls = '') => `<svg class="i si si-${k} ${cls}" viewBox="0 0 24 24" aria-hidden="true"><use href="${TF.icons}#st-${k}"/></svg>`;

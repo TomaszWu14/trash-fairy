@@ -7,7 +7,7 @@ from datetime import timedelta
 from sqlalchemy import select
 
 from . import db
-from .models import Press, Report
+from .models import Point, Press, Report
 
 MERGE_WINDOW = timedelta(minutes=15)  # liczone od pierwszego naciśnięcia, więc spam nie przedłuża okna
 HIT_LEVEL = 75
@@ -53,6 +53,10 @@ def record_press(point_id, at, ip=None, wall_at=None, resident_id=None, source="
     zaczętego przez kogoś innego — potwierdza je.
     """
     from .residents import resident_reliability  # import lokalny: residents importuje ten moduł
+    # blokada wiersza kosza do końca transakcji (PostgreSQL: SELECT … FOR UPDATE): dwa równoczesne naciśnięcia nie założą
+    # dwóch otwartych zgłoszeń ani nie zgubią „presses += 1”; kolejkuje się też z odbiorem (FK Emptying → FOR KEY SHARE),
+    # więc nie zmieniać na key_share=True. SQLite: dialekt pomija FOR UPDATE — lokalnie bez blokady.
+    db.session.query(Point.id).filter_by(id=point_id).with_for_update().first()
     press = Press(point_id=point_id, at=at, ip=ip, wall_at=wall_at, resident_id=resident_id, source=source, kind=kind)
     report = (Report.query.filter(Report.point_id == point_id, Report.hit.is_(None),
                                   Report.first_at > at - MERGE_WINDOW, Report.first_at <= at)

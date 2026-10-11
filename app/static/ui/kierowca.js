@@ -48,7 +48,7 @@
         document.getElementById('k-done').textContent = `${d.postep.zrobione} z ${d.postep.wszystkie}`;
         document.getElementById('k-left').textContent = todo.length ? `koszy opróżnionych · do końca ok. ${fmtMin(d.postep.pozostalo_min)}` : 'Trasa zakończona. Dobra robota!';
         document.getElementById('k-bar').style.setProperty('--p', (d.postep.zrobione / Math.max(1, d.postep.wszystkie)).toFixed(3));
-        stopsEl.innerHTML = todo.length ? todo.map((k, i) => row(k, (i === 0 && (k.zgloszenia_liczba || k.poziom >= 80)) || k.dyspozytor || k.id === focusBin, i + 1)).join('')
+        stopsEl.innerHTML = todo.length ? todo.map((k, i) => row(k, (i === 0 && (k.zgloszenia_liczba || TF.lvl(k.poziom) === 'full')) || k.dyspozytor || k.id === focusBin, i + 1)).join('')
           : `<li class="empty"><img src="/static/ui/ill/sukces.svg" alt="" width="140"><h3>Wszystko opróżnione</h3><p>Na tym kursie nie ma już koszy do odbioru.</p></li>`;
         document.getElementById('k-done-box').hidden = !done.length;
         document.getElementById('k-done-n').textContent = `(${done.length})`;
@@ -67,7 +67,7 @@
         todo.forEach((k, i) => {  // pierwsze pozycje z numerem i na wierzchu, dalsze mniejsze; dymek zgłoszenia tylko na małych (numer ma go w wierszu)
           const n = i + 1, top = n <= NUMBERED, label = `${top ? `${n}. na liście: ` : ''}${pinLabel(k.nazwa, k.poziom)}${k.zgloszenia_liczba ? ', zgłoszony' : ''}`;
           L.marker([k.lat, k.lon], { icon: mapPin(k.poziom, { numer: top ? n : null, maly: !top, zgloszenie: !top && k.zgloszenia_liczba > 0, altana: k.rodzaj === 'altana', etykieta: label }),
-            zIndexOffset: top ? 2000 - n : (k.poziom >= 80 ? 500 : 0) }).bindTooltip(esc(label)).on('click', () => location.href = `/kierowca/kosz/${k.id}`).addTo(layer);
+            zIndexOffset: top ? 2000 - n : (TF.lvl(k.poziom) === 'full' ? 500 : 0) }).bindTooltip(esc(label)).on('click', () => location.href = `/kierowca/kosz/${k.id}`).addTo(layer);
         });
         L.marker(truckPos(), { icon: truckIcon(), title: 'Twój pojazd', keyboard: false }).addTo(layer);
         if (!fitted && todo.length) { map.fitBounds(L.latLngBounds(todo.slice(0, NUMBERED).map(k => [k.lat, k.lon])).pad(0.25), { maxZoom: 17 }); fitted = true; }  // najbliższe przystanki, nie całe miasto

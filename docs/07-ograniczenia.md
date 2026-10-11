@@ -6,7 +6,7 @@
 |---|---|---|
 | **Logowanie i role** ([06-decyzje.md](06-decyzje.md), D4) | Każdy może oznaczyć „Opróżniono” z dowolnym poziomem, „Uprzątnięte” i „Dodaj do kursu” (`app/api_kierowca.py:119-170`, `app/wysypiska_api.py:114-127`, `app/dyspozytor_api.py:133-142`). Opróżnienie rozstrzyga zgłoszenia i przyznaje punkty. | role dyspozytora i kierowcy (np. SSO miasta) przed pilotażem |
 | **Czujnik zapełnienia jako wejście do decyzji** | Odczyt z `POST /api/odczyty` zapisuje się w `point.snapshot_fill` (`app/devices_api.py:102`), ale silnik stanu go nie czyta. | decyzja, czy czujnik ma nadpisywać prognozę |
-| **Rejestracja mieszkańca przez SMS** | Kod Twilio Verify i rejestracji jest gotowy (`app/sms.py`, `app/residents.py:48-88`), ale żaden ekran go nie wywołuje. W demo działa jedno konto „Anna K.”. | ekran rejestracji, zgoda na koszt SMS |
+| **Rejestracja mieszkańca przez SMS** | Kod Twilio Verify i rejestracji jest gotowy (`app/sms.py`, `app/residents.py:46-86`), ale żaden ekran go nie wywołuje. W demo działa jedno konto „Anna K.”. | ekran rejestracji, zgoda na koszt SMS |
 | **Raport AI „Wróżka podpowiada”** | `app/fairy.py` nie ma ekranu ani endpointu. | decyzja: przywrócić albo usunąć |
 | **Przyjmowanie zgłoszeń przez Open311** | Otwarte API jest tylko do odczytu. | uzgodnienie z systemem zgłoszeń miasta |
 | **Upływ czasu w demo** | Zegar demo stoi na sobocie 3.10.2026 13:30 (`app/simulation.py:23`). Funkcja `clock.advance()` istnieje, ale nie ma przycisku. Skutki: zgłoszenia jednego kosza scalają się aż do opróżnienia, a „Dodaj do kursu” nie wygasa po 24 h. | w produkcji zegar ścienny zamiast demo |
@@ -15,21 +15,24 @@
 
 ## Znane problemy (otwarte)
 
-Obserwacje z przeglądu kodu (11.10.2026), których świadomie nie poprawiono, bo wymagają decyzji, a nie samej poprawki.
+1. **„Jadę” nie sprawdza, czy kosz jest na trasie** (`app/api_kierowca.py`). Kierowca może jechać do kosza spoza planu, np. ze zgłoszenia — to świadome.
+2. **Wspólne konto demo „Anna K.” może zaliczyć wysypisko uprzątnięte z tej samej przeglądarki** (scenariusz C dla jury). To jawny wyjątek jak stały adres kosza 18; prawdziwy mieszkaniec tego nie zrobi (`app/wysypiska.py`, `resident_dump_items`).
+3. **Wyczyszczenie ciasteczek daje nowy identyfikator telefonu.** Zostaje wtedy limit na IP i dzienny kod QR. „Uprzątnięte” i „Opróżniono” nadal nie wymagają konta ekipy (pilotaż).
 
-**Logika i dane**
-1. **Kierowca może podać poziom niezgodny ze zdjęciem.** Opróżnienie rozstrzyga zgłoszenia poziomem podanym przez kierowcę, zanim AI obejrzy zdjęcie. Rozbieżność > 25 p.p. kończy się tylko flagą (`app/api_kierowca.py`, `app/photos.py:38`). Decyzja: czy rozbieżność ma cofać rozstrzygnięcie.
-2. **Progi „pełny” różnią się między ekranami:**
-   - silnik: 60/85 (`app/state.py:20-21`);
-   - ekrany: 50/80 (`app/api_wspolne.py:47-48`);
-   - dyspozytor i kierowca: 80.
+## Decyzje autora (11.10.2026)
 
-   Kosz z 82% jest na ekranie „pełny”, a dla trasy dopiero „zapełnia się”. Decyzja: jedna definicja dla wszystkich ekranów.
-3. **Trzy progi niskiej baterii:** 15% (`app/devices.py:29`), 20% (`app/residents.py:24`), 35% (`app/devices.py:72`).
-4. **Limit „na telefon” opiera się na polu `klient` z przeglądarki** (`app/api_pl.py:146`, `app/wysypiska_api.py:67`), więc da się go obejść. Działa limit na IP; pewna tożsamość telefonu wymaga logowania.
-5. **„Sprawdź, potem zapisz” bez blokady** (`app/reports.py:53-75`, `app/wysypiska.py:161`): równoczesne naciśnięcia mogą dać dwa otwarte zgłoszenia. Przy ruchu z pilotażu: blokada wiersza albo unikalny indeks.
-6. **„Jadę” nie sprawdza, czy kosz jest na trasie** (`app/api_kierowca.py`). Kierowca może jechać do kosza spoza planu, np. ze zgłoszenia.
-7. **Dyspozytor nie może otworzyć szczegółów zgłoszenia ani wysypiska** (`app/static/ui/dyspozytor.js`). To brakująca funkcja, nie błąd.
+| Problem | Decyzja | Gdzie |
+|---|---|---|
+| progi „pełny” różne na ekranach (50/80) i w silniku (60/85) | jedna definicja: progi silnika tras (≥ 60% „zapełnia się”, > 85% „pełny”) na ekranach, u dyspozytora i kierowcy, w legendach i podpowiedziach | `app/api_wspolne.py` (`poziom_stan`), `app/static/ui/app.js` (`TF.lvl`), `app/dyspozytor_api.py` |
+| trzy progi baterii (15/20/35%) | dwa progi o różnych rolach w jednym miejscu: 15% krytyczny (status, e-papier), 35% ostrzeżenie; martwy próg 20% usunięty | `app/devices.py` (`CRITICAL_BATTERY`, `WARN_BATTERY`) |
+| poziom od ekipy niezgodny ze zdjęciem | decyzja zostaje przy kierowcy (reguła, nie AI); rozbieżność > 25 p.p. trafia na listę „Do sprawdzenia” w szczegółach anomalii na dashboardzie (z filtrami dzielnicy i frakcji) | `app/dashboard_api.py` (`_photo_mismatches`) |
+| równoczesne naciśnięcia i potwierdzenia | blokada wiersza kosza przy scalaniu naciśnięć (`SELECT … FOR UPDATE` na PostgreSQL; SQLite bez blokady), atomowy licznik potwierdzeń wysypiska | `app/reports.py`, `app/wysypiska.py` |
+| limit „na telefon” z pola wysyłanego przez przeglądarkę | identyfikator telefonu w podpisanym ciasteczku sesji (`phone_id`), pole „klient” ignorowane; ten sam telefon (także w trybie ekipy) nie potwierdzi ani nie uprzątnie własnego wysypiska; ciasteczko `SameSite=Lax`, `Secure` przy `PUBLIC_URL` z https | `app/api_wspolne.py`, `app/__init__.py`, `/prywatnosc` |
+| dyspozytor bez przejścia do szczegółów | linki: zgłoszenie TF- → status, wysypisko WD- → status (tryb ekipy), kosz → karta kosza | `app/static/ui/dyspozytor.js` |
+
+Testy: `tests/test_decyzje_otwarte.py`, `tests/test_zglos.py::test_phone_limit_ignores_forged_client_field`,
+`tests/test_wysypiska.py::test_registered_resident_does_not_score_dump_cleared_from_own_phone`. Przegląd bezpieczeństwa i warstwy
+danych (agenci z `.claude/agents/`) wykonany raz na tej gałęzi; zasadne uwagi poprawione.
 
 ## Naprawione (11.10.2026)
 
@@ -77,4 +80,4 @@ Plan pilotażu (Dzielnica I, 50 koszy, 3 miesiące, grupa testowa i kontrolna) j
 2. zegar ścienny zamiast zegara demo;
 3. prawdziwy harmonogram jako model bazowy i dane GPS pojazdów do porównania;
 4. potwierdzone stawki kosztów;
-5. jedna definicja progów „pełny” we wszystkich ekranach.
+5. role i logowanie ekipy („Uprzątnięte” i „Opróżniono” tylko z kont ekipy).

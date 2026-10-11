@@ -6,7 +6,7 @@ from flask import jsonify, request, send_file
 
 from . import clock, db, osrm, photos, traffic
 from .api_wspolne import (_json_body, _jade_at, _open_reports, _point, blad, bp, crew_photo_required, crew_photo_status,
-                          kosz_json, meta, public_crew_photo)
+                          kosz_json, meta, poziom_stan, public_crew_photo)
 from .geo import distance_m
 from .models import Emptying, PhotoAnalysis, Point, Press, StopIssue
 from .reports import resolve_reports
@@ -52,7 +52,7 @@ def powod(k):
         return f"Zdjęcie: kosz w porządku (AI {conf}) · sprawdź przy okazji"
     if n:
         return f"{n} {_plural(n, 'zgłoszenie', 'zgłoszenia', 'zgłoszeń')}"  # procent stoi obok w wierszu
-    if k["poziom"] >= 80:
+    if poziom_stan(k["poziom"]) == "pelny":
         return "Pełny"
     if k["prognoza"].startswith("Do opróżnienia"):
         return k["prognoza"]

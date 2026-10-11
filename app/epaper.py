@@ -9,6 +9,7 @@ from datetime import timedelta
 
 from . import db
 from .events import AFTER, RADIUS_M
+from .devices import CRITICAL_BATTERY
 from .geo import distance_m
 from .models import Device, Emptying, Event, Report
 from .reports import MERGE_WINDOW
@@ -18,7 +19,7 @@ from .state import current_routes, point_states
 
 EMPTIED_HOLD = timedelta(minutes=60)   # „Opróżniono” znika po godzinie
 ENROUTE_BEFORE = timedelta(minutes=45)  # ekipa „wyjechała”: tyle przed godziną kursu, gdy punkt jest na trasie
-FAULT_BATTERY = 15                      # % — poniżej przycisk może nie działać
+FAULT_BATTERY = CRITICAL_BATTERY        # % — poniżej przycisk może nie działać (próg z devices.py)
 NIGHT = (22, 6)
 STOP_MINUTES = 3                        # szacunek: tyle minut na przystanek (tylko do „Przyjazd ok. X min”)
 

@@ -79,14 +79,15 @@ def test_rate_limit_per_phone(client):
     assert r.status_code == 429 and r.json["kod"] == "za_czesto"
 
 
-def test_duplicate_within_50_m_joins_and_confirms(client, no_limits):
-    a = send(client, klient="a", ilosc="20")
-    b = send(client, klient="b", lat=ROD[0] + 30 * M, rodzaj=["tworzywa"])
+def test_duplicate_within_50_m_joins_and_confirms(app, client, no_limits):
+    phone_b = app.test_client()  # osobny telefon = osobne ciasteczko sesji (phone_id)
+    a = send(client, ilosc="20")
+    b = send(phone_b, lat=ROD[0] + 30 * M, rodzaj=["tworzywa"])
     assert b.json["numer"] == a.json["numer"] and b.json["dolaczone"] and b.json["status"] == "potwierdzone"
-    same_phone = send(client, klient="b", lat=ROD[0] + 20 * M)
+    same_phone = send(phone_b, klient="podrobiony", lat=ROD[0] + 20 * M)  # pole „klient” nie zmienia telefonu
     g = db.session.get(DumpReport, 1)
     assert same_phone.json["dolaczone"] and g.confirmations == 2  # ten sam telefon nie potwierdza drugi raz
-    far = send(client, klient="c", lat=ROD[0] + 80 * M)
+    far = send(app.test_client(), lat=ROD[0] + 80 * M)
     assert far.json["numer"] != a.json["numer"] and not far.json["dolaczone"]
     d = client.get(f"/api/wysypiska/{a.json['numer']}").json["wysypisko"]
     assert d["rodzaje"] == ["Bio", "Tworzywa sztuczne"] and d["ilosc"] == 20 and d["zgloszen"] == 3
@@ -181,13 +182,13 @@ def test_resident_daily_limit(client, no_limits, vision):
     assert p["punkty"] == 60 and sum(x["powod"].startswith("Limit 3") for x in p["ostatnie"]) == 1
 
 
-def test_same_account_does_not_self_confirm_and_confirmation_gives_no_points(client, no_limits, vision):
+def test_same_account_does_not_self_confirm_and_confirmation_gives_no_points(app, client, no_limits, vision):
     vision["result"] = vision["result"] | {"confidence": 0.4}  # zdjęcie nie weryfikuje
-    send(client, konto="demo", klient="tel-1", photo=True)
-    send(client, konto="demo", klient="laptop-1", lat=ROD[0] + 20 * M)  # to samo konto, inny „telefon”
+    send(client, konto="demo", photo=True)
+    send(app.test_client(), konto="demo", lat=ROD[0] + 20 * M)  # to samo konto, inny telefon
     assert db.session.get(DumpReport, 1).confirmations == 1 and points(client)["punkty"] == 0
-    other = send(client, klient="obcy", lat=ROD[0] + 30 * M).json  # anonimowe drugie zgłoszenie: „Potwierdzone”…
-    assert other["status"] == "potwierdzone" and points(client)["punkty"] == 0  # …ale id telefonu da się podrobić
+    other = send(app.test_client(), lat=ROD[0] + 30 * M).json  # anonimowe drugie zgłoszenie: „Potwierdzone”…
+    assert other["status"] == "potwierdzone" and points(client)["punkty"] == 0  # …bez punktów za samo potwierdzenie
 
 
 def test_joining_verified_dump_needs_own_verified_photo(client, no_limits, vision):
@@ -199,12 +200,14 @@ def test_joining_verified_dump_needs_own_verified_photo(client, no_limits, visio
     assert p["punkty"] == 0 and p["ostatnie"][0]["powod"].startswith("Dołączone do wcześniejszego")
 
 
-def test_self_cleared_dump_gives_no_points(client, no_limits, vision):
-    vision["result"] = vision["result"] | {"confidence": 0.4}
-    a = send(client, konto="demo", klient="tel-1", photo=True).json["numer"]
-    assert client.post(f"/api/wysypiska/{a}/uprzatnieto", json={"klient": "tel-1"}).status_code == 200
-    p = points(client)
-    assert p["punkty"] == 0 and p["ostatnie"][0]["powod"].startswith("Uprzątnięte z telefonu")
+def test_clearing_records_server_phone_id_not_body_field(client, no_limits, vision):
+    """„Uprzątnięte” zapisuje telefon z podpisanego ciasteczka; pole „klient” z żądania jest ignorowane."""
+    a = send(client, konto="demo", photo=True).json["numer"]
+    assert client.post(f"/api/wysypiska/{a}/uprzatnieto", json={"klient": "podrobiony"}).status_code == 200
+    with client.session_transaction() as s:
+        tel = s["tel"]
+    g = db.session.get(DumpReport, 1)
+    assert g.cleared_by == wysypiska.client_hash(tel) != wysypiska.client_hash("podrobiony")
 
 
 def test_photo_without_waste_is_not_public(client, no_limits, vision):
@@ -266,3 +269,19 @@ def test_pages_render(client, path):
     assert r.status_code == 200
     if path.startswith("/wysypisko"):
         assert "Zgłoś dzikie wysypisko" in r.get_data(as_text=True) or "WD-00001" in r.get_data(as_text=True)
+
+
+def test_registered_resident_does_not_score_dump_cleared_from_own_phone(no_limits):
+    """Samouprzątnięcie: ten sam telefon (skrót z ciasteczka) zgłosił i oznaczył „Uprzątnięte” → bez punktów.
+    Wyjątek tylko dla wspólnego konta demo (scenariusz C w jednej przeglądarce)."""
+    from app import residents
+    r = residents.register("Sasiadka", "600100400", "Grzegórzki")
+    residents.verify(r, r.code)
+    phone = wysypiska.client_hash("tel-sasiadki")
+    d = DumpReport(at=clock.now(), wall_at=clock.now(), lat=ROD[0], lon=ROD[1], kinds=["bio"], client=phone,
+                   resident_id=r.id, media_type="image/png", status="do_weryfikacji",
+                   cleared_at=clock.now(), cleared_by=phone)
+    db.session.add(d)
+    db.session.commit()
+    items = wysypiska.resident_dump_items(r.id)
+    assert items[0]["punkty"] == 0 and items[0]["powod"].startswith("Uprzątnięte z telefonu")

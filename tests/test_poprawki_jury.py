@@ -169,13 +169,13 @@ def test_full_report_still_raises_fill(client, demo):
 
 # --- #13: limit per IP ---
 
-def test_rate_limit_per_ip(client, demo, monkeypatch):
+def test_rate_limit_per_ip(app, demo, monkeypatch):
     from app import api_pl
     monkeypatch.setattr(api_pl, "REPORTS_PER_IP_HOUR", 3)  # na produkcji 200 (jedno IP sali), tu mała liczba
     p = lonely_ok_bin()
-    for i in range(3):
-        assert send(client, p, klient=f"tel-{i}").status_code == 201
-    r = send(client, p, klient="tel-31")
+    for _ in range(3):  # trzy telefony (osobne ciasteczka sesji) z jednej sieci
+        assert send(app.test_client(), p).status_code == 201
+    r = send(app.test_client(), p)
     assert r.status_code == 429 and r.json == {"blad": r.json["blad"], "kod": "za_duzo_zgloszen"}
 
 

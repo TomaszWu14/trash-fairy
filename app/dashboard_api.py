@@ -21,7 +21,8 @@ from .dashboard import (ANOMALY_M, BASELINE, REPAIR_SLA, SLA_H, Filters, PROJECT
 from .history import FRACTIONS, HISTORY_START, WDROZENIE
 from .methodology import money_assumptions, visit_cost_parts
 from .misuse import misuse_overview
-from .models import Point, Project
+from .models import PhotoAnalysis, Point, Project
+from .photos import DISCREPANCY_PP
 from .recommendations import WINDOW, recommendations
 from .state import _cached, current_routes, point_states, side_version
 
@@ -352,7 +353,24 @@ def _anomalie(f, now):
     names = {p.id: (p.name, p.address) for p in Point.query.filter(Point.id.in_({r.point_id for r in rows}))} if rows else {}
     return {"prog_m": ANOMALY_M, "lista": [
         {"kosz_id": r.point_id, "kosz": names.get(r.point_id, ("", ""))[0], "adres": names.get(r.point_id, ("", ""))[1],
-         "dzielnica": r.district, "data": r.at.isoformat(), "odleglosc_m": int(r.far_m)} for r in rows]}
+         "dzielnica": r.district, "data": r.at.isoformat(), "odleglosc_m": int(r.far_m)} for r in rows],
+        "prog_pp": DISCREPANCY_PP, "zdjecia": _photo_mismatches(f, now)}
+
+
+def _photo_mismatches(f, now, limit=50):
+    """Odbiory, w których poziom od ekipy różni się od zdjęcia o więcej niż DISCREPANCY_PP: do sprawdzenia przez
+    człowieka. Rozstrzygnięcie zgłoszeń zostaje przy kierowcy (reguła), AI niczego nie cofa (decyzja 11.10.2026)."""
+    q = (db.session.query(PhotoAnalysis, Point).join(Point, Point.id == PhotoAnalysis.point_id)
+         .filter(PhotoAnalysis.source == "crew", PhotoAnalysis.status == "done", PhotoAnalysis.crew_level.isnot(None),
+                 PhotoAnalysis.fill_level.isnot(None), PhotoAnalysis.at >= f.od, PhotoAnalysis.at < f.do, PhotoAnalysis.at <= now,
+                 func.abs(PhotoAnalysis.fill_level - PhotoAnalysis.crew_level) > DISCREPANCY_PP))  # jak photos.discrepancy, w SQL
+    if f.district:
+        q = q.filter(Point.district == f.district)
+    if f.fraction:
+        q = q.filter(Point.fraction == f.fraction)
+    rows = q.order_by(PhotoAnalysis.at.desc()).limit(limit).all()
+    return [{"kosz_id": p.id, "kosz": p.name, "adres": p.address, "dzielnica": p.district, "data": pa.at.isoformat(),
+             "poziom_ekipa": pa.crew_level, "poziom_zdjecie": pa.fill_level} for pa, p in rows]
 
 
 CHARTS = {"frakcje": _frakcje, "dzielnice": _dzielnice, "koszty": _koszty, "zgloszenia": _zgloszenia,
