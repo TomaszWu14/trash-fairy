@@ -201,14 +201,13 @@ def test_joining_verified_dump_needs_own_verified_photo(client, no_limits, visio
 
 
 def test_clearing_records_server_phone_id_not_body_field(client, no_limits, vision):
-    """„Uprzątnięte” zapisuje telefon z podpisanego ciasteczka w roli ekipy; pole „klient” z żądania jest ignorowane.
-    Ochrona przed samouprzątnięciem przez tę samą przeglądarkę wymaga ról (docs/07)."""
+    """„Uprzątnięte” zapisuje telefon z podpisanego ciasteczka; pole „klient” z żądania jest ignorowane."""
     a = send(client, konto="demo", photo=True).json["numer"]
     assert client.post(f"/api/wysypiska/{a}/uprzatnieto", json={"klient": "podrobiony"}).status_code == 200
     with client.session_transaction() as s:
         tel = s["tel"]
     g = db.session.get(DumpReport, 1)
-    assert g.cleared_by == wysypiska.client_hash(f"{tel}:ekipa") != wysypiska.client_hash("podrobiony")
+    assert g.cleared_by == wysypiska.client_hash(tel) != wysypiska.client_hash("podrobiony")
 
 
 def test_photo_without_waste_is_not_public(client, no_limits, vision):
@@ -270,3 +269,19 @@ def test_pages_render(client, path):
     assert r.status_code == 200
     if path.startswith("/wysypisko"):
         assert "Zgłoś dzikie wysypisko" in r.get_data(as_text=True) or "WD-00001" in r.get_data(as_text=True)
+
+
+def test_registered_resident_does_not_score_dump_cleared_from_own_phone(no_limits):
+    """Samouprzątnięcie: ten sam telefon (skrót z ciasteczka) zgłosił i oznaczył „Uprzątnięte” → bez punktów.
+    Wyjątek tylko dla wspólnego konta demo (scenariusz C w jednej przeglądarce)."""
+    from app import residents
+    r = residents.register("Sasiadka", "600100400", "Grzegórzki")
+    residents.verify(r, r.code)
+    phone = wysypiska.client_hash("tel-sasiadki")
+    d = DumpReport(at=clock.now(), wall_at=clock.now(), lat=ROD[0], lon=ROD[1], kinds=["bio"], client=phone,
+                   resident_id=r.id, media_type="image/png", status="do_weryfikacji",
+                   cleared_at=clock.now(), cleared_by=phone)
+    db.session.add(d)
+    db.session.commit()
+    items = wysypiska.resident_dump_items(r.id)
+    assert items[0]["punkty"] == 0 and items[0]["powod"].startswith("Uprzątnięte z telefonu")

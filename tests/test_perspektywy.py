@@ -45,7 +45,7 @@ def test_qr_on_bin_and_jury_link_carry_scan_token(client, demo):
     assert f"/zglos/18?qr={qr_token(18)}" in client.get("/panel/18").get_data(as_text=True)
 
 
-def test_report_needs_qr_scan_of_this_bin_but_not_location(client, demo):
+def test_report_needs_qr_scan_of_this_bin_but_not_location(app, client, demo):
     k = _bin(client)
     no_qr = client.post("/api/zgloszenia", json={"kosz": 18, "typ": "przepelniony", "lat": k["lat"], "lon": k["lon"]})
     assert no_qr.status_code == 403 and no_qr.json["kod"] == "brak_skanu_qr"
@@ -56,7 +56,7 @@ def test_report_needs_qr_scan_of_this_bin_but_not_location(client, demo):
     # położenia nie sprawdzamy (jury testuje zdalnie): ważny token wystarcza, nawet bez lat/lon albo z daleka
     no_geo = client.post("/api/zgloszenia", json={"kosz": 18, "typ": "przepelniony", "qr": qr_token(18), "klient": "bez-gps"})
     assert no_geo.status_code == 201
-    assert _report(client, lat=k["lat"] + 0.01, klient="daleko").status_code == 201
+    assert _report(app.test_client(), lat=k["lat"] + 0.01)  # drugi telefon.status_code == 201
 
 
 def test_report_lifecycle_przyjete_w_realizacji_zrealizowane(client, demo):
@@ -145,13 +145,13 @@ def test_methodology_shows_pilot_and_ai_role(client, demo):
     assert 'id="pilotaz"' in html and "Zweryfikowane AI" in html and "EXIF" in html
 
 
-def test_second_scenario_run_without_reset_starts_as_przyjete(client, demo):
+def test_second_scenario_run_without_reset_starts_as_przyjete(app, client, demo):
     """Zegar demo stoi: wszystkie akcje mają tę samą minutę. Drugie zgłoszenie po odbiorze nie może być od razu zrealizowane."""
     nr1 = _report(client).json["numer"]
     client.post("/api/odbiory", json={"kosz": 18, "akcja": "jade"})
     client.post("/api/odbiory", json={"kosz": 18, "akcja": "oprozniono", "poziom": 100})
     assert client.get(f"/api/zgloszenia/{nr1}").json["status"] == "zrealizowane"
-    nr2 = _report(client, klient="t2").json["numer"]
+    nr2 = _report(app.test_client()).json["numer"]  # drugi telefon
     s = client.get(f"/api/zgloszenia/{nr2}").json
     assert nr2 != nr1 and s["status"] == "przyjete" and not _bin(client)["kierowca_w_drodze"]
 

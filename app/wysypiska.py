@@ -22,7 +22,7 @@ from sqlalchemy import or_
 
 from . import db, llm, photos
 from .geo import distance_m
-from .models import DumpReport
+from .models import DumpReport, Resident
 from .residents import DUMP_DAILY_LIMIT, DUMP_POINTS
 
 KINDS = {"bio": "Bio", "tworzywa": "Tworzywa sztuczne", "papier": "Papier", "szklo": "Szkło", "gabaryty": "Gabaryty",
@@ -286,6 +286,7 @@ def resident_dump_items(resident_id):
     if not mine:
         return []
     phones = {r.client for r in mine}
+    demo = getattr(db.session.get(Resident, resident_id), "source", None) == "demo"
     gids = {r.parent_id or r.id for r in mine}
     groups = _groups(DumpReport.query.filter(or_(DumpReport.id.in_(gids), DumpReport.parent_id.in_(gids))).all())
     awarded, per_day, out = set(), Counter(), []
@@ -295,7 +296,9 @@ def resident_dump_items(resident_id):
             continue
         g, rows = groups[gid]
         by_ai = r.status == "zweryfikowane" if r.parent_id else any(x.status == "zweryfikowane" for x in rows)
-        by_crew = not r.parent_id and g.cleared_at is not None and g.cleared_by not in phones
+        # wspólne konto demo „Anna K.” (jury, jedna przeglądarka w roli mieszkańca i ekipy, scenariusz C) jest wyjątkiem
+        # jak stały adres kosza 18; prawdziwy mieszkaniec nie zaliczy sobie wysypiska uprzątniętego z własnego telefonu
+        by_crew = not r.parent_id and g.cleared_at is not None and (g.cleared_by not in phones or demo)
         pts = 0
         if not r.media_type:
             why = "Bez zdjęcia: punkty są tylko za zgłoszenia ze zdjęciem"

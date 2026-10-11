@@ -45,13 +45,13 @@ def meta():
     return {"zegar": clock.now().isoformat(), "syntetyczne": True}
 
 
-def phone_id(role):
-    """Identyfikator telefonu do limitów i niezależnych potwierdzeń: losowe id w sesji Flask, czyli w ciasteczku
-    podpisanym SECRET_KEY — klient nie podrobi cudzego id ani nie zmieni swojego bez wyczyszczenia ciasteczek (wtedy
-    zostaje limit na IP). Rola w id, bo w demo jedna przeglądarka gra mieszkańca i ekipę (decyzja 11.10.2026)."""
+def phone_id():
+    """Identyfikator telefonu do limitów, niezależnych potwierdzeń i samouprzątnięcia: losowe id w sesji Flask, czyli
+    w ciasteczku podpisanym SECRET_KEY — klient nie podrobi cudzego id; wyczyszczenie ciasteczek daje nowe (zostaje
+    limit na IP). Bez roli w id: mieszkaniec i ekipa na jednym telefonie to ten sam telefon (decyzja 11.10.2026)."""
     if "tel" not in session:
         session["tel"], session.permanent = uuid.uuid4().hex, True
-    return f"{session['tel']}:{role}"
+    return session["tel"]
 
 
 def poziom_stan(level):

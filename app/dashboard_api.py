@@ -22,7 +22,7 @@ from .history import FRACTIONS, HISTORY_START, WDROZENIE
 from .methodology import money_assumptions, visit_cost_parts
 from .misuse import misuse_overview
 from .models import PhotoAnalysis, Point, Project
-from .photos import DISCREPANCY_PP, discrepancy
+from .photos import DISCREPANCY_PP
 from .recommendations import WINDOW, recommendations
 from .state import _cached, current_routes, point_states, side_version
 
@@ -362,10 +362,13 @@ def _photo_mismatches(f, now, limit=50):
     człowieka. Rozstrzygnięcie zgłoszeń zostaje przy kierowcy (reguła), AI niczego nie cofa (decyzja 11.10.2026)."""
     q = (db.session.query(PhotoAnalysis, Point).join(Point, Point.id == PhotoAnalysis.point_id)
          .filter(PhotoAnalysis.source == "crew", PhotoAnalysis.status == "done", PhotoAnalysis.crew_level.isnot(None),
-                 PhotoAnalysis.fill_level.isnot(None), PhotoAnalysis.at >= f.od, PhotoAnalysis.at < f.do, PhotoAnalysis.at <= now))
+                 PhotoAnalysis.fill_level.isnot(None), PhotoAnalysis.at >= f.od, PhotoAnalysis.at < f.do, PhotoAnalysis.at <= now,
+                 func.abs(PhotoAnalysis.fill_level - PhotoAnalysis.crew_level) > DISCREPANCY_PP))  # jak photos.discrepancy, w SQL
     if f.district:
         q = q.filter(Point.district == f.district)
-    rows = [(pa, p) for pa, p in q.order_by(PhotoAnalysis.at.desc()) if discrepancy(pa)][:limit]
+    if f.fraction:
+        q = q.filter(Point.fraction == f.fraction)
+    rows = q.order_by(PhotoAnalysis.at.desc()).limit(limit).all()
     return [{"kosz_id": p.id, "kosz": p.name, "adres": p.address, "dzielnica": p.district, "data": pa.at.isoformat(),
              "poziom_ekipa": pa.crew_level, "poziom_zdjecie": pa.fill_level} for pa, p in rows]
 

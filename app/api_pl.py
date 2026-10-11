@@ -143,7 +143,7 @@ def zglos():
     raw, mt, error = photos.read_upload(request.files.get("zdjecie"))  # przed limitami: zły plik nie zużywa limitu
     if error:
         return blad(error, "zle_zdjecie")
-    client = phone_id("mieszkaniec")
+    client = phone_id()
     if not rate.hit(f"zgl:{client}:{p.id}", 1, REPORT_GAP_S):
         return blad("To zgłoszenie już dotarło. Kolejne z tego telefonu możesz wysłać za minutę.", "za_czesto", 429)
     if not rate.hit(f"zgl-ip:{request.remote_addr}", REPORTS_PER_IP_HOUR, 3600):
