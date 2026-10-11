@@ -33,7 +33,7 @@ testpaths = ["tests", "demo"]  # demo/test_build_all.py: spójność filmu demo 
 exclude_dirs = ["tests", ".venv", "demo", "scripts"]
 
 [tool.mutmut]
-# scripts/mutate.sh nadpisuje paths_to_mutate na wskazany moduł (w kopii repo w kontenerze).
-paths_to_mutate = ["app/"]
-tests_dir = ["tests/"]
+# scripts/mutate.sh <moduł> dopisuje only_mutate i powiązane testy w kopii repo (sekcja musi zostać ostatnia w pliku).
+source_paths = ["app/"]
 also_copy = ["data/"]
+pytest_add_cli_args_test_selection = ["tests/"]
