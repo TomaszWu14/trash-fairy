@@ -20,3 +20,7 @@ Czytaj przed zmianą endpointów `POST`, tokenów QR/urządzeń, `app/residents.
    Jeśli dodasz logowanie przez ciasteczko sesji, endpointy zapisujące potrzebują ochrony CSRF (SameSite + token).
 9. **Kierowca widzi kurs swojej floty** (`fleet` w `app/api_kierowca.py`, `kind == "bin"`/altany). Nowe pola w odpowiedzi
    kierowcy nie mogą zawierać danych mieszkańców (pseudonim, IP, telefon).
+10. **Telefon = podpisane ciasteczko sesji (`api_wspolne.phone_id`), nie pole z żądania.** Pole `klient` jest ignorowane.
+    W testach inny telefon to osobny `app.test_client()` (własne ciasteczka), a nie inna wartość `klient`. Nie dopisuj roli
+    do id: mieszkaniec i ekipa na jednym telefonie muszą być tym samym telefonem, inaczej znika ochrona przed
+    samopotwierdzeniem i samouprzątnięciem wysypiska. Jedyny wyjątek to wspólne konto demo (`wysypiska.resident_dump_items`).
