@@ -271,3 +271,10 @@ class DeviceInfo(db.Model):
     loss = db.Column(db.Float, nullable=False, default=0.0)  # udział odczytów zgubionych w transmisji
     last_seen = db.Column(db.DateTime)  # tylko czujnik; panel: Device.last_heartbeat
     selftest_ok = db.Column(db.Boolean)  # tylko czujnik; panel: Device.selftest_ok
+
+
+class AppSecret(db.Model):
+    """Sekrety wygenerowane przez aplikację, gdy nie ma ich w env (dziś: SECRET_KEY na produkcji bez zmiennej w Coolify).
+    Seed i reset demo tej tabeli nie czyszczą, więc klucz przetrwa restart i Redeploy."""
+    name = db.Column(db.String(40), primary_key=True)
+    value = db.Column(db.String(128), nullable=False)
