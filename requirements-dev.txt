@@ -1,4 +1,8 @@
-# Narzędzia deweloperskie (testy równolegle: python -m pytest -q -n auto)
+# Narzędzia deweloperskie (testy równolegle: python -m pytest -q -n auto). Konfiguracja narzędzi w pyproject.toml.
 pytest==9.1.1
 pytest-xdist==3.8.0
-ruff==0.16.10  # lint: ruff check . (konfiguracja w ruff.toml)
+ruff==0.16.10  # lint: ruff check .
+mypy==2.4.0  # typy w trybie łagodnym: mypy (hook Stop sprawdza tylko zmienione pliki)
+mutmut==3.8.0  # testy mutacyjne: scripts/mutate.sh <moduł> (w Dockerze, mutmut nie działa na Windows)
+pip-audit==2.10.1  # podatności zależności: scripts/security_scan.sh
+bandit==1.9.4  # statyczny skan bezpieczeństwa: scripts/security_scan.sh

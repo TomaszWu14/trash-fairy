@@ -1,0 +1,2 @@
+# Skrypty powłoki zawsze z LF – z CRLF (core.autocrlf na Windows) bash zgłasza $'\r': command not found
+*.sh text eol=lf
