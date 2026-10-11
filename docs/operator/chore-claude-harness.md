@@ -1,8 +1,8 @@
 # Operator: `chore/claude-harness`
 
 - **PR / commity:** PR jeszcze nie otwarty (gałąź lokalna, bez pusha). Baza: `origin/main` @ `ce22f95`.
-  `73621ef` narzędzia w pyproject · `7efab2a` strażnik PreToolUse · `01d0ddc` hook Stop · `e59c06f` pułapki + CLAUDE.md ·
-  `0fac2fe` subagenci · `ade97f2` skill /end · `c310f44` szablon operatora · `4b28070` mutmut + skan bezpieczeństwa · (ten dokument)
+  `73621ef` narzędzia w pyproject · `b009927` strażnik PreToolUse · `07941bc` hook Stop · `b27d5d1` pułapki + CLAUDE.md ·
+  `eeeb6fb` subagenci · `2ee0741` skill /end · `62e220d` szablon operatora · `1b6fcb1` mutmut + skan bezpieczeństwa · (ten dokument)
 - **Data:** 2026-10-11 · **Autor zmian:** agent (Claude Code), zakres zaakceptowany przez autora repo
 
 ## 1. Co zmieniono
@@ -72,4 +72,4 @@ Aplikacja się nie zmieniła – sprawdzasz harness. Wszystko z katalogu repo po
 - **Strażnik to heurystyka**, nie piaskownica: obejście przez `mv` do `/tmp` i kasowanie tam, przez skrypt Pythona,
   `git clean -fdx`, albo edycję samego `guard.py` jest możliwe. Chroni przed pomyłką, nie przed celowym obejściem.
 - **PR #33** (`fix/25-secret-key-fail-fast`) zmienia zachowanie bez `SECRET_KEY` – po jego scaleniu popraw punkt 2 w `docs/pitfalls/auth.md`.
-- Opis commita `7efab2a` mówi o 51 przypadkach testowych strażnika; faktycznie jest ich 49.
+- Opis commita `b009927` mówi o 51 przypadkach testowych strażnika; faktycznie jest ich 49.
