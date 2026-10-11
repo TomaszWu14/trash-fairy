@@ -65,4 +65,15 @@ Zobacz też: [07-ograniczenia.md](07-ograniczenia.md).
 
 ## Kontekst projektu
 
-<DO UZUPEŁNIENIA: hackathon, termin, skład zespołu, wynik, czego się nauczyłem>
+Projekt powstał solo na hackathonie **HackYeah 2026** (3–4.10.2026) w zadaniu otwartym **Smart City**: „rozwiąż konkretny problem miasta lub jego mieszkańców, wskaż użytkowników i pokaż, jak rozwiązanie działa w konkretnej sytuacji”. Z obszarów podanych w zadaniu wybrałem zarządzanie odpadami i wykorzystanie danych miejskich do podejmowania decyzji. Treść zadania i regulamin: [`docs/zadanie/`](zadanie/).
+Koncepcja powstała przed wydarzeniem ([`docs/KONCEPCJA.md`](KONCEPCJA.md), bez kodu). Rdzeń aplikacji napisałem podczas hackathonu, a po nim (5–6.10) domknąłem podpowiedzi, scenariusze demo i filmy.
+
+**Ocena w pierwszej fazie (komisja zadania, platforma HackTribe):**
+
+| Pomysł i innowacyjność (30%) | Zgodność z kategorią (20%) | Użyteczność (20%) | Design (20%) | Kompletność i gotowość wdrożenia (10%) | Średnia ważona | Średnia wszystkich zespołów |
+|---|---|---|---|---|---|---|
+| 6,25 | 7,00 | 4,50 | 6,25 | 4,25 | **5,85** | 4,66 |
+
+Najniżej oceniono użyteczność i kompletność wdrożenia.
+
+**Czego się nauczyłem:** <DO UZUPEŁNIENIA>
