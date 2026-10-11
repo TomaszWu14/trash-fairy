@@ -43,8 +43,9 @@ Komendy sprawdzone od zera na świeżym klonie (Windows 11, Python 3.13, Docker 
 
 **Docker (aplikacja + PostgreSQL 16):**
 ```bash
-docker compose up --build        # http://localhost:8080
+SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") docker compose up --build   # http://localhost:8080
 ```
+`SECRET_KEY` podpisuje dzienne kody QR i tokeny urządzeń. Poza SQLite aplikacja nie wystartuje bez własnego klucza, bo domyślny jest jawny w kodzie.
 Pierwszy start trwa ok. 2 minuty, bo aplikacja sama importuje punkty i symuluje 8 tygodni. Dopiero potem `/health` zwraca `ok`.
 
 **Lokalnie (SQLite):**
@@ -54,7 +55,7 @@ python -m venv .venv
 pip install -r requirements.txt -r requirements-dev.txt
 flask --app app seed               # punkty z data/*.geojson + 8 tygodni symulacji, ok. 45 s
 flask --app app run                # http://localhost:5000; pierwsze wejście na / liczy porównanie (do 20 s)
-python -m pytest -q -n auto        # 459 testów, ok. 3 min
+python -m pytest -q -n auto        # 463 testy, ok. 3 min
 ```
 - Na Windows trzymaj klon w krótkiej ścieżce, np. `C:\dev\trash-fairy`. Pakiet `anthropic` ma bardzo długie nazwy plików i bez włączonych długich ścieżek `pip install` kończy się błędem `OSError: No such file or directory`.
 - Zmienne środowiskowe są opcjonalne: wzór w [`.env.example`](.env.example), skopiuj go do `.env`. Bez klucza API aplikacja działa w pełni, a zdjęcia dostają status „Do weryfikacji”.
@@ -70,7 +71,7 @@ python -m pytest -q -n auto        # 459 testów, ok. 3 min
 | **Leaflet + OpenStreetMap** | Otwarte dane prawdziwych koszy i otwarta mapa, bez klucza i kosztów (D9). |
 | **Claude API** (tylko przez `app/llm.py`) | Opis zdjęć i wydarzeń z walidacją schematu. Nie podejmuje decyzji, a błąd API nie zatrzymuje aplikacji (D1, D6). |
 | **Gunicorn + Docker** | Jeden kontener plus baza. `/health` sprawdza połączenie z bazą. |
-| **pytest + ruff + GitHub Actions** | 459 testów i lint przy każdym PR. Kluczowe liczby (57% → 27%, −24%) pilnuje test regresji. |
+| **pytest + ruff + GitHub Actions** | 463 testy i lint przy każdym PR. Kluczowe liczby (57% → 27%, −24%) pilnuje test regresji. |
 
 ## Zakres i ograniczenia
 
