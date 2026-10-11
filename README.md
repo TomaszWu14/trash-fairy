@@ -4,7 +4,7 @@
 
 <p align="center"><img src="docs/screenshots/demo.gif" width="360" alt="Zgłoszenie z telefonu: panel kosza z kodem QR, wybór „Przepełniony”, wysłanie i status zgłoszenia"></p>
 
-📹 [Prezentacja działania — 2 min](<DO UZUPEŁNIENIA: link YouTube>)
+📹 [Prezentacja działania z lektorem — 3 min](demo/demo_trash-fairy_3min.mp4) · [pełna wersja, 8 min](demo/demo_trash-fairy_pelne.mp4)
 
 **Demo:** https://trashfairy.twapp.pl. Bez logowania, na danych demonstracyjnych. Przycisk „Resetuj dane demo” przywraca stan wyjściowy.
 
