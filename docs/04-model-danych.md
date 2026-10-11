@@ -1,6 +1,6 @@
 # 04. Model danych
 
-20 tabel, Flask-SQLAlchemy, bez Alembica (brakujące kolumny dodaje `ALTER TABLE` przy starcie, `app/__init__.py:133-152`).
+20 tabel, Flask-SQLAlchemy, bez Alembica (brakujące kolumny dodaje `ALTER TABLE` przy starcie, `app/__init__.py:135-154`).
 **Brak `db.relationship`, `CheckConstraint` i `Enum`** — relacje tylko przez FK, słowniki to wolne `String`.
 Czas: naiwny „zegar demo” (`models.py:3-4`), a kolumny `wall_at` w UTC.
 
@@ -174,15 +174,15 @@ Poza diagramem (bez relacji): `project` (district jako tekst), `event`, `fairy_r
 
 1. **Słowniki bez ograniczeń.** Każde `kind`/`status`/`source` to wolny tekst. Wartości żyją w stałych Pythona. Przykłady:
    - `point.kind` ma też `container` (`osm_import.py:186`), którego nie znają `residents.POINTS` (`residents.py:21`) ani `open_api.BIN_CAPACITY_L` (`open_api.py:24`).
-   - `project.status` spoza słownika daje KeyError (`dashboard_api.py:425`).
+   - `project.status` spoza słownika daje KeyError (`dashboard_api.py:443`).
    - Komentarze w modelu są niepełne: `press.kind` bez `other` (`models.py:86`), `stop_issue.kind` z 4 wartościami zamiast 8 (`:98`).
 2. **Nullable, choć logika wymaga wartości:**
-   - `device_info.last_seen`: porównanie z None daje TypeError (`devices.py:127,133`);
-   - `point.district`: kod po cichu podstawia „Stare Miasto” (`api_wspolne.py:193`).
+   - `device_info.last_seen`: porównanie z None daje TypeError (`devices.py:129,135`);
+   - `point.district`: kod po cichu podstawia „Stare Miasto” (`api_wspolne.py:204`).
 3. **Identyfikator bez FK:** `press.photo_id`, `dump_report.parent_id` i `dump_report.resident_id` (to ostatnie świadomie, z komentarzem w `models.py:231`). `project.district` nie wskazuje żadnego słownika dzielnic.
 4. **Unikalność tylko w kodzie** („sprawdź, potem wstaw”, bez UNIQUE):
-   - nagroda: (mieszkaniec, kosz, dzień), `residents.py:131-137`;
-   - jedno otwarte zgłoszenie na kosz w oknie 15 min (`reports.py:57-59`);
+   - nagroda: (mieszkaniec, kosz, dzień), `residents.py:129-135`;
+   - jedno otwarte zgłoszenie na kosz w oknie 15 min (`reports.py:61-63`);
    - jeden wiersz `demo_clock`.
 5. **Brak CHECK na zakresach:** `qty` 1–100, `battery` 0–100, `confidence` 0–1, `event.end > start`.
 6. **Dwa słowniki dzielnic się rozjeżdżają.** `resident.district` ma „Kazimierz” (`residents.py:22`), a `point.district` dla Kazimierza to „Stare Miasto” (`osm_import.py:125-127`).
@@ -201,9 +201,9 @@ Co pilnuje **baza**:
 - relacja 1:0..1 `point` → `device` / `device_info` (klucz główny = klucz obcy).
 
 Co pilnuje **kod aplikacji** (baza tego nie wymusza):
-- dozwolone wartości słowników (`kind`, `status`, `source`) — stałe w Pythonie, np. `app/api_wspolne.py:23-28`, `app/wysypiska.py:28`;
+- dozwolone wartości słowników (`kind`, `status`, `source`) — stałe w Pythonie, np. `app/api_wspolne.py:24-29`, `app/wysypiska.py:28`;
 - zakresy: poziom przy opróżnieniu 0/25/50/75/100 (`app/api_kierowca.py:16`), ilość worków 1–100 (`app/wysypiska.py:29-30`), plik zdjęcia ≤ 8 MB i 40 Mpx (`app/photos.py:17, 94`);
-- jedno otwarte zgłoszenie na kosz w oknie 15 min (`app/reports.py:57-59`);
-- jedna nagroda na mieszkańca, kosz i dzień (`app/residents.py:126-137`);
+- jedno otwarte zgłoszenie na kosz w oknie 15 min (`app/reports.py:61-63`);
+- jedna nagroda na mieszkańca, kosz i dzień (`app/residents.py:124-135`);
 - duplikat wysypiska: otwarte zgłoszenie ≤ 50 m w 72 h (`app/wysypiska.py:137-161`);
-- prywatność: numer telefonu zapisywany tylko jako HMAC (`app/residents.py:48-59`), IP kasowane po 24 h (`app/privacy.py`), EXIF usuwany ze zdjęć (`app/photos.py:124-176`).
+- prywatność: numer telefonu zapisywany tylko jako HMAC (`app/residents.py:46-57`), IP kasowane po 24 h (`app/privacy.py`), EXIF usuwany ze zdjęć (`app/photos.py:124-176`).
