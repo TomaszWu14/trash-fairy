@@ -90,6 +90,11 @@ def check_command(cmd, cwd, scratch):
                 return "git push --force/-f jest zablokowany: przepisuje historię zdalną. Zrób zwykły push nowego commita."
             if any(a in ("main", "master") or re.search(r":(refs/heads/)?(main|master)$", a) for a in args):
                 return "Push bezpośrednio na main jest zablokowany (main = produkcja). Pushuj gałąź i otwórz PR."
+        if sub == "checkout" and "--" in args and args[args.index("--") + 1:]:
+            return ("git checkout -- <pliki> jest zablokowany: bez pytania wyrzuca niezacommitowane zmiany. "
+                    "Najpierw git stash albo commit; jeśli naprawdę chcesz porzucić zmiany, poproś człowieka.")
+        if sub == "restore" and "--staged" not in args and any(not a.startswith("-") for a in args):
+            return "git restore <pliki> jest zablokowany: wyrzuca niezacommitowane zmiany. Najpierw git stash albo commit."
         if sub == "reset" and "--hard" in args:
             br = branch_switch or current_branch(cwd, git_dir)
             if br in ("main", "master"):

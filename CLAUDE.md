@@ -32,6 +32,8 @@ Nowa pułapka z sesji → dopisz punkt do właściwego pliku (max 10 na plik; na
 Małe zadanie (1–2 pliki) robi główna sesja sama, bez agentów.
 
 ## Koniec gałęzi: dokument dla operatora
+Zmiany w `app/` przesuwają odwołania `plik:linia` w `docs/0*.md`: przed PR `python scripts/remap_doc_lines.py origin/main`,
+potem sprawdź ręcznie 2–3 przesunięte odwołania.
 Przed PR wygeneruj `docs/operator/<nazwa-gałęzi>.md` (ukośniki → `-`) według `docs/operator/TEMPLATE.md`:
 co zmieniono, kroki do przeklikania z oczekiwanym wynikiem, checklista (schemat na dev/test/compose/prod, env, deploy),
 plan wycofania. Wpisuj prawdziwe wyniki komend, nie zapowiedzi. Potem `/end` (propozycje usprawnień harnessu).
