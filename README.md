@@ -1,4 +1,9 @@
-# Trash Fairy
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo/trash-fairy-logo-ciemne.jpg">
+    <img src="docs/logo/trash-fairy-logo-jasne.jpg" alt="Trash Fairy" width="440">
+  </picture>
+</h1>
 
 **Planowanie odbioru koszy ulicznych według zapełnienia, a nie stałego harmonogramu: dla operatora odbioru odpadów, jego dyspozytorów i kierowców oraz mieszkańców, którzy zgłaszają przepełnione kosze.**
 
@@ -115,7 +120,8 @@ Materiały z hackathonu:
 - [film 3 min](demo/demo_trash-fairy_3min.mp4);
 - [film 8 min](demo/demo_trash-fairy_pelne.mp4);
 - [slajdy PDF](demo/prezentacja_trash-fairy.pdf);
-- [scenariusz pokazu](DEMO.md).
+- [scenariusz pokazu](DEMO.md);
+- [logo, miniatura filmu i logo kanału](docs/logo/).
 
 ---
 
