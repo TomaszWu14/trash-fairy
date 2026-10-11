@@ -1,10 +1,15 @@
-# Trash Fairy
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo/trash-fairy-logo-ciemne.jpg">
+    <img src="docs/logo/trash-fairy-logo-jasne.jpg" alt="Trash Fairy" width="440">
+  </picture>
+</h1>
 
 **Planowanie odbioru koszy ulicznych według zapełnienia, a nie stałego harmonogramu: dla operatora odbioru odpadów, jego dyspozytorów i kierowców oraz mieszkańców, którzy zgłaszają przepełnione kosze.**
 
 <p align="center"><img src="docs/screenshots/demo.gif" width="360" alt="Zgłoszenie z telefonu: panel kosza z kodem QR, wybór „Przepełniony”, wysłanie i status zgłoszenia"></p>
 
-📹 [Prezentacja działania z lektorem — 3 min](demo/demo_trash-fairy_3min.mp4) · [pełna wersja, 8 min](demo/demo_trash-fairy_pelne.mp4)
+📹 **[Prezentacja działania z lektorem — YouTube](https://youtu.be/mQma-SUte-s)** · pliki w repo: [3 min](demo/demo_trash-fairy_3min.mp4), [8 min](demo/demo_trash-fairy_pelne.mp4)
 
 **Demo:** https://trashfairy.twapp.pl. Bez logowania, na danych demonstracyjnych. Przycisk „Resetuj dane demo” przywraca stan wyjściowy.
 
@@ -112,10 +117,12 @@ Najniżej oceniono użyteczność i kompletność wdrożenia.
 **Czego się nauczyłem:** zaczynać od jednego głównego przepływu użytkownika, a nie od ekranów, bo najniżej oceniono użyteczność. Ciąć zakres wcześnie i spisywać go jako „poza zakresem”, zanim powstanie kod, którego nikt nie zobaczy. Jawnie oddzielać fakty od założeń, bo liczba z symulacji i kwota z założenia to dwie różne rzeczy.
 
 Materiały z hackathonu:
+- [film na YouTube](https://youtu.be/mQma-SUte-s);
 - [film 3 min](demo/demo_trash-fairy_3min.mp4);
 - [film 8 min](demo/demo_trash-fairy_pelne.mp4);
 - [slajdy PDF](demo/prezentacja_trash-fairy.pdf);
-- [scenariusz pokazu](DEMO.md).
+- [scenariusz pokazu](DEMO.md);
+- [logo, miniatura filmu i logo kanału](docs/logo/).
 
 ---
 
