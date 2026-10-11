@@ -1,3 +1,5 @@
+> Zrzuty ekranu z tego audytu usunięto z drzewa repozytorium 11.10.2026 (porządki pod portfolio). Są w historii: [stan sprzed usunięcia](https://github.com/TomaszWu14/trash-fairy/tree/ce22f95/docs/audit).
+
 # Audyt UX / UI / funkcjonalności – Trash Fairy (Etap 2)
 
 Data: 3.10.2026 wieczór. Podstawa: `ETAP1_ROZPOZNANIE.md`, 152 zrzuty w `screens/`, pomiary `screens/_findings.json`, Lighthouse w `lighthouse/*.json`.
