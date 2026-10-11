@@ -18,3 +18,7 @@ demo/*.mp4
 !demo/demo_trash-fairy_3min.mp4
 !demo/demo_trash-fairy_pelne.mp4
 demo/animacja/*.mp4
+
+# systemowe i narzędzia front-endowe
+node_modules/
+.DS_Store

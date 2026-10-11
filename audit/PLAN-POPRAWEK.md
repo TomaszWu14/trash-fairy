@@ -1,3 +1,5 @@
+> Zrzuty ekranu z tego audytu usunięto z drzewa repozytorium 11.10.2026 (porządki pod portfolio). Są w historii: [stan sprzed usunięcia](https://github.com/TomaszWu14/trash-fairy/tree/ce22f95/audit).
+
 # Plan poprawek po jury r0 (4.10.2026, ok. 06:40)
 
 Źródło: `audit/JURY.md` (ID J-xx). Budżet do 08:00: ok. 75 minut pracy kilku agentów równolegle. Kolejność w grupie: (waga kryterium × zysk) / nakład. `do 08:00` = mieści się w budżecie. Każdy pakiet kończy się `python -m pytest -q -n auto`; po wszystkich pakietach sonda r1 (`scripts/jury_check.py`) i porównanie z r0.

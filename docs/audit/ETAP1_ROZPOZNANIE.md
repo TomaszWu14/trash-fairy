@@ -1,3 +1,5 @@
+> Zrzuty ekranu z tego audytu usunięto z drzewa repozytorium 11.10.2026 (porządki pod portfolio). Są w historii: [stan sprzed usunięcia](https://github.com/TomaszWu14/trash-fairy/tree/ce22f95/docs/audit).
+
 # Etap 1 – rozpoznanie (bez zmian w kodzie)
 
 Data: 3.10.2026, ok. 19:00. Stan kodu: `main` = `f63bb47` (merge PR #1), lokalnie dodatkowo logo, EXIF ze zdjęć i `/zdjecia` (niezacommitowane).
