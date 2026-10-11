@@ -30,3 +30,13 @@ Nowa pułapka z sesji → dopisz punkt do właściwego pliku (max 10 na plik; na
 3. Na końcu **raz** `security-reviewer` i `db-reviewer` (równolegle, na diffie gałęzi). Główna sesja ocenia zgłoszenia
    i poprawia te zasadne. **Bez pętli review → poprawka → review**: ponowny przegląd tylko na wyraźną prośbę człowieka.
 Małe zadanie (1–2 pliki) robi główna sesja sama, bez agentów.
+
+## Koniec gałęzi: dokument dla operatora
+Przed PR wygeneruj `docs/operator/<nazwa-gałęzi>.md` (ukośniki → `-`) według `docs/operator/TEMPLATE.md`:
+co zmieniono, kroki do przeklikania z oczekiwanym wynikiem, checklista (schemat na dev/test/compose/prod, env, deploy),
+plan wycofania. Wpisuj prawdziwe wyniki komend, nie zapowiedzi. Potem `/end` (propozycje usprawnień harnessu).
+
+## Harness
+`.claude/hooks/guard.py` (PreToolUse) blokuje groźne akcje – blokada to sygnał, nie przeszkoda do obejścia; jeśli jest
+fałszywa, powiedz człowiekowi. `.claude/hooks/check.py` (Stop) uruchamia ruff, mypy i powiązane testy na zmienionych
+plikach. Testy strażnika: `bash .claude/hooks/test_guard.sh`.
