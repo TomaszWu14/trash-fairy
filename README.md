@@ -147,7 +147,7 @@ Każda integracja ma wyłącznik i bezpieczny stan bez sieci: brak danych oznacz
 ## Uruchomienie
 Najprościej, jednym poleceniem (aplikacja + PostgreSQL 16, seed punktów i symulacji startuje sam):
 ```bash
-docker compose up --build   # http://localhost:8080
+SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") docker compose up --build   # http://localhost:8080
 ```
 Lokalnie bez Dockera (SQLite):
 ```bash
@@ -158,7 +158,7 @@ flask --app app run         # http://localhost:5000 (albo -p 5050)
 python -m pytest -q -n auto # 457 testów, ok. 2 min (pytest-xdist z requirements-dev.txt)
 ```
 Sam obraz: `docker build -t trash-fairy . && docker run -p 8080:8080 trash-fairy` (z `-e DATABASE_URL=...` dla PostgreSQL).
-Zmienne środowiskowe: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `PUBLIC_URL` (adres w kodach QR), `SECRET_KEY`, `DATABASE_URL`,
+Zmienne środowiskowe: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `PUBLIC_URL` (adres w kodach QR), `SECRET_KEY` (wymagany poza SQLite – bez niego aplikacja nie wystartuje), `DATABASE_URL`,
 `TOMTOM_API_KEY`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SID`, `SMS_DEMO_FALLBACK=1`, `WEATHER_URL=""` (wyłącza pogodę).
 Bez klucza API aplikacja działa w pełni; zdjęcia trafiają „Do weryfikacji”, a opisy AI pokazują komunikat i ostatni zapisany wynik.
 
@@ -222,7 +222,7 @@ bins −24% pickups and empty trips down from 57% to 27%; shelter overflow hours
 **Screens (no login):** `/` overview with a randomly drawn demo scenario (QR on the bin panel, panel button, illegal dumping), `/panel/18` bin kiosk (fill level visible from afar, pickup time, QR code),
 `/zglos` resident PWA (scan the bin panel's daily QR code, one-screen report; `/wysypisko` for illegal dumping), `/kierowca` driver PWA (route by priority, in-app navigation, Emptied with an optional bin photo / Problem), `/dyspozytor` dispatcher (live map, urgent bins, crews and routes),
 `/dashboard` city dashboard (costs vs plan, fractions, districts, projects), `/dashboard/urzadzenia` devices (battery, heartbeat, status),
-`/metodologia` assumptions straight from code. **Demo:** https://trashfairy.twapp.pl · **Run locally:** `docker compose up --build` → http://localhost:8080 (app + PostgreSQL 16).
+`/metodologia` assumptions straight from code. **Demo:** https://trashfairy.twapp.pl · **Run locally:** `SECRET_KEY=<random> docker compose up --build` → http://localhost:8080 (app + PostgreSQL 16).
 **Video (Polish voice-over):** [3 min](demo/demo_trash-fairy_3min.mp4) · [full, 8 min](demo/demo_trash-fairy_pelne.mp4) · **Slides:** [PDF](demo/prezentacja_trash-fairy.pdf)
 
 **AI photo verification:** a resident's photo is stripped of EXIF, assessed by Claude Vision against a JSON schema, and a rule in code
