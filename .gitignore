@@ -22,3 +22,13 @@ demo/animacja/*.mp4
 # systemowe i narzędzia front-endowe
 node_modules/
 .DS_Store
+
+# zrzuty z rund audytu UX i sondy jury (generowane skryptami scripts/iter_*.py, jury_check.py, po_shots.py) — poza repo
+audit/iteracje/
+audit/motyw/
+audit/jury/*/laptop/
+audit/jury/*/telefon/
+audit/jury/*/kiosk/
+audit/jury/qr-dzienny/
+# notatka przekazania między sesjami Claude
+PROMPT-NASTEPNA-SESJA.md
