@@ -7,7 +7,7 @@ from flask import Blueprint, jsonify, render_template, request, send_file
 
 from . import clock, db, photos, rate, residents
 from . import wysypiska as wd
-from .api_pl import _json_body, blad, meta
+from .api_pl import _json_body, blad, meta, phone_id
 
 bp = Blueprint("wysypiska", __name__)
 
@@ -64,7 +64,7 @@ def create():
     raw, mt, error = photos.read_upload(request.files.get("zdjecie"))  # przed limitami: zły plik nie zużywa limitu
     if error:
         return blad(error, "zle_zdjecie")
-    client = wd.client_hash(str(data.get("klient") or request.remote_addr)[:64])
+    client = wd.client_hash(phone_id("ekipa" if data.get("zrodlo") == "ekipa" else "mieszkaniec"))
     if not rate.hit(f"wd:{client}", 1, GAP_S):
         return blad("Twoje zgłoszenie już dotarło. Kolejne z tego telefonu możesz wysłać za 2 minuty.", "za_czesto", 429)
     if not rate.hit(f"wd-ip:{request.remote_addr}", PER_IP_HOUR, 3600):
@@ -121,7 +121,7 @@ def cleared(nr):
     g = db.session.get(type(r), r.parent_id) if r.parent_id else r
     if g.cleared_at:
         return blad("To wysypisko jest już oznaczone jako uprzątnięte.", "juz_uprzatniete", 409)
-    g.cleared_at, g.cleared_by = clock.now(), wd.client_hash(str(_json_body().get("klient") or request.remote_addr)[:64])
+    g.cleared_at, g.cleared_by = clock.now(), wd.client_hash(phone_id("ekipa"))
     db.session.commit()
     clock.touch()
     return jsonify(ok=True, komunikat=f"Uprzątnięte: {wd.numer(g.id)}.", uprzatnieto=g.cleared_at.isoformat(), meta=meta())

@@ -158,7 +158,8 @@ def create(now, lat, lon, kinds, qty, note, raw, mt, source, client, resident_id
         r.photo_path, r.media_type, r.ai, r.status = str(path), mt, {"status": "pending"}, "w_toku"
     rows = group_rows(parent) if parent else []
     if parent and client not in {x.client for x in rows} and not (resident_id and resident_id in {x.resident_id for x in rows}):
-        parent.confirmations += 1  # ten sam telefon albo to samo konto drugi raz nie jest niezależnym potwierdzeniem
+        # atomowy UPDATE … + 1: dwa równoczesne potwierdzenia nie zgubią się (ten sam telefon/konto nie jest niezależnym)
+        DumpReport.query.filter_by(id=parent.id).update({DumpReport.confirmations: DumpReport.confirmations + 1})
     db.session.add(r)
     db.session.commit()
     return r, parent or r

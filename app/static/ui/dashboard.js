@@ -306,6 +306,12 @@
         list.map(a => [`<b>${esc(a.kosz)}</b><br><small>${esc(a.adres || '')}</small>`, esc(a.dzielnica || ''), esc(when(a.data)), `${num(a.odleglosc_m)} m`]))}
         <p class="q-note">Najnowsze ${num(list.length)} w wybranym okresie. Dane demonstracyjne.</p>`
         : '<div class="empty"><img src="/static/ui/ill/sukces.svg" alt=""><h3>Brak anomalii w tym okresie</h3></div>';
+      const ph = cache.anomalie.zdjecia || [];  // poziom od ekipy ≠ zdjęcie: lista do sprawdzenia, nie automatyczna decyzja
+      b.insertAdjacentHTML('beforeend', `<h3>Do sprawdzenia: poziom od ekipy różni się od zdjęcia o więcej niż ${num(cache.anomalie.prog_pp)} p.p.</h3>`
+        + (ph.length ? table([{ t: 'Kosz' }, { t: 'Data' }, { t: 'Ekipa', n: 1 }, { t: 'Zdjęcie (AI)', n: 1 }],
+          ph.map(a => [`<b>${esc(a.kosz)}</b><br><small>${esc(a.adres || a.dzielnica || '')}</small>`, esc(when(a.data)), `${num(a.poziom_ekipa)}%`, `${num(a.poziom_zdjecie)}%`]))
+          + '<p class="q-note">Zgłoszenia rozstrzyga poziom podany przez ekipę; ta lista służy do weryfikacji przez człowieka.</p>'
+          : '<p class="q-note">Brak rozbieżności w tym okresie.</p>'));
     } else if (kind === 'rekomendacje' && cache.rek) {
       h.textContent = 'Rekomendacje z danych: wszystkie kosze';
       const list = cache.rek.rekomendacje || [];

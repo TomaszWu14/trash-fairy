@@ -21,7 +21,6 @@ START_RELIABILITY = 0.8
 POINTS = {"bin": 10, "shelter": 15}  # +5 za altanę (pytanie 41)
 DISTRICTS = {"Rynek": "Stare Miasto", "Kazimierz": "Kazimierz", "Grzegórzki": "Grzegórzki"}
 HEARTBEAT_LOST = timedelta(hours=48)
-LOW_BATTERY = 20
 SELFTEST_EVERY = timedelta(hours=6)
 BADGES = [  # (nazwa, opis, warunek na liście nagród)
     ("Pierwsze trafienie", "pierwsze trafne zgłoszenie", lambda aw, pts: len(aw) >= 1),
@@ -199,6 +198,7 @@ def device_flags(now):
 
 
 def devices_overview(now):
+    from .devices import CRITICAL_BATTERY  # tu, nie na górze: devices importuje residents
     points = {p.id: p for p in Point.live_query()}
     devs = Device.query.all()
     return {
@@ -206,7 +206,7 @@ def devices_overview(now):
         "offline": [{"point_id": d.point_id, "name": points[d.point_id].name, "since": f"{d.last_heartbeat:%d.%m %H:%M}"}
                     for d in devs if d.last_heartbeat < now - HEARTBEAT_LOST],
         "low_battery": [{"point_id": d.point_id, "name": points[d.point_id].name, "battery": d.battery}
-                        for d in devs if d.battery < LOW_BATTERY],
+                        for d in devs if d.battery < CRITICAL_BATTERY],
         "selftest_due": sum(1 for d in devs if not d.last_selftest or d.last_selftest < now - SELFTEST_EVERY),
     }
 

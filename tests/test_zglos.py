@@ -25,11 +25,11 @@ def a_bin():
     return Point.query.filter_by(kind="bin").first()
 
 
-def test_reports_from_two_phones_merge(client, demo):
+def test_reports_from_two_phones_merge(app, client, demo):
     p = a_bin()
-    a = report(client, p, klient="a")
+    a = report(client, p)
     assert a.status_code == 201
-    b = report(client, p, klient="b")
+    b = report(app.test_client(), p)  # drugi telefon = drugie ciasteczko sesji (phone_id), nie pole „klient”
     assert b.status_code == 201 and b.json["dolaczone"] and b.json["numer"] == a.json["numer"]
     assert Press.query.filter_by(point_id=p.id, kind="full").count() == 2
 
@@ -65,3 +65,11 @@ def test_404_is_polish_html_and_api_stays_json(client):
     assert page.status_code == 404 and "lang=\"pl\"" in page.get_data(as_text=True)
     api_r = client.get("/api/nie-ma")
     assert api_r.status_code == 404 and set(api_r.json) == {"blad", "kod"}
+
+
+def test_phone_limit_ignores_forged_client_field(client, demo):
+    """Limit „1/min z telefonu” liczy się od podpisanego ciasteczka sesji; zmiana pola „klient” go nie omija."""
+    p = a_bin()
+    assert report(client, p, klient="a").status_code == 201
+    again = report(client, p, klient="zupelnie-inny")
+    assert again.status_code == 429 and again.json["kod"] == "za_czesto"

@@ -18,7 +18,7 @@ from .simulation import DEMO_NOW
 from .state import BAD_ABOVE, current_routes, point_states, time_label
 
 bp = Blueprint("dyspozytor", __name__, url_prefix="/api/dyspozytor")
-FULL_FROM = 80  # „przepełnione” = poziom ≥ 80%, jak kształt ■ na mapach i w legendzie
+FULL_ABOVE = BAD_ABOVE  # „przepełnione” = poziom > 85%, jak kształt ■ na mapach i próg silnika tras
 URGENT_LIMIT = 12
 LIVE_HOURS = 24
 LIVE_LIMIT = 12
@@ -92,7 +92,7 @@ def overview():
                       "linia": line, "przyblizona": approx})
     return jsonify(
         kafle={"pilne": len(urgent), "juz": sum(1 for k in urgent if k["juz"]), "zagrozone": sum(1 for k in urgent if not k["juz"]),
-               "przepelnione": sum(1 for s in states.values() if (s.get("value") or 0) >= FULL_FROM),
+               "przepelnione": sum(1 for s in states.values() if (s.get("value") or 0) > FULL_ABOVE),
                "km": bins["km"], "kurs": time_label(datetime.fromisoformat(bins["run_at"]), now),
                "punkty": sum(len(r["stops"]) for r in [bins, *bins["extra_routes"]]),
                "odbiory_mniej_pct": round(100 * (fixed - fairy) / fixed) if fixed else 0, "tygodnie": cmp_["weeks"]},

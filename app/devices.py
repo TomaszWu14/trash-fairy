@@ -26,7 +26,9 @@ KINDS = {  # założenia demo
     "czujnik": {"label": "Czujnik zapełnienia (ultradźwiękowy)", "model": "Czujnik US-1 ultradźwiękowy", "prefix": "TF-US",
                 "life_days": 730, "capacity_mah": 3600, "interval_min": 15, "icon": "radio-tower"},
 }
-CRITICAL_BATTERY = 15  # %: poniżej bateria krytyczna
+# progi baterii (decyzja 11.10.2026): jedno źródło dla listy urządzeń, statusu, e-papieru i przeglądu mieszkańców
+CRITICAL_BATTERY = 15  # %: poniżej bateria krytyczna, przycisk może nie działać (e-papier: „awaria”)
+WARN_BATTERY = 35  # %: poniżej żółte ostrzeżenie na liście urządzeń
 REPLACE_WITHIN_DAYS = 30  # tyle dni (lub mniej) do wymiany → „Wymiana baterii w 30 dni”
 SERIES_DAYS = 7
 PILOT_DISTRICT = "Nowa Huta"
@@ -68,8 +70,8 @@ def status(battery, left, online, selftest_ok):
 
 
 def battery_level(battery):
-    """Poziom do koloru i słowa: full (< 15%), warn (< 35%), ok."""
-    return "full" if battery < CRITICAL_BATTERY else "warn" if battery < 35 else "ok"
+    """Poziom do koloru i słowa: full (< CRITICAL_BATTERY), warn (< WARN_BATTERY), ok."""
+    return "full" if battery < CRITICAL_BATTERY else "warn" if battery < WARN_BATTERY else "ok"
 
 
 def _ticks(a, b, interval_min, loss):

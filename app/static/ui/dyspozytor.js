@@ -105,7 +105,7 @@
         <b class="dp-pct num">${num(k.poziom)}%</b></div>
       <p class="dp-when">${when}</p>
       <div class="dp-axis" style="--x:${fill.toFixed(1)}%" aria-hidden="true"><i></i></div>
-      <p class="dp-meta">Kolejny kurs dopiero <b>${esc(kurs)}</b> · ${pos}</p>
+      <p class="dp-meta">Kolejny kurs dopiero <b>${esc(kurs)}</b> · ${pos} · <a class="link" href="/kierowca/kosz/${k.id}">Karta kosza</a></p>
       <div class="dp-act">${act}</div></li>`;
   }
   function renderUrgent(d) {
@@ -139,10 +139,10 @@
   function feed(d, wys) {
     const bins = d.zgloszenia.map(z => ({ key: z.numer, o: z.o, ico: stateIcon('report'), t: z.nazwa, id: z.kosz_id,
       s: [z.typ, z.zrodlo, z.osob > 1 ? `${num(z.osob)} ${TF.plural(z.osob, ['osoba', 'osoby', 'osób'])}` : null].filter(Boolean).join(' · '),
-      done: z.zamkniete, focus: z.kosz_id === st.focus }));
+      done: z.zamkniete, focus: z.kosz_id === st.focus, href: `/zgloszenie/${encodeURIComponent(z.numer)}`, nr: z.numer }));
     const ws = (wys?.wysypiska || []).map(x => ({ key: x.numer, o: x.zgloszono, ico: `<span class="dp-dump">${icon('trash', 'i-sm')}</span>`,
       t: `Dzikie wysypisko ${x.numer}`, lat: x.lat, lon: x.lon, s: [x.etykieta, ...(x.rodzaje || [])].join(' · '),
-      done: x.status === 'uprzatniete', focus: x.numer === focusDump }));
+      done: x.status === 'uprzatniete', focus: x.numer === focusDump, href: `/wysypisko/${encodeURIComponent(x.numer)}?ekipa=1`, nr: x.numer }));
     return [...bins, ...ws].sort((a, b) => b.o.localeCompare(a.o)).slice(0, 15);
   }
   function renderFeed(d, wys) {
@@ -152,7 +152,7 @@
     document.getElementById('dp-zgl').innerHTML = items.length ? items.map(x => {
       const [lat, lon] = x.lat != null ? [x.lat, x.lon] : coords[x.id] || [];
       return `<li class="dp-ev${x.focus ? ' is-focus' : ''}"><time class="num" datetime="${esc(x.o)}">${x.o.slice(0, 10) === today ? '' : 'wczoraj '}${hhmm(x.o)}</time>${x.ico}
-        <span class="dp-ev-t">${lat != null ? `<button class="dp-name" type="button" data-show="${x.id ?? ''}" data-lat="${lat}" data-lon="${lon}" title="Pokaż na mapie">${esc(x.t)}</button>` : `<b>${esc(x.t)}</b>`}<small>${esc(x.s)}</small></span>
+        <span class="dp-ev-t">${lat != null ? `<button class="dp-name" type="button" data-show="${x.id ?? ''}" data-lat="${lat}" data-lon="${lon}" title="Pokaż na mapie">${esc(x.t)}</button>` : `<b>${esc(x.t)}</b>`}<small>${esc(x.s)} · <a class="link" href="${esc(x.href)}">Szczegóły ${esc(x.nr)}</a></small></span>
         <span class="badge ${x.done ? 'ok' : 'report'}">${x.done ? `${icon('check')}Zamknięte` : 'Otwarte'}</span></li>`;
     }).join('') : `<li class="dp-empty">${stateIcon('ok')}<span>W ostatniej dobie nie było zgłoszeń.</span></li>`;
     // aria-live tylko dla nowych pozycji: pierwsze wczytanie i odświeżenia bez zmian nic nie czytają

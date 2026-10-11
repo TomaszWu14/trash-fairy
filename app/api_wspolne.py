@@ -2,21 +2,22 @@
 słowniki typów zgłoszeń i opis kosza (kosz_json) dla panelu, mieszkańca, kierowcy i dyspozytora.
 
 Wspólny słownik statusów (audit/AUDYT-UX.md, sekcja 5):
-- kosz: poziom 0–100 → `ok` (< 50), `zapelnia_sie` (50–79), `pelny` (≥ 80); osobno `zgloszony` (świeże zgłoszenie mieszkańca);
+- kosz: poziom 0–100 → `ok` (< 60), `zapelnia_sie` (60–85), `pelny` (> 85) — progi silnika tras (state.py); osobno `zgloszony` (świeże zgłoszenie mieszkańca);
 - zgłoszenie: `przyjete` → `w_realizacji` (kierowca nacisnął „Jadę”) → `zrealizowane` (opróżniono).
 Decyzje liczą reguły w kodzie; nic tu nie pyta AI.
 """
 import os
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, session
 
 from . import clock, db, photos, residents
 from .crew_points import confirmed_photo
 from .models import Emptying, PhotoAnalysis, Point, PointAward, Press, Report, Resident, StopIssue
 from .routes import next_runs
-from .state import current_routes
+from .state import BAD_ABOVE, WARN_FROM, current_routes
 
 bp = Blueprint("api_pl", __name__, url_prefix="/api")  # nazwa „api_pl”: endpointy api_pl.* bez zmian
 
@@ -44,8 +45,18 @@ def meta():
     return {"zegar": clock.now().isoformat(), "syntetyczne": True}
 
 
+def phone_id(role):
+    """Identyfikator telefonu do limitów i niezależnych potwierdzeń: losowe id w sesji Flask, czyli w ciasteczku
+    podpisanym SECRET_KEY — klient nie podrobi cudzego id ani nie zmieni swojego bez wyczyszczenia ciasteczek (wtedy
+    zostaje limit na IP). Rola w id, bo w demo jedna przeglądarka gra mieszkańca i ekipę (decyzja 11.10.2026)."""
+    if "tel" not in session:
+        session["tel"], session.permanent = uuid.uuid4().hex, True
+    return f"{session['tel']}:{role}"
+
+
 def poziom_stan(level):
-    return "pelny" if level >= 80 else "zapelnia_sie" if level >= 50 else "ok"
+    """Te same progi co silnik tras: kosz „pełny” na ekranie to kosz, który kurs zabierze (decyzja 11.10.2026)."""
+    return "pelny" if level > BAD_ABOVE else "zapelnia_sie" if level >= WARN_FROM else "ok"
 
 
 def numer(report_id):
