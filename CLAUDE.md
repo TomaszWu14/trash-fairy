@@ -22,3 +22,11 @@ Szczegóły dla ludzi: `README.md`, `CONTRIBUTING.md`. Ten plik: tylko to, czego
 | `Dockerfile`, `app/wsgi.py`, CI, zmiennymi env, Coolify | `docs/pitfalls/deploy.md` |
 
 Nowa pułapka z sesji → dopisz punkt do właściwego pliku (max 10 na plik; najsłabszy wylatuje).
+
+## Duże zadania: planuj → `worker`y → reviewerzy raz
+1. Główna sesja planuje i tnie zadanie na niezależne wycinki (pliki, cel, kryterium „gotowe”). Wycinki dotykające tych
+   samych plików idą po kolei, nie równolegle.
+2. Każdy wycinek dostaje agent `worker` (model sonnet). Główna sesja scala wyniki i uruchamia pełne testy.
+3. Na końcu **raz** `security-reviewer` i `db-reviewer` (równolegle, na diffie gałęzi). Główna sesja ocenia zgłoszenia
+   i poprawia te zasadne. **Bez pętli review → poprawka → review**: ponowny przegląd tylko na wyraźną prośbę człowieka.
+Małe zadanie (1–2 pliki) robi główna sesja sama, bez agentów.
