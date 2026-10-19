@@ -3,11 +3,9 @@ name: Security
 # Skany bezpieczeństwa (wzór: container-queue, security.yml). Opis dla ludzi: SECURITY.md.
 #  - PR i push do main: gitleaks (PR: tylko jego commity) + Bandit (app/, medium+) — bramka;
 #    pip-audit (requirements*.txt) — bramka; Trivy fs (HIGH/CRITICAL z dostępną poprawką) — bramka;
-#    Semgrep p/owasp-top-ten na kodzie Python (app/**/*.py) — bramka.
-#  - Semgrep na JS i szablonach (app/static/ui, app/templates): tylko raport (SARIF jako artefakt) —
-#    ok. 300 znalezisk wzorca innerHTML do przeglądu, zanim staną się bramką (SECURITY.md).
+#    Semgrep p/owasp-top-ten na app/ (Python, JS, szablony; bez app/static/vendor) — bramka, SARIF jako artefakt.
 #  - co tydzień / ręcznie: to samo, gitleaks na CAŁEJ historii.
-# Fałszywe alarmy: Bandit `# nosec BXXX` + powód, Semgrep `# nosemgrep` + powód w linii wyżej,
+# Fałszywe alarmy: Bandit `# nosec BXXX` + powód, Semgrep `nosemgrep` (komentarz) + powód,
 # gitleaks `.gitleaksignore` (fingerprint + komentarz), Trivy `.trivyignore` (ID + powód + data przeglądu).
 on:
   pull_request:
@@ -104,18 +102,15 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install "semgrep==1.181.0"
-      - name: Semgrep p/owasp-top-ten — Python (bramka)
-        run: semgrep scan --config p/owasp-top-ten --metrics off --error --text --include '*.py' app
-      - name: Semgrep p/owasp-top-ten — JS i szablony (raport, nie bramka)
-        if: always()
+      - name: Semgrep p/owasp-top-ten (bramka)
         run: >-
-          semgrep scan --config p/owasp-top-ten --metrics off --sarif-output semgrep-frontend.sarif
-          --exclude 'app/static/vendor' --exclude '*.py' app
+          semgrep scan --config p/owasp-top-ten --metrics off --error --text --sarif-output semgrep.sarif
+          --exclude 'app/static/vendor' app
       - name: Artefakt Semgrep
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: semgrep-${{ github.sha }}
-          path: semgrep-frontend.sarif
+          path: semgrep.sarif
           if-no-files-found: warn
           retention-days: 30

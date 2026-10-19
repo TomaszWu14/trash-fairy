@@ -108,5 +108,5 @@ def keys(state, data):
     full = (state, data.get("head"), data.get("big"), data.get("sub"), data["device"]["device_no"], data["device"].get("qr"))
     partial = (data.get("fill"), data.get("b"), data.get("c"))
     # hashlib, nie hash(): hash() napisów jest losowany per proces, a 2 workery dawałyby różne klucze (fałszywe mignięcia)
-    digest = lambda t: hashlib.sha1(repr(t).encode(), usedforsecurity=False).hexdigest()[:12]
+    digest = lambda t: hashlib.sha256(repr(t).encode(), usedforsecurity=False).hexdigest()[:12]
     return digest(full), digest(partial)

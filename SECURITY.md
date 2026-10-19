@@ -23,15 +23,14 @@ do starszych commitów.
 |---|---|---|---|
 | **gitleaks** (przypięta wersja + sha256) | sekrety w historii gita | PR (tylko jego commity), push do `main`, co tydzień i ręcznie (cała historia) — `security.yml` | tak |
 | **Bandit** | SAST kodu `app/`, ważność i pewność medium+ | jak wyżej | tak |
-| **Semgrep** `p/owasp-top-ten` | kod Python w `app/` | jak wyżej | tak |
-| **Semgrep** `p/owasp-top-ten` | JS (`app/static/ui`) i szablony (`app/templates`) | jak wyżej, wynik jako artefakt SARIF | nie (do przeglądu) |
+| **Semgrep** `p/owasp-top-ten` | `app/`: Python, JS (`app/static/ui`), szablony (bez `app/static/vendor`) | jak wyżej, wynik także jako artefakt SARIF | tak |
 | **pip-audit** | znane podatności w `requirements.txt` i `requirements-dev.txt` | jak wyżej | tak |
 | **Trivy** `fs` | podatności, sekrety, konfiguracja (`Dockerfile`), HIGH/CRITICAL z dostępną poprawką | jak wyżej | tak |
 | **ruff + pytest** | lint i testy, w tym nagłówków bezpieczeństwa | `ci.yml` | tak |
 | **Dependabot** | cotygodniowe PR-y: pip, GitHub Actions, obraz Docker | `.github/dependabot.yml` | — |
 
-Fałszywe alarmy oznaczamy w kodzie z powodem: Bandit `# nosec BXXX`, Semgrep `# nosemgrep`
-(powód w linii wyżej). Wyjątki Trivy: `.trivyignore` (ID, uzasadnienie, data przeglądu).
+Fałszywe alarmy oznaczamy w kodzie z powodem: Bandit `# nosec BXXX`, Semgrep `nosemgrep`
+(komentarz z powodem obok). Wyjątki Trivy: `.trivyignore` (ID, uzasadnienie, data przeglądu).
 Lokalnie: `bash scripts/security_scan.sh` (pip-audit, Bandit, Trivy obrazu).
 
 ## Wbudowane zabezpieczenia aplikacji

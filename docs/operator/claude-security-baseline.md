@@ -4,9 +4,8 @@
 - **Data:** 2026-10-19 · **Autor zmian:** agent (Claude Code)
 
 ## 1. Co zmieniono
-- Nowy workflow `.github/workflows/security.yml`: gitleaks (sekrety), Bandit i Semgrep (SAST Pythona), pip-audit
-  (zależności), Trivy (zależności, sekrety, `Dockerfile`). Czerwony wynik blokuje PR. Semgrep na JS i szablonach
-  tylko raportuje (artefakt SARIF).
+- Nowy workflow `.github/workflows/security.yml`: gitleaks (sekrety), Bandit i Semgrep (SAST), pip-audit
+  (zależności), Trivy (zależności, sekrety, `Dockerfile`). Czerwony wynik blokuje PR.
 - Każda odpowiedź ma dodatkowe nagłówki: `X-Frame-Options: SAMEORIGIN`, `Permissions-Policy`,
   `Cross-Origin-Opener-Policy: same-origin`; odpowiedzi JSON bez własnego `Cache-Control` dostają `no-store`;
   HSTS (`max-age=31536000`) tylko gdy `PUBLIC_URL` zaczyna się od `https://`.
@@ -52,6 +51,5 @@
   Uwaga: HSTS przeglądarki pamiętają rok — wycofanie kodu go nie cofa (domena i tak działa po HTTPS).
 
 ## 5. Ryzyka i otwarte sprawy
-- Semgrep na JS/szablonach: ok. 300 znalezisk wzorca `innerHTML`/szablonów (dane przechodzą przez `esc()`) — do
-  przeglądu, zanim skan stanie się bramką.
+- Klucz stanu e-papieru liczony teraz SHA-256 zamiast SHA-1 (Semgrep): po deployu każdy ekran raz odświeży się w całości.
 - Pełna CSP i kontener bez roota (wyjątek `DS-0002` w `.trivyignore`) — do decyzji właściciela.

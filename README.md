@@ -94,7 +94,7 @@ Pełna lista ze znanymi problemami (plik i linia): [07. Ograniczenia](docs/07-og
 ## Bezpieczeństwo
 
 Podatności zgłaszaj prywatnie, zgodnie z [SECURITY.md](SECURITY.md). Każdy PR i push do `main` przechodzi
-w CI (`.github/workflows/security.yml`) skan sekretów (gitleaks), SAST (Bandit, Semgrep OWASP Top 10 dla Pythona),
+w CI (`.github/workflows/security.yml`) skan sekretów (gitleaks), SAST (Bandit, Semgrep OWASP Top 10),
 audyt zależności (pip-audit) i Trivy (zależności, sekrety, konfiguracja). Aplikacja wysyła nagłówki
 bezpieczeństwa na każdej odpowiedzi (`_security_headers` w `app/__init__.py`).
 
