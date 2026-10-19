@@ -37,8 +37,8 @@ Lokalnie: `bash scripts/security_scan.sh` (pip-audit, Bandit, Trivy obrazu).
 ## Wbudowane zabezpieczenia aplikacji
 
 - Nagłówki na każdej odpowiedzi (`_security_headers` w `app/__init__.py`): `X-Content-Type-Options: nosniff`,
-  `X-Frame-Options: SAMEORIGIN` i `Content-Security-Policy: frame-ancestors 'self'` (ramki tylko z tej samej
-  strony — `/telefony` osadza własne widoki), `Referrer-Policy: strict-origin-when-cross-origin`,
+  `X-Frame-Options: SAMEORIGIN` i `Content-Security-Policy: frame-ancestors 'self'` (osadzanie w ramce tylko
+  na tej samej stronie), `Referrer-Policy: strict-origin-when-cross-origin`,
   `Permissions-Policy` (bez kamery, mikrofonu, płatności i USB; geolokalizacja tylko dla tej strony),
   `Cross-Origin-Opener-Policy: same-origin`, `Cache-Control: no-store` na odpowiedziach JSON (o ile endpoint
   nie ustawił własnego). **HSTS** tylko za HTTPS — gdy `PUBLIC_URL` zaczyna się od `https://` (ta sama flaga

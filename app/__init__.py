@@ -65,7 +65,7 @@ _PERMISSIONS_POLICY = "camera=(), microphone=(), payment=(), usb=(), geolocation
 def _security_headers(resp):
     """Nagłówki bezpieczeństwa bez łamania niczego: brak zgadywania typu, bez osadzania na obcych stronach.
 
-    Ramki tylko z tej samej strony (/telefony osadza własne widoki), stąd SAMEORIGIN, a nie DENY.
+    Ramki tylko z tej samej strony: SAMEORIGIN zgodnie z dotychczasowym frame-ancestors 'self'.
     HSTS tylko za HTTPS (ta sama flaga co ciasteczko Secure: PUBLIC_URL z https://)."""
     resp.headers.setdefault("X-Content-Type-Options", "nosniff")
     resp.headers.setdefault("Content-Security-Policy", "frame-ancestors 'self'")

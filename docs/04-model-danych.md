@@ -1,6 +1,6 @@
 # 04. Model danych
 
-20 tabel, Flask-SQLAlchemy, bez Alembica (brakujące kolumny dodaje `ALTER TABLE` przy starcie, `app/__init__.py:135-154`).
+20 tabel, Flask-SQLAlchemy, bez Alembica (brakujące kolumny dodaje `ALTER TABLE` przy starcie, `app/__init__.py:172-192`).
 **Brak `db.relationship`, `CheckConstraint` i `Enum`** — relacje tylko przez FK, słowniki to wolne `String`.
 Czas: naiwny „zegar demo” (`models.py:3-4`), a kolumny `wall_at` w UTC.
 
