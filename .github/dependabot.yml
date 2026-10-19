@@ -18,3 +18,14 @@ updates:
     groups:
       actions-minor-patch:
         update-types: [minor, patch]
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      docker-minor-patch:
+        update-types: [minor, patch]
+    ignore:  # Python 3.12 jak w CI i ruff (target-version) — zmiana wersji Pythona to osobna decyzja
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]

@@ -89,6 +89,8 @@
       <p class="kpi-v num" data-kpi="${esc(k.id)}">${fmt(k)}</p>${sub(k, d.meta)}
       ${BIG.includes(k.id) ? `<div class="kpi-f kpi-f-big">${delta(k)}${TF.spark(k.trend.slice(0, n), 220, 72)}</div>` : `<div class="kpi-f">${delta(k)}${TF.spark(k.trend.slice(0, n))}</div>`}</article>`).join('');
     const pw = d.meta.przed_wdrozeniem;
+    // stały tekst + etykieta przez esc() (Semgrep react-unsanitized-method: fałszywy alarm)
+    // nosemgrep
     document.getElementById('d-kpis').insertAdjacentHTML('beforeend', `<p class="kpi-note">Zmiana wobec poprzedniego okresu tej samej długości. Wykresy i linie trendu: pełne miesiące.${pw ? ` „Przed wdrożeniem”: ${esc(pw.etykieta)}.` : ''}</p>`);
     if (!counted) d.kpi.forEach(k => k.wartosc != null && TF.countUp(document.querySelector(`[data-kpi="${k.id}"]`), k.wartosc, v => fmt(k, v)));
     counted = true;  // tylko przy wejściu: odświeżenia pollingiem nie liczą od zera

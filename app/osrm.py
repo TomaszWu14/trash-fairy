@@ -31,7 +31,8 @@ def _fetch(base, coords):
     lonlat = ";".join(f"{lon:.6f},{lat:.6f}" for lat, lon in coords)
     req = urllib.request.Request(f"{base}/route/v1/driving/{lonlat}?overview=full&geometries=geojson",
                                  headers={"User-Agent": "TrashFairy/1.0 (HackYeah 2026)"})
-    with urllib.request.urlopen(req, timeout=TIMEOUT_S) as r:
+    # adres OSRM z konfiguracji operatora (OSRM_URL), nie z żądania (Bandit: fałszywy alarm)
+    with urllib.request.urlopen(req, timeout=TIMEOUT_S) as r:  # nosec B310
         data = json.load(r)
     return [[lat, lon] for lon, lat in data["routes"][0]["geometry"]["coordinates"]]
 
