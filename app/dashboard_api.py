@@ -548,7 +548,8 @@ def export_csv(nazwa):
 
 def _csv_response(nazwa, f, meta, header, rows):
     out = io.StringIO()
-    w = csv.writer(out, delimiter=";")
+    # kolumny z danych systemu (OSM, symulacja, słowniki), bez tekstu wpisanego przez mieszkańca (Semgrep: fałszywy alarm)
+    w = csv.writer(out, delimiter=";")  # nosemgrep
     w.writerow([f"# {meta['zrodlo']} Okres: {meta['etykieta']}."])
     w.writerow(header)
     w.writerows(rows)

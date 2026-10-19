@@ -91,6 +91,13 @@ python -m pytest -q -n auto        # 463 testy, ok. 3 min
 Kwoty (12 zł za odbiór, 5 zł/km) to założenia do potwierdzenia z przewoźnikiem.
 Pełna lista ze znanymi problemami (plik i linia): [07. Ograniczenia](docs/07-ograniczenia.md).
 
+## Bezpieczeństwo
+
+Podatności zgłaszaj prywatnie, zgodnie z [SECURITY.md](SECURITY.md). Każdy PR i push do `main` przechodzi
+w CI (`.github/workflows/security.yml`) skan sekretów (gitleaks), SAST (Bandit, Semgrep OWASP Top 10 dla Pythona),
+audyt zależności (pip-audit) i Trivy (zależności, sekrety, konfiguracja). Aplikacja wysyła nagłówki
+bezpieczeństwa na każdej odpowiedzi (`_security_headers` w `app/__init__.py`).
+
 ## Dane i licencja
 
 - © OpenStreetMap contributors (ODbL 1.0).

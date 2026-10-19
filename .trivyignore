@@ -1,0 +1,6 @@
+# Wyjątki Trivy (security.yml, job „Trivy — PR”): ID + uzasadnienie + data przeglądu.
+
+# DS-0002: Dockerfile bez USER (kontener jako root). Przejście na użytkownika bez roota zmienia prawa do
+# katalogów zapisu (instance/, zdjęcia, wolumeny Coolify) — wymaga decyzji właściciela i testu wdrożenia.
+# Przegląd: 2027-01-19.
+DS-0002

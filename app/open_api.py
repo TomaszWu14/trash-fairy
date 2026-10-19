@@ -121,7 +121,8 @@ def _monthly_open_data(now):
 @bp.get("/open-data/miesieczne.csv")
 def open_data_csv():
     out = io.StringIO()
-    w = csv.writer(out, delimiter=";")
+    # kolumny z danych systemu (OSM, symulacja, słowniki), bez tekstu wpisanego przez mieszkańca (Semgrep: fałszywy alarm)
+    w = csv.writer(out, delimiter=";")  # nosemgrep
     w.writerow([f"# {OPEN_DATA_SOURCE} Dzielnice i adresy: © OpenStreetMap contributors (ODbL 1.0)."])
     w.writerow(OPEN_DATA_HEADER)
     for r in _monthly_open_data(clock.now()):

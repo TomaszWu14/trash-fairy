@@ -2,7 +2,7 @@ import gzip
 import os
 import secrets
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, current_app, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -58,11 +58,25 @@ def _gzip(resp):
     return resp
 
 
+# Geolokalizacja: zgłoszenie wysypiska (wysypisko.js); aparat idzie przez <input capture>, nie przez getUserMedia.
+_PERMISSIONS_POLICY = "camera=(), microphone=(), payment=(), usb=(), geolocation=(self)"
+
+
 def _security_headers(resp):
-    """Nagłówki bezpieczeństwa bez łamania niczego: brak zgadywania typu, bez osadzania na obcych stronach."""
+    """Nagłówki bezpieczeństwa bez łamania niczego: brak zgadywania typu, bez osadzania na obcych stronach.
+
+    Ramki tylko z tej samej strony (/telefony osadza własne widoki), stąd SAMEORIGIN, a nie DENY.
+    HSTS tylko za HTTPS (ta sama flaga co ciasteczko Secure: PUBLIC_URL z https://)."""
     resp.headers.setdefault("X-Content-Type-Options", "nosniff")
     resp.headers.setdefault("Content-Security-Policy", "frame-ancestors 'self'")
+    resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
     resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    resp.headers.setdefault("Permissions-Policy", _PERMISSIONS_POLICY)
+    resp.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    if current_app.config.get("SESSION_COOKIE_SECURE"):
+        resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
+    if resp.is_json:  # API: bez zapisu w cache przeglądarki/proxy; świadome ustawienia (open data, statyki) zostają
+        resp.headers.setdefault("Cache-Control", "no-store")
     return resp
 
 
@@ -169,7 +183,8 @@ def _add_missing_columns():
                                ("photo_analysis", "bin_visible", "BOOLEAN"), ("photo_analysis", "condition", "VARCHAR(20)"),
                                ("photo_analysis", "people", "BOOLEAN"), ("dump_report", "cleared_by", "VARCHAR(32)")]:
         if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
-            db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+            # tabela, kolumna i typ ze stałej listy wyżej, nie z wejścia (Semgrep: fałszywy alarm)
+            db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))  # nosemgrep
             db.session.commit()
     if "point" in insp.get_table_names():  # stara baza: dzielnica 72 punktów demo z obszaru (jak w osm_import.district_of)
         db.session.execute(text("UPDATE point SET district = CASE WHEN area = 'Grzegórzki' THEN 'Grzegórzki' "
