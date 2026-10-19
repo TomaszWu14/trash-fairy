@@ -183,7 +183,8 @@ def _add_missing_columns():
                                ("photo_analysis", "bin_visible", "BOOLEAN"), ("photo_analysis", "condition", "VARCHAR(20)"),
                                ("photo_analysis", "people", "BOOLEAN"), ("dump_report", "cleared_by", "VARCHAR(32)")]:
         if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
-            db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+            # tabela, kolumna i typ ze stałej listy wyżej, nie z wejścia — Semgrep: fałszywy alarm
+            db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))  # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
             db.session.commit()
     if "point" in insp.get_table_names():  # stara baza: dzielnica 72 punktów demo z obszaru (jak w osm_import.district_of)
         db.session.execute(text("UPDATE point SET district = CASE WHEN area = 'Grzegórzki' THEN 'Grzegórzki' "
