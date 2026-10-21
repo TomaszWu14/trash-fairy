@@ -5,6 +5,14 @@
   </picture>
 </h1>
 
+<p align="center">
+  <a href="https://github.com/TomaszWu14/trash-fairy/actions/workflows/ci.yml"><img src="https://github.com/TomaszWu14/trash-fairy/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/TomaszWu14/trash-fairy/actions/workflows/security.yml"><img src="https://github.com/TomaszWu14/trash-fairy/actions/workflows/security.yml/badge.svg?branch=main" alt="Security"></a>
+  <img src="https://img.shields.io/badge/python-3.12-3776AB?logo=python&amp;logoColor=white" alt="Python 3.12">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licencja-AGPL--3.0-blue" alt="Licencja AGPL-3.0"></a>
+  <img src="https://img.shields.io/badge/HackYeah-2026-orange" alt="HackYeah 2026">
+</p>
+
 **Planowanie odbioru koszy ulicznych według zapełnienia, a nie stałego harmonogramu: dla operatora odbioru odpadów, jego dyspozytorów i kierowców oraz mieszkańców, którzy zgłaszają przepełnione kosze.**
 
 <p align="center"><img src="docs/screenshots/demo.gif" width="360" alt="Zgłoszenie z telefonu: panel kosza z kodem QR, wybór „Przepełniony”, wysłanie i status zgłoszenia"></p>
