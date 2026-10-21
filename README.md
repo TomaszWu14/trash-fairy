@@ -60,7 +60,7 @@ python -m venv .venv
 pip install -r requirements.txt -r requirements-dev.txt
 flask --app app seed               # punkty z data/*.geojson + 8 tygodni symulacji, ok. 45 s
 flask --app app run                # http://localhost:5000; pierwsze wejście na / liczy porównanie (do 20 s)
-python -m pytest -q -n auto        # 463 testy, ok. 3 min
+python -m pytest -q -n auto        # ok. 490 testów, 3–6 min
 ```
 - Na Windows trzymaj klon w krótkiej ścieżce, np. `C:\dev\trash-fairy`. Pakiet `anthropic` ma bardzo długie nazwy plików i bez włączonych długich ścieżek `pip install` kończy się błędem `OSError: No such file or directory`.
 - Zmienne środowiskowe są opcjonalne: wzór w [`.env.example`](.env.example), skopiuj go do `.env`. Bez klucza API aplikacja działa w pełni, a zdjęcia dostają status „Do weryfikacji”.
@@ -76,7 +76,7 @@ python -m pytest -q -n auto        # 463 testy, ok. 3 min
 | **Leaflet + OpenStreetMap** | Otwarte dane prawdziwych koszy i otwarta mapa, bez klucza i kosztów (D9). |
 | **Claude API** (tylko przez `app/llm.py`) | Opis zdjęć i wydarzeń z walidacją schematu. Nie podejmuje decyzji, a błąd API nie zatrzymuje aplikacji (D1, D6). |
 | **Gunicorn + Docker** | Jeden kontener plus baza. `/health` sprawdza połączenie z bazą. |
-| **pytest + ruff + GitHub Actions** | 463 testy i lint przy każdym PR. Kluczowe liczby (57% → 27%, −24%) pilnuje test regresji. |
+| **pytest + ruff + GitHub Actions** | Ok. 490 testów i lint przy każdym PR. Kluczowe liczby (57% → 27%, −24%) pilnuje test regresji. |
 
 ## Zakres i ograniczenia
 
@@ -167,7 +167,7 @@ python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\act
 pip install -r requirements.txt -r requirements-dev.txt
 flask --app app seed               # bins from data/*.geojson + 8 weeks of simulation, ~45 s
 flask --app app run                # http://localhost:5000
-python -m pytest -q -n auto        # full test suite, ~3 min
+python -m pytest -q -n auto        # ~490 tests, 3–6 min
 ```
 Environment variables are optional (template: [`.env.example`](.env.example)). Without an API key the app works fully and photos get the “to be verified” status.
 
