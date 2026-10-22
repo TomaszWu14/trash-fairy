@@ -1,8 +1,8 @@
-"""Buduje audit/PRZED-PO.html: zrzuty przed (audit/zrzuty/przed/) i po (audit/zrzuty/po/, scripts/po_shots.py) każdej perspektywy."""
+"""Buduje docs/archiwum/audit/PRZED-PO.html: zrzuty przed (docs/archiwum/audit/zrzuty/przed/) i po (docs/archiwum/audit/zrzuty/po/, scripts/po_shots.py) każdej perspektywy."""
 import html
 import pathlib
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent / "audit"
+ROOT = pathlib.Path(__file__).resolve().parent.parent / "docs" / "archiwum" / "audit"
 PAIRS = [  # (perspektywa, zrzut przed, zrzut po, co się zmieniło)
     ("Przegląd", "start-pokaz", "przeglad", "Jedna rola bez logowania, pięć perspektyw i losowany scenariusz demo (trzy warianty) zamiast widoku jury z 4 krokami."),
     ("Panel kosza", "epapier-18", "panel-18", "Kiosk 1280×800 czytelny z daleka: kosz-wskaźnik, termin odbioru, „Co tu wrzucać”, kod QR do zgłoszenia."),
@@ -59,7 +59,7 @@ a:focus-visible, summary:focus-visible {{ outline:3px solid var(--brand); outlin
 <h1>Przed i po przebudowie UI</h1>
 <p class="lead">Ta sama aplikacja przed audytem UX (sobota 3.10, wieczór: sześć ekranów, cztery arkusze CSS, logowanie) i po przebudowie
 (niedziela 4.10: jeden design system, pięć perspektyw z panelem dyspozytora, dashboard miasta i urządzenia). Kliknij zrzut, żeby otworzyć pełny rozmiar.
-Audyt: <code>audit/AUDYT-UX.md</code>, rundy poprawek: <code>audit/iteracje/</code>.</p>
+Audyt: <code>docs/archiwum/audit/AUDYT-UX.md</code>, rundy poprawek: <code>docs/archiwum/audit/iteracje/</code>.</p>
 {''.join(sections)}
 </main></body></html>
 """, encoding="utf-8")

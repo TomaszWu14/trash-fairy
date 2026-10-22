@@ -1,4 +1,4 @@
-"""Nowe UI „Przegląd jury”: cztery perspektywy jednej historii (audit/AUDYT-UX.md, sekcja 4). Bez logowania."""
+"""Nowe UI „Przegląd jury”: cztery perspektywy jednej historii (docs/archiwum/audit/AUDYT-UX.md, sekcja 4). Bez logowania."""
 import os
 from collections import defaultdict
 

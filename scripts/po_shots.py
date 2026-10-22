@@ -1,8 +1,8 @@
-"""Zrzuty „po” do audit/PRZED-PO.html i README: każda perspektywa w 4 rozdzielczościach → audit/zrzuty/po/<vp>/<nazwa>.png.
+"""Zrzuty „po” do docs/archiwum/audit/PRZED-PO.html i README: każda perspektywa w 4 rozdzielczościach → docs/archiwum/audit/zrzuty/po/<vp>/<nazwa>.png.
 
 Użycie (serwer lokalny na 5050, ta sama SECRET_KEY co serwer): python scripts/po_shots.py [adres]
 Podgląd motywu: python scripts/po_shots.py --motyw ciemny|jasny [--tylko przeglad,panel-18] [adres]
-  → audit/motyw/<motyw>/<vp>/<nazwa>.png, całe strony, laptop i telefon (panel także kiosk)
+  → docs/archiwum/audit/motyw/<motyw>/<vp>/<nazwa>.png, całe strony, laptop i telefon (panel także kiosk)
 """
 import pathlib
 import sys
@@ -49,7 +49,7 @@ PAGES = {  # nazwa → adres
 }
 if TYLKO:
     PAGES = {k: v for k, v in PAGES.items() if k in TYLKO.split(",")}
-root = pathlib.Path(__file__).resolve().parent.parent / "audit"
+root = pathlib.Path(__file__).resolve().parent.parent / "docs" / "archiwum" / "audit"
 out = root / "motyw" / MOTYW if MOTYW else root / "zrzuty" / "po"
 with sync_playwright() as p:
     b = p.chromium.launch()

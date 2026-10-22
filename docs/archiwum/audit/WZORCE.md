@@ -2,7 +2,7 @@
 
 Porównanie z HugMe (drugi projekt autora z tego samego HackYeah). **Bierzemy wyłącznie pomysły, nie kod**: zwycięskie
 projekty przenoszą prawa, więc wszystko poniżej piszemy w Trash Fairy od nowa, własnymi selektorami i tekstami.
-Źródło: klon HugMe tylko do odczytu, materiał r0 z `audit/jury/r0/` i kod Trash Fairy.
+Źródło: klon HugMe tylko do odczytu, materiał r0 z `docs/archiwum/audit/jury/r0/` i kod Trash Fairy.
 
 Poza zakresem (robią to inni agenci): mapa, lista koszy, kreator zgłoszenia w 3 krokach, przyciski na panelu kosza
 (decyzja 1) i wyjaśnienie KPI „Oszczędności wobec planu” z tabelką dzień/miesiąc/rok (decyzja 2). Poniżej są tylko

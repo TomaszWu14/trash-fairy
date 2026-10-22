@@ -1,7 +1,7 @@
 # Jury: przegląd przed oddaniem (runda r0)
 
 **Data:** 4.10.2026, ok. 06:40 (zamrożenie kodu 19:00, oddanie 23:00).
-**Metoda:** sonda `scripts/jury_check.py`, runda r0: zrzuty 1366×768 (laptop), 390×844 (telefon), 1280×800 (kiosk), pierwszy ekran i cała strona dla 16 ekranów; metryki (`audit/jury/r0/metryki.json`: poziomy scroll także przy 200%, cele < 44 px, kolory spoza `tokens.css`, ucięty tekst, kolejność Tab, axe WCAG 2.1 A/AA, żargon, błędy JS); budżety kliknięć (`audit/jury/r0/budzety.json`). Trzej jurorzy: **Juror 1** (trzy przeglądy: przegląd/panel/mieszkaniec, kierowca/dashboard, dokumenty/spójność), **Juror 2** (użytkownik 68+ i WCAG), **Juror 3** (ekspert merytoryczny i wdrożeniowy). Wspólne zaplecze: analityk architektury informacji (budżety) i analityk wzorców z HugMe. Każde znalezisko przeszło przez sceptyka, który sprawdzał zrzuty, kod i odpowiedzi API.
+**Metoda:** sonda `scripts/jury_check.py`, runda r0: zrzuty 1366×768 (laptop), 390×844 (telefon), 1280×800 (kiosk), pierwszy ekran i cała strona dla 16 ekranów; metryki (`docs/archiwum/audit/jury/r0/metryki.json`: poziomy scroll także przy 200%, cele < 44 px, kolory spoza `tokens.css`, ucięty tekst, kolejność Tab, axe WCAG 2.1 A/AA, żargon, błędy JS); budżety kliknięć (`docs/archiwum/audit/jury/r0/budzety.json`). Trzej jurorzy: **Juror 1** (trzy przeglądy: przegląd/panel/mieszkaniec, kierowca/dashboard, dokumenty/spójność), **Juror 2** (użytkownik 68+ i WCAG), **Juror 3** (ekspert merytoryczny i wdrożeniowy). Wspólne zaplecze: analityk architektury informacji (budżety) i analityk wzorców z HugMe. Każde znalezisko przeszło przez sceptyka, który sprawdzał zrzuty, kod i odpowiedzi API.
 
 **Wagi kryteriów** (oficjalne, `docs/zadanie/Open Task - SMART CITY/Details - SMART CITY.pdf`): Idea i innowacja **30%**, Związek z kategorią **20%**, Użyteczność **20%**, Design **20%**, Kompletność i wdrożenie **10%**. Wymóg formalny: prezentacja PDF **maks. 10 slajdów**.
 
@@ -270,7 +270,7 @@ Sceptyk nie odrzucił w całości żadnego znaleziska. Odrzucił lub skorygował
 
 ## Runda r1: sonda po zmianach (5.10.2026)
 
-Ta sama sonda (`python scripts/jury_check.py r1 <axe.min.js>`, wynik w `audit/jury/r1/`), 33 zrzuty ekranów (r0: 31, doszedł dyspozytor
+Ta sama sonda (`python scripts/jury_check.py r1 <axe.min.js>`, wynik w `docs/archiwum/audit/jury/r1/`), 33 zrzuty ekranów (r0: 31, doszedł dyspozytor
 i status zgłoszenia). Ocen jurorów nie powtarzaliśmy: poniżej tylko liczby zmierzone automatem.
 
 | Metryka (wszystkie ekrany × rozdzielczości) | r0 | r1 |

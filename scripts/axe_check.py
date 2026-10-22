@@ -1,4 +1,4 @@
-"""axe-core (WCAG 2.1 A/AA) na kluczowych ekranach; wynik do audit/lighthouse/axe.json, kod wyjścia 1 przy naruszeniach critical/serious.
+"""axe-core (WCAG 2.1 A/AA) na kluczowych ekranach; wynik do docs/archiwum/audit/lighthouse/axe.json, kod wyjścia 1 przy naruszeniach critical/serious.
 
 Użycie: python scripts/axe_check.py <ścieżka do axe.min.js> [adres]   (axe-core z npm: node_modules/axe-core/axe.min.js)
 """
@@ -28,7 +28,7 @@ with sync_playwright() as p:
             print(f"{vp[0]:>5} {path:<22}", "OK" if not v else v)
         pg.close()
     b.close()
-out = pathlib.Path(__file__).resolve().parent.parent / "audit" / "lighthouse" / "axe.json"
+out = pathlib.Path(__file__).resolve().parent.parent / "docs" / "archiwum" / "audit" / "lighthouse" / "axe.json"
 out.write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
 print("critical/serious:", bad)
 sys.exit(1 if bad else 0)
