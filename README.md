@@ -59,6 +59,8 @@ Komendy sprawdzone od zera na świeżym klonie (Windows 11, Python 3.13, Docker 
 SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") docker compose up --build   # http://localhost:8080
 ```
 `SECRET_KEY` podpisuje dzienne kody QR i tokeny urządzeń. Poza SQLite aplikacja nie wystartuje bez własnego klucza, bo domyślny jest jawny w kodzie.
+Bramka odwiedzających (przedstawienie się przed wejściem do demo) jest domyślnie włączona; `DEMO_VISITOR_GATE=0` ją wyłącza.
+Lista osób: ustaw `VISITORS_TOKEN`, potem `/odwiedzajacy?token=…` (`&format=csv` = CSV); bez zmiennej adres zwraca 404.
 Pierwszy start trwa ok. 2 minuty, bo aplikacja sama importuje punkty i symuluje 8 tygodni. Dopiero potem `/health` zwraca `ok`.
 
 **Lokalnie (SQLite):**

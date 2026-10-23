@@ -1,0 +1,44 @@
+{% extends "ui/base.html" %}
+{% block title %}Przedstaw się{% endblock %}
+{% block topbar %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="shell page">
+  <section class="card card-pad" style="max-width:560px;margin:var(--s6) auto" aria-labelledby="g-h">
+    <h1 id="g-h">Zanim wejdziesz do wersji demonstracyjnej, przedstaw się, proszę.</h1>
+    {% if errors %}
+    <div role="alert" tabindex="-1" id="g-err" class="hint" style="color:var(--ink);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:var(--s3);margin-block:var(--s3)">
+      <b>Formularz wymaga poprawek:</b>
+      <ul>{% for key, msg in errors.items() %}<li><a href="#{{ 'g-consent' if key == 'consent' else 'g-' ~ key }}">{{ msg }}</a></li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    <form method="post" action="{{ url_for('visitor_gate.submit') }}" novalidate style="display:grid;gap:var(--s4)">
+      <input type="hidden" name="next" value="{{ next_url }}">
+      {% for key, label, auto in [('first_name', 'Imię', 'given-name'), ('last_name', 'Nazwisko', 'family-name'), ('company', 'Firma', 'organization')] %}
+      <div class="field">
+        <label for="g-{{ key }}">{{ label }} <span class="hint">(wymagane)</span></label>
+        <input class="input" id="g-{{ key }}" name="{{ key }}" type="text" required minlength="2" maxlength="100" autocomplete="{{ auto }}"
+               value="{{ values.get(key, '') }}"{% if key in errors %} aria-invalid="true" aria-describedby="g-{{ key }}-e"{% endif %}>
+        {% if key in errors %}<span class="hint" id="g-{{ key }}-e" style="color:var(--ink)">{{ errors[key] }}</span>{% endif %}
+      </div>
+      {% endfor %}
+      {# pułapka na boty: ukryte dla ludzi i czytników, poza kolejnością Tab #}
+      <div style="position:absolute;left:-9999px" aria-hidden="true">
+        <label for="g-website">Nie wypełniaj tego pola</label>
+        <input id="g-website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="g-consent" style="display:flex;gap:var(--s3);align-items:flex-start;font-weight:600">
+          <input id="g-consent" name="consent" type="checkbox" value="1" required style="width:24px;height:24px;flex:none"
+                 {% if 'consent' in errors %}aria-invalid="true" aria-describedby="g-consent-e"{% endif %}>
+          <span>Zapoznałem(-am) się z informacją o przetwarzaniu danych osobowych poniżej.</span>
+        </label>
+        {% if 'consent' in errors %}<span class="hint" id="g-consent-e" style="color:var(--ink)">{{ errors['consent'] }}</span>{% endif %}
+      </div>
+      <button class="btn btn-primary btn-xl" type="submit">Wchodzę do wersji demonstracyjnej</button>
+    </form>
+    <p class="hint" style="margin-top:var(--s5);line-height:1.5">Administratorem danych jest Tomasz Wierzbowski (kontakt: tomasz.wierzbowski@op.pl). Imię, nazwisko i nazwę firmy przetwarzam wyłącznie w celu kontroli dostępu do wersji demonstracyjnej i statystyki odwiedzin portfolio, na podstawie prawnie uzasadnionego interesu (art. 6 ust. 1 lit. f RODO). Dane przechowuję 90 dni, potem są automatycznie usuwane, i nikomu ich nie przekazuję. Masz prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania i sprzeciwu – napisz na adres powyżej. Przysługuje Ci skarga do Prezesa UODO.</p>
+  </section>
+</div>
+<script>(() => { const e = document.getElementById('g-err'); if (e) e.focus(); })();</script>
+{% endblock %}

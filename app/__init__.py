@@ -115,6 +115,8 @@ def create_app(config=None):
     app.register_blueprint(open_api_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(devices_bp)
+    from .visitor_gate import bp as visitor_gate_bp
+    app.register_blueprint(visitor_gate_bp)  # bramka przed demo + lista odwiedzających
     from .wysypiska_api import bp as wysypiska_bp
     app.register_blueprint(wysypiska_bp)  # dzikie wysypiska + punkty mieszkańca
     from .dyspozytor_api import bp as dyspozytor_bp
