@@ -25,6 +25,8 @@ services:
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
       DEMO_VISITOR_GATE: ${DEMO_VISITOR_GATE:-1}
       VISITORS_TOKEN: ${VISITORS_TOKEN:-}
+      NTFY_URL: ${NTFY_URL:-}
+      NTFY_TOKEN: ${NTFY_TOKEN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
     depends_on:
