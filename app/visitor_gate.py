@@ -2,7 +2,7 @@
 
 Dotyczy tylko stron HTML (GET) oglądanych w przeglądarce. Nie blokuje /api/*, plików statycznych (w tym PWA i service
 workera), /health, urządzeń IoT (przycisk, e-papier) ani kodów QR przy koszu. Ciasteczko sesji 30 dni; w bazie imię,
-nazwisko i firma bez IP i user-agenta, 90 dni. Lista dla właściciela: /odwiedzajacy z tokenem VISITORS_TOKEN."""
+nazwisko i firma bez IP i user-agenta, 90 dni; o każdym wpisie push ntfy (app/visitor_notify.py). Lista dla właściciela: /odwiedzajacy z tokenem VISITORS_TOKEN."""
 import csv
 import hmac
 import io
@@ -14,7 +14,7 @@ from urllib.parse import urlsplit
 
 from flask import Blueprint, Response, abort, current_app, redirect, render_template, request, session
 
-from . import db, rate
+from . import db, rate, visitor_notify
 from .models import DemoVisitor
 
 bp = Blueprint("visitor_gate", __name__)
@@ -88,8 +88,10 @@ def submit():
         return _render(next_url, {"form": "Zbyt wiele prób. Spróbuj za chwilę."}, values, 429)
     now = datetime.now(UTC).replace(tzinfo=None)
     DemoVisitor.query.filter(DemoVisitor.created_at < now - RETENTION).delete(synchronize_session=False)
-    db.session.add(DemoVisitor(created_at=now, **{k: clean(v) for k, v in values.items()}))
+    visitor = DemoVisitor(created_at=now, **{k: clean(v) for k, v in values.items()})
+    db.session.add(visitor)
     db.session.commit()
+    visitor_notify.notify(visitor.first_name, visitor.last_name, visitor.company)
     session[FLAG], session.permanent = int(time.time()), True
     return redirect(next_url, 303)
 
