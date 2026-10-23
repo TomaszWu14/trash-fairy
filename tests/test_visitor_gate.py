@@ -27,6 +27,13 @@ def test_bez_danych_formularz(gate, client):
             "żeby wiedzieć, co zainteresowało gości. Poza tym nikomu danych nie przekazuję.") in r.get_data(as_text=True)
 
 
+def test_adres_wlasciciela_ukryty_przed_botami(gate, client):
+    for path in ("/metodologia", "/prywatnosc"):
+        html = client.get(path).get_data(as_text=True)
+        assert "tomasz.wierzbowski" "@op.pl" not in html
+        assert "tomasz.wierzbowski [at] op.pl" in html
+
+
 def test_z_danymi_zapis_i_dostep(gate, client):
     r = client.post("/wizytowka", data=OK)
     assert r.status_code == 303 and r.headers["Location"] == "/metodologia"
