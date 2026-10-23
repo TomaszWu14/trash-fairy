@@ -1,3 +1,5 @@
+import json
+
 from . import db
 
 # Wszystkie znaczniki czasu w czasie demo (zegar scenariusza), naiwne datetime.
@@ -288,3 +290,20 @@ class DemoVisitor(db.Model):
     last_name = db.Column(db.String(100), nullable=False)
     company = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, index=True)  # prawdziwy czas UTC (nie zegar demo), naiwny
+    # aktywność po wejściu (app/visitor_activity.py): ekrany HTML, ostatnie wejście, sekcja → liczba (JSON, max 20 kluczy)
+    page_views = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+    last_seen_at = db.Column(db.DateTime)
+    sections = db.Column(db.Text)
+
+    def duration_label(self):
+        """Czas wizyty = ostatnie wejście - wpis, „ok. N min” albo „—”."""
+        if self.last_seen_at is None:
+            return "—"
+        return f"ok. {max(round((self.last_seen_at - self.created_at).total_seconds() / 60), 1)} min"
+
+    def top_sections(self, n=3):
+        try:
+            counts = json.loads(self.sections or "{}")
+        except ValueError:
+            return []
+        return [k for k, _ in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:n]] if isinstance(counts, dict) else []

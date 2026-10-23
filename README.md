@@ -62,6 +62,7 @@ SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") docker co
 Bramka odwiedzających (przedstawienie się przed wejściem do demo) jest domyślnie włączona; `DEMO_VISITOR_GATE=0` ją wyłącza.
 Lista osób: ustaw `VISITORS_TOKEN`, potem `/odwiedzajacy?token=…` (`&format=csv` = CSV); bez zmiennej adres zwraca 404.
 Powiadomienie push o każdym nowym gościu: `NTFY_URL` (pełny URL tematu ntfy, np. `https://ntfy.sh/<tajny-temat>`) i opcjonalnie `NTFY_TOKEN` (Bearer dla serwera z kontrolą dostępu); bez `NTFY_URL` nic nie jest wysyłane.
+`NTFY_WATCH_COMPANIES` (frazy po przecinku, bez wielkości liter i polskich znaków): gość z firmą zawierającą frazę daje pilny push „UWAGA firma z listy”. `NTFY_ENGAGED_VIEWS` (domyślnie 10, `0` = wyłączone): jeden push, gdy gość obejrzy tyle ekranów. Lista `/odwiedzajacy` pokazuje liczbę ekranów, czas wizyty i 3 najczęstsze sekcje.
 Pierwszy start trwa ok. 2 minuty, bo aplikacja sama importuje punkty i symuluje 8 tygodni. Dopiero potem `/health` zwraca `ok`.
 
 **Lokalnie (SQLite):**
