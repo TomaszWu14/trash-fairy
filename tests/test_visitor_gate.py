@@ -23,7 +23,8 @@ def test_bez_danych_formularz(gate, client):
     r = client.get("/metodologia")
     assert r.status_code == 200 and "przedstaw się, proszę" in r.get_data(as_text=True)
     assert "Prezesa UODO" in r.get_data(as_text=True)
-    assert "powiadomień push ntfy; poza tym nikomu danych nie przekazuję" in r.get_data(as_text=True)
+    assert ("powiadomień push ntfy. Zapisuję też, ile i jakie ekrany wersji demonstracyjnej obejrzałeś (bez adresu IP), "
+            "żeby wiedzieć, co zainteresowało gości. Poza tym nikomu danych nie przekazuję.") in r.get_data(as_text=True)
 
 
 def test_z_danymi_zapis_i_dostep(gate, client):
@@ -61,6 +62,7 @@ def test_api_health_statyki_nie_blokowane(gate, client):
     assert client.get("/api/docs").status_code == 200
     privacy = client.get("/prywatnosc")
     assert privacy.status_code == 200 and "push ntfy" in privacy.get_data(as_text=True)
+    assert "ile i jakie ekrany wersji demonstracyjnej obejrzałeś (bez adresu IP)" in privacy.get_data(as_text=True)
 
 
 def test_retencja_90_dni(gate, client):

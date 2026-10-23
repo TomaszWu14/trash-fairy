@@ -13,13 +13,15 @@
   <img src="https://img.shields.io/badge/HackYeah-2026-orange" alt="HackYeah 2026">
 </p>
 
+<p align="center"><b>▶ Zobacz demo: <a href="https://trashfairy.twapp.pl">https://trashfairy.twapp.pl</a></b><br>(przy wejściu demo poprosi o imię, nazwisko i firmę)</p>
+
 **Planowanie odbioru koszy ulicznych według zapełnienia, a nie stałego harmonogramu: dla operatora odbioru odpadów, jego dyspozytorów i kierowców oraz mieszkańców, którzy zgłaszają przepełnione kosze.**
 
 <p align="center"><img src="docs/screenshots/demo.gif" width="360" alt="Zgłoszenie z telefonu: panel kosza z kodem QR, wybór „Przepełniony”, wysłanie i status zgłoszenia"></p>
 
 📹 **[Prezentacja działania z lektorem — YouTube](https://youtu.be/mQma-SUte-s)** · pliki w repo: [3 min](demo/demo_trash-fairy_3min.mp4), [8 min](demo/demo_trash-fairy_pelne.mp4)
 
-🇬🇧 [English version below](#english) · **Demo:** https://trashfairy.twapp.pl. Bez logowania, na danych demonstracyjnych. Przycisk „Resetuj dane demo” przywraca stan wyjściowy.
+🇬🇧 [English version below](#english) · **Demo:** https://trashfairy.twapp.pl. Bez logowania (tylko krótkie przedstawienie się), na danych demonstracyjnych. Przycisk „Resetuj dane demo” przywraca stan wyjściowy.
 
 ## Problem → rozwiązanie
 
@@ -62,6 +64,7 @@ SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") docker co
 Bramka odwiedzających (przedstawienie się przed wejściem do demo) jest domyślnie włączona; `DEMO_VISITOR_GATE=0` ją wyłącza.
 Lista osób: ustaw `VISITORS_TOKEN`, potem `/odwiedzajacy?token=…` (`&format=csv` = CSV); bez zmiennej adres zwraca 404.
 Powiadomienie push o każdym nowym gościu: `NTFY_URL` (pełny URL tematu ntfy, np. `https://ntfy.sh/<tajny-temat>`) i opcjonalnie `NTFY_TOKEN` (Bearer dla serwera z kontrolą dostępu); bez `NTFY_URL` nic nie jest wysyłane.
+`NTFY_WATCH_COMPANIES` (frazy po przecinku, bez wielkości liter i polskich znaków): gość z firmą zawierającą frazę daje pilny push „UWAGA firma z listy”. `NTFY_ENGAGED_VIEWS` (domyślnie 10, `0` = wyłączone): jeden push, gdy gość obejrzy tyle ekranów. Lista `/odwiedzajacy` pokazuje liczbę ekranów, czas wizyty i 3 najczęstsze sekcje.
 Pierwszy start trwa ok. 2 minuty, bo aplikacja sama importuje punkty i symuluje 8 tygodni. Dopiero potem `/health` zwraca `ok`.
 
 **Lokalnie (SQLite):**
@@ -150,7 +153,7 @@ Materiały z hackathonu:
 Built solo at **HackYeah 2026** (3–4 Oct 2026, open *Smart City* track). The UI and the analysis docs are in Polish.
 
 - 📹 Video walkthrough: [YouTube](https://youtu.be/mQma-SUte-s) (Polish voice-over; English subtitle file: [`docs/video/en.srt`](docs/video/en.srt)).
-- 🌐 Live demo: https://trashfairy.twapp.pl — no login, demo data, “Resetuj dane demo” restores the initial state.
+- 🌐 Live demo: https://trashfairy.twapp.pl — no login (the demo asks for your first name, last name and company), demo data, “Resetuj dane demo” restores the initial state.
 
 ### Problem → solution
 

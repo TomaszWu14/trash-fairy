@@ -2,7 +2,8 @@
 
 Dotyczy tylko stron HTML (GET) oglądanych w przeglądarce. Nie blokuje /api/*, plików statycznych (w tym PWA i service
 workera), /health, urządzeń IoT (przycisk, e-papier) ani kodów QR przy koszu. Ciasteczko sesji 30 dni; w bazie imię,
-nazwisko i firma bez IP i user-agenta, 90 dni; o każdym wpisie push ntfy (app/visitor_notify.py). Lista dla właściciela: /odwiedzajacy z tokenem VISITORS_TOKEN."""
+nazwisko i firma bez IP i user-agenta, 90 dni; o każdym wpisie push ntfy (app/visitor_notify.py); obejrzane ekrany
+liczy app/visitor_activity.py. Lista dla właściciela: /odwiedzajacy z tokenem VISITORS_TOKEN."""
 import csv
 import hmac
 import io
@@ -14,7 +15,7 @@ from urllib.parse import urlsplit
 
 from flask import Blueprint, Response, abort, current_app, redirect, render_template, request, session
 
-from . import db, rate, visitor_notify
+from . import db, rate, visitor_activity, visitor_notify
 from .models import DemoVisitor
 
 bp = Blueprint("visitor_gate", __name__)
@@ -22,6 +23,7 @@ bp = Blueprint("visitor_gate", __name__)
 RETENTION = timedelta(days=90)
 SESSION_TTL_S = 30 * 24 * 3600
 FLAG = "demo_visitor_ok"  # moment wpisu (sekundy epoki) – ważny SESSION_TTL_S
+VISITOR_ID = "demo_visitor_id"  # id wpisu DemoVisitor (podpisana sesja) – do liczenia aktywności (app/visitor_activity.py)
 POSTS_PER_HOUR = 300  # globalny limit zapisów (bez IP w bazie), żeby nikt nie zapchał tabeli
 # przedrostki ścieżek, których bramka nie dotyka: API, statyki/PWA, zdrowie, urządzenia, QR, strony o prywatności
 EXEMPT_PREFIXES = ("/api/", "/static/", "/health", "/epapier/", "/przycisk/", "/kosz/", "/prywatnosc", "/dostepnosc",
@@ -58,6 +60,12 @@ def _passed():
     return isinstance(stamp, int) and 0 <= time.time() - stamp < SESSION_TTL_S
 
 
+def visitor_id():
+    """Id wpisu z ważnej flagi; None dla gościa bez flagi albo z flagą sprzed zapisu id."""
+    vid = session.get(VISITOR_ID)
+    return vid if _passed() and isinstance(vid, int) and not isinstance(vid, bool) else None
+
+
 def _render(next_url, errors=None, values=None, status=200):
     resp = render_template("ui/wizytowka.html", next_url=next_url, errors=errors or {}, values=values or {})
     return Response(resp, status=status, headers={"Cache-Control": "no-store"})
@@ -65,11 +73,20 @@ def _render(next_url, errors=None, values=None, status=200):
 
 @bp.before_app_request
 def gate():
-    if request.method not in ("GET", "HEAD") or request.endpoint is None or not enabled() or _passed():
+    if request.method not in ("GET", "HEAD") or request.endpoint is None or not enabled():
         return None
-    if request.path.startswith(EXEMPT_PREFIXES) or request.path in ("/sw.js", "/favicon.ico", "/robots.txt"):
+    # wyjątki przed sesją: statyki/API bez „Vary: Cookie”, więc przeglądarka i proxy mogą je cache'ować
+    if request.path.startswith(EXEMPT_PREFIXES) or request.path in ("/sw.js", "/favicon.ico", "/robots.txt") or _passed():
         return None
     return _render(request.full_path.rstrip("?"))
+
+
+@bp.after_app_request
+def track_activity(response):
+    # najpierw tanie warunki bez sesji: statyki/API nie dostają „Vary: Cookie” (cache), bez flagi nie dotykamy bazy
+    if visitor_activity.countable(request.method, request.path, response) and session.get(VISITOR_ID) is not None:
+        visitor_activity.track(visitor_id(), request.path)
+    return response
 
 
 @bp.post("/wizytowka")
@@ -92,7 +109,7 @@ def submit():
     db.session.add(visitor)
     db.session.commit()
     visitor_notify.notify(visitor.first_name, visitor.last_name, visitor.company)
-    session[FLAG], session.permanent = int(time.time()), True
+    session[FLAG], session[VISITOR_ID], session.permanent = int(time.time()), visitor.id, True
     return redirect(next_url, 303)
 
 
@@ -118,10 +135,10 @@ def visitors():
     if request.args.get("format") == "csv":
         buf = io.StringIO()
         out = csv.writer(buf)
-        out.writerow(["data_utc", "imie", "nazwisko", "firma"])
+        out.writerow(["data_utc", "imie", "nazwisko", "firma", "ekrany", "czas", "najczesciej"])
         for r in rows:
             out.writerow([r.created_at.isoformat(sep=" ", timespec="seconds"), _cell(r.first_name), _cell(r.last_name),
-                          _cell(r.company)])
+                          _cell(r.company), r.page_views or 0, r.duration_label(), " ".join(r.top_sections())])
         return Response(buf.getvalue(), mimetype="text/csv", headers={**headers, "Content-Disposition":
                                                                         'attachment; filename="odwiedzajacy.csv"'})
     return Response(render_template("ui/odwiedzajacy.html", rows=rows), headers=headers)

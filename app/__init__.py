@@ -183,7 +183,9 @@ def _add_missing_columns():
                                ("point", "fraction", "VARCHAR(20) NOT NULL DEFAULT 'zmieszane'"),
                                ("point", "address", "VARCHAR(160)"), ("point", "snapshot_fill", "INTEGER"),
                                ("photo_analysis", "bin_visible", "BOOLEAN"), ("photo_analysis", "condition", "VARCHAR(20)"),
-                               ("photo_analysis", "people", "BOOLEAN"), ("dump_report", "cleared_by", "VARCHAR(32)")]:
+                               ("photo_analysis", "people", "BOOLEAN"), ("dump_report", "cleared_by", "VARCHAR(32)"),
+                               ("demo_visitor", "page_views", "INTEGER NOT NULL DEFAULT 0"),
+                               ("demo_visitor", "last_seen_at", "TIMESTAMP"), ("demo_visitor", "sections", "TEXT")]:
         if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
             # tabela, kolumna i typ ze stałej listy wyżej, nie z wejścia — Semgrep: fałszywy alarm
             db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))  # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text

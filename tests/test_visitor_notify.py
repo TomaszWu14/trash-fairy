@@ -93,3 +93,41 @@ def test_poza_testami_wysylka_w_watku(ntfy, app, client, monkeypatch):
     finally:
         app.config["TESTING"] = True
     assert started == [True] and len(ntfy.requests) == 1
+
+
+@pytest.mark.parametrize("company", ["ÄCME sp. z o.o.", "acme", "Grupa  ACME  SA", "Łódzka Acme"])
+def test_firma_z_listy_pilny_alarm(ntfy, app, client, company):
+    app.config["NTFY_WATCH_COMPANIES"] = " acme , globex"
+    assert client.post("/wizytowka", data={**OK, "company": company}).status_code == 303
+    req = ntfy.requests[0]
+    assert req.get_header("Priority") == "urgent" and req.get_header("Tags") == "rotating_light"
+    assert req.get_header("Title") == "UWAGA firma z listy: Trash Fairy"
+    assert req.data.decode("utf-8").startswith("⚠️ Józef Kowalski (")
+    assert all(v.isascii() for v in req.headers.values())
+
+
+def test_polskie_znaki_we_frazie(ntfy, app, client):
+    app.config["NTFY_WATCH_COMPANIES"] = "Łąka"
+    client.post("/wizytowka", data={**OK, "company": "LAKA s.c."})
+    assert ntfy.requests[0].get_header("Priority") == "urgent"
+
+
+@pytest.mark.parametrize("watch", ["", " , ", "a", "globex, initech"])
+def test_bez_trafienia_zwykly_push(ntfy, app, client, watch):
+    app.config["NTFY_WATCH_COMPANIES"] = watch
+    client.post("/wizytowka", data=OK)
+    req = ntfy.requests[0]
+    assert req.get_header("Priority") == "high" and req.get_header("Tags") == "bell"
+    assert req.data.decode("utf-8") == "Józef Kowalski (ACME) wszedł do Trash Fairy"
+
+
+def test_firma_z_listy_bez_ntfy_url_bez_wysylki(ntfy, app, client):
+    app.config.update(NTFY_URL="", NTFY_WATCH_COMPANIES="acme")
+    assert client.post("/wizytowka", data=OK).status_code == 303
+    assert ntfy.requests == []
+
+
+@pytest.mark.parametrize("raw, expected", [("", 10), ("0", 0), ("3", 3), ("abc", 10), ("-5", 0)])
+def test_prog_zaangazowania(app, raw, expected):
+    app.config["NTFY_ENGAGED_VIEWS"] = raw
+    assert visitor_notify.engaged_threshold() == expected

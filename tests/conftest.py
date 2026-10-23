@@ -28,7 +28,7 @@ def app():
     app = create_app({"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "TESTING": True, "OSRM_URL": "",
                       "WEATHER_URL": "", "TOMTOM_API_KEY": "", "TWILIO_ACCOUNT_SID": "", "TWILIO_AUTH_TOKEN": "",
                       "TWILIO_VERIFY_SID": "", "SMS_DEMO_FALLBACK": "1",
-                      "NTFY_URL": "", "NTFY_TOKEN": ""})
+                      "NTFY_URL": "", "NTFY_TOKEN": "", "NTFY_WATCH_COMPANIES": "", "NTFY_ENGAGED_VIEWS": "10"})
     with app.app_context():
         yield app
         db.session.remove()
