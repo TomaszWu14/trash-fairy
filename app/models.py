@@ -278,3 +278,13 @@ class AppSecret(db.Model):
     Seed i reset demo tej tabeli nie czyszczą, więc klucz przetrwa restart i Redeploy."""
     name = db.Column(db.String(40), primary_key=True)
     value = db.Column(db.String(128), nullable=False)
+
+
+class DemoVisitor(db.Model):
+    """Osoba, która przedstawiła się przed wejściem do wersji demonstracyjnej (app/visitor_gate.py). Bez IP i user-agenta;
+    rekordy starsze niż 90 dni kasuje zapis kolejnego wpisu (RODO, art. 6 ust. 1 lit. f)."""
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+    company = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, index=True)  # prawdziwy czas UTC (nie zegar demo), naiwny

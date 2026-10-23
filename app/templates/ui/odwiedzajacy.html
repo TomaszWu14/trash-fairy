@@ -1,0 +1,15 @@
+{% extends "ui/base.html" %}
+{% block title %}Odwiedzający{% endblock %}
+{% block topbar %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="shell page">
+  <h1>Odwiedzający demo (ostatnie 90 dni): {{ rows|length }}</h1>
+  <p><a href="?format=csv&amp;token={{ request.args.get('token', '') }}">Pobierz CSV</a></p>
+  <table class="table">
+    <caption class="sr-only">Osoby, które przedstawiły się przed wejściem do demo</caption>
+    <thead><tr><th scope="col">Data (UTC)</th><th scope="col">Imię</th><th scope="col">Nazwisko</th><th scope="col">Firma</th></tr></thead>
+    <tbody>{% for r in rows %}<tr><td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ r.first_name }}</td><td>{{ r.last_name }}</td><td>{{ r.company }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

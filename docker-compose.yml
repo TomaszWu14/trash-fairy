@@ -23,6 +23,8 @@ services:
       DATABASE_URL: postgresql://trashfairy:trashfairy@db:5432/trashfairy
       SECRET_KEY: ${SECRET_KEY:?Ustaw SECRET_KEY – patrz README, sekcja Uruchomienie}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
+      DEMO_VISITOR_GATE: ${DEMO_VISITOR_GATE:-1}
+      VISITORS_TOKEN: ${VISITORS_TOKEN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
     depends_on:
