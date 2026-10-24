@@ -2,7 +2,7 @@
 
 # Plan poprawek po jury r0 (4.10.2026, ok. 06:40)
 
-Źródło: `audit/JURY.md` (ID J-xx). Budżet do 08:00: ok. 75 minut pracy kilku agentów równolegle. Kolejność w grupie: (waga kryterium × zysk) / nakład. `do 08:00` = mieści się w budżecie. Każdy pakiet kończy się `python -m pytest -q -n auto`; po wszystkich pakietach sonda r1 (`scripts/jury_check.py`) i porównanie z r0.
+Źródło: `docs/archiwum/audit/JURY.md` (ID J-xx). Budżet do 08:00: ok. 75 minut pracy kilku agentów równolegle. Kolejność w grupie: (waga kryterium × zysk) / nakład. `do 08:00` = mieści się w budżecie. Każdy pakiet kończy się `python -m pytest -q -n auto`; po wszystkich pakietach sonda r1 (`scripts/jury_check.py`) i porównanie z r0.
 
 ## Zaplanowane wcześniej (decyzje autora)
 

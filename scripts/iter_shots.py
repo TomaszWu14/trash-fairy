@@ -1,4 +1,4 @@
-"""Pętla jakości: zrzuty ekranu w kolejnych rundach do audit/iteracje/ (1920×1080, 390×844, 1280×800, opcjonalnie 1366×768).
+"""Pętla jakości: zrzuty ekranu w kolejnych rundach do docs/archiwum/audit/iteracje/ (1920×1080, 390×844, 1280×800, opcjonalnie 1366×768).
 
 Użycie: python scripts/iter_shots.py <nazwa> <runda> <ścieżka> [desktop,telefon,kiosk,laptop] [--full]
 Motyw: zmienna TF_MOTYW=dark|light (domyślnie motyw aplikacji); nazwa pliku dostaje wtedy sufiks -dark/-light.
@@ -16,7 +16,7 @@ name, rnd, path = sys.argv[1], sys.argv[2], sys.argv[3]
 vps = (sys.argv[4] if len(sys.argv) > 4 and not sys.argv[4].startswith("--") else "desktop,telefon").split(",")
 full = "--full" in sys.argv
 motyw = os.environ.get("TF_MOTYW", "")
-out = pathlib.Path(__file__).resolve().parent.parent / "audit" / "iteracje"
+out = pathlib.Path(__file__).resolve().parent.parent / "docs" / "archiwum" / "audit" / "iteracje"
 out.mkdir(parents=True, exist_ok=True)
 with sync_playwright() as p:
     b = p.chromium.launch()

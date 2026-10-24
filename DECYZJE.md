@@ -336,7 +336,7 @@ więc scena „Opróżniony” na nagraniu działa w ramce. Materiały: deck 10 
 
 ## Audyt UX i przebudowa: Etap 1 (niedz. 4.10, noc)
 
-**Audyt (`audit/AUDYT-UX.md`, 63 zrzuty w trzech rozdzielczościach): aplikacja jest technicznie zdrowa, ale to sześć aplikacji pod jednym logo**
+**Audyt (`docs/archiwum/audit/AUDYT-UX.md`, 63 zrzuty w trzech rozdzielczościach): aplikacja jest technicznie zdrowa, ale to sześć aplikacji pod jednym logo**
 (4 arkusze CSS, 6 nagłówków, 2 czcionki, 45 emoji, brak dashboardu menedżera). Autor zdecydował: jedna rola bez logowania z tożsamościami demo
 (odwraca decyzje 1–8 przeglądu; ochronę pokazu przejmuje reset i auto-reset), dashboard na danych z deterministycznego seeda z plakietką
 „Dane demonstracyjne” (kosze i frakcje z OSM, koszty, masy i projekty syntetyczne), zgłoszenie tylko z QR i do 150 m od kosza, w demo z jawnie
@@ -366,7 +366,7 @@ limit 30 zgłoszeń na IP na godzinę, „Co tu wrzucać” na panelu, ostatni z
 
 ## P0 #15–19 i P1: jakość, uruchomienie, IoT, eksport (niedz. 4.10, rano)
 
-**Lighthouse i axe zamiast deklaracji:** wyniki w `audit/lighthouse/` (`/` 93/100, `/dashboard` 94 desktop, dostępność 100; axe-core 0 naruszeń
+**Lighthouse i axe zamiast deklaracji:** wyniki w `docs/archiwum/audit/lighthouse/` (`/` 93/100, `/dashboard` 94 desktop, dostępność 100; axe-core 0 naruszeń
 na 8 ekranach w dwóch szerokościach, `scripts/axe_check.py`). Poprawki: kompresja gzip w Flasku (Gunicorn i proxy Coolify nie kompresowały,
 echarts 1 MB → ok. 330 kB), `defer` dla bibliotek, ECharts na dashboardzie ładowany po zdarzeniu `load`, animacja wejścia bez `opacity: 0`
 (opóźniała LCP), mapy z rolą `region` zamiast `img` (axe: interaktywne dzieci), przewijane tabele z `tabindex`. Odrzuciliśmy własną paczkę
@@ -374,7 +374,7 @@ ECharts z wybranymi wykresami: na telefonie dashboard ma ok. 65, ale to narzędz
 **`POST /api/odczyty`:** urządzenie podpisuje się tokenem HMAC numeru seryjnego (jak token QR), walidacja 0–100, limit raz na 10 s;
 status liczą te same reguły co dotąd (`devices.py`). **Eksport CSV** z filtrami dashboardu (separator „;”, BOM pod polski Excel).
 **Koszt pilotażu i zwrot** na `/metodologia` jako jawne założenia z env, oszczędność na kosz z wariantu ostrożnego skali Krakowa.
-`docker compose up --build` (app + PostgreSQL 16, seed na starcie) sprawdzony od zera; `audit/PRZED-PO.html` zestawia zrzuty przed i po.
+`docker compose up --build` (app + PostgreSQL 16, seed na starcie) sprawdzony od zera; `docs/archiwum/audit/PRZED-PO.html` zestawia zrzuty przed i po.
 
 ## Przegląd kodu całego repozytorium i poprawki (niedz. 4.10, rano)
 
@@ -442,7 +442,7 @@ docelowo wymaga tokenu ekipy (jak `devices_api`), którego w demo nie ma.
 
 **Symulacja trzech jurorów na dowodach z sondy, nie na wrażeniu.** `scripts/jury_check.py` zbiera zrzuty (1366×768, 390×844, kiosk
 1280×800), metryki (scroll, cele dotykowe, kolory spoza tokenów, fokus, axe, żargon) i budżety kliknięć; 7 analityków + sceptyk na każdą
-paczkę → `audit/JURY.md` (wynik wstępny 6,96/10 wg oficjalnych wag Smart City 30/20/20/20/10), `audit/PLAN-POPRAWEK.md`, `audit/WZORCE.md`.
+paczkę → `docs/archiwum/audit/JURY.md` (wynik wstępny 6,96/10 wg oficjalnych wag Smart City 30/20/20/20/10), `docs/archiwum/audit/PLAN-POPRAWEK.md`, `docs/archiwum/audit/WZORCE.md`.
 Odrzuciliśmy „klikanie na oko”: bez sondy nie da się powtórzyć oceny po poprawkach.
 
 **Wariant A „Centrum operacyjne” z PDF „3 kierunki UI”, motyw ciemny domyślny + jasny.** Tokeny w `tokens.css` dla `data-theme`

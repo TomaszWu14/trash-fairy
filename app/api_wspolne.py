@@ -1,7 +1,7 @@
 """Wspólna część API perspektyw (app/api_pl.py, app/api_kierowca.py): blueprint, jeden format błędu {"blad", "kod"},
 słowniki typów zgłoszeń i opis kosza (kosz_json) dla panelu, mieszkańca, kierowcy i dyspozytora.
 
-Wspólny słownik statusów (audit/AUDYT-UX.md, sekcja 5):
+Wspólny słownik statusów (docs/archiwum/audit/AUDYT-UX.md, sekcja 5):
 - kosz: poziom 0–100 → `ok` (< 60), `zapelnia_sie` (60–85), `pelny` (> 85) — progi silnika tras (state.py); osobno `zgloszony` (świeże zgłoszenie mieszkańca);
 - zgłoszenie: `przyjete` → `w_realizacji` (kierowca nacisnął „Jadę”) → `zrealizowane` (opróżniono).
 Decyzje liczą reguły w kodzie; nic tu nie pyta AI.

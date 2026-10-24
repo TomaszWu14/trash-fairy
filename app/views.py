@@ -1,7 +1,7 @@
 """Strony pomocnicze (PNG e-papieru, dokumentacja API, dostępność, prywatność, zdrowie) i przekierowania starych adresów.
 
 Ekrany perspektyw są w app/ui.py. Stare adresy (QR na naklejkach, slajdy, zakładki jury) prowadzą do nowych ekranów 301,
-więc żaden stary link nie kończy się ślepym zaułkiem (audit/AUDYT-UX.md, sekcja 4)."""
+więc żaden stary link nie kończy się ślepym zaułkiem (docs/archiwum/audit/AUDYT-UX.md, sekcja 4)."""
 import io
 import json
 from pathlib import Path

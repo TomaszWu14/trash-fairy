@@ -1,4 +1,4 @@
-"""Pętla jakości: przepływ mieszkańca na telefonie (390×844), zrzuty każdego kroku do audit/iteracje/."""
+"""Pętla jakości: przepływ mieszkańca na telefonie (390×844), zrzuty każdego kroku do docs/archiwum/audit/iteracje/."""
 import pathlib
 import sys
 
@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright
 
 BASE = "http://127.0.0.1:5050"
 rnd = sys.argv[1] if len(sys.argv) > 1 else "1"
-out = pathlib.Path(__file__).resolve().parent.parent / "audit" / "iteracje"
+out = pathlib.Path(__file__).resolve().parent.parent / "docs" / "archiwum" / "audit" / "iteracje"
 out.mkdir(parents=True, exist_ok=True)
 with sync_playwright() as p:
     b = p.chromium.launch()

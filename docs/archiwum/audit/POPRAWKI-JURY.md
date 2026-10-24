@@ -23,7 +23,7 @@ oś czasu statusu, KPI/wykresy/mapa/projekty, filtry i drill-down, design system
 | 13 | Limit zgłoszeń per IP na godzinę (obok per telefon i kosz) | T34 | S |
 | 14 | Mieszkaniec: runda 2 pętli jakości (desktop + telefon), chipy bez zawijania na starcie | P2, P9 | S |
 | 15 | Lighthouse ≥ 90 (wydajność, dostępność) dla `/` i `/dashboard` + axe-core bez krytycznych | T6, P20 | M |
-| 16 | `audit/PRZED-PO.html`: zrzuty przed/po każdej perspektywy | P47 | S |
+| 16 | `docs/archiwum/audit/PRZED-PO.html`: zrzuty przed/po każdej perspektywy | P47 | S |
 | 17 | `docker-compose.yml` (app + Postgres 16, seed na starcie): uruchomienie jednym poleceniem | T17 | S |
 | 18 | README: diagram architektury (Mermaid), sekcja „Co prawdziwe, co symulowane”, nowe zrzuty 4 perspektyw | T9, T46, P46–49 | S |
 | 19 | `.env.example` bez `DEMO_PASSWORD` (plik zablokowany dla mnie, do zrobienia ręcznie); Coolify: usuń zmienną | T16 | S |

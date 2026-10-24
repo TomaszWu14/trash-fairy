@@ -1,4 +1,4 @@
-"""Nowe UI „Przegląd jury”: cztery perspektywy na wspólnym API (audit/AUDYT-UX.md). Bez logowania."""
+"""Nowe UI „Przegląd jury”: cztery perspektywy na wspólnym API (docs/archiwum/audit/AUDYT-UX.md). Bez logowania."""
 import pytest
 
 from app import clock, db

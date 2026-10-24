@@ -1,7 +1,7 @@
-"""Symulacja jury (audit/JURY.md): zrzuty i metryki każdego ekranu + budżety kliknięć kluczowych ścieżek.
+"""Symulacja jury (docs/archiwum/audit/JURY.md): zrzuty i metryki każdego ekranu + budżety kliknięć kluczowych ścieżek.
 
 Użycie (serwer lokalny na 5050): python scripts/jury_check.py <runda> [axe.min.js|-] [adres] [--budzety]  (--budzety: tylko ścieżki)
-Wynik w audit/jury/<runda>/: {laptop,telefon,kiosk}/<ekran>.png (+ -cala.png), metryki.json, budzety.json.
+Wynik w docs/archiwum/audit/jury/<runda>/: {laptop,telefon,kiosk}/<ekran>.png (+ -cala.png), metryki.json, budzety.json.
 Metryki: poziomy scroll (też przy powiększeniu 200%), cele dotykowe < 44 px, czcionki, kolory spoza tokens.css,
 ucięty tekst, fokus klawiatury, axe-core (WCAG 2.1 A/AA), żargon i angielskie wtrącenia, błędy JS i odpowiedzi ≥ 400.
 """
@@ -16,7 +16,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 RND = sys.argv[1]
 AXE = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8") if len(sys.argv) > 2 and sys.argv[2] != "-" else None
 BASE = (sys.argv[3] if len(sys.argv) > 3 and not sys.argv[3].startswith("--") else "http://127.0.0.1:5050").rstrip("/")
-OUT = ROOT / "audit" / "jury" / RND
+OUT = ROOT / "docs" / "archiwum" / "audit" / "jury" / RND
 VP = {"laptop": (1366, 768), "telefon": (390, 844), "kiosk": (1280, 800)}
 PAGES = {
     "przeglad": "/", "panel-18": "/panel/18", "zglos-wybor": "/zglos", "zglos-18": "/kosz/18/zglos",

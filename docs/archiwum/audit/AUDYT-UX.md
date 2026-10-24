@@ -2,8 +2,8 @@
 
 # Audyt UX, ekranów i API: Trash Fairy (Etap 1)
 
-Stan na niedz. 4.10.2026, ok. 00:20, `main` = PR #10. Zrzuty: `audit/zrzuty/przed/{desktop,telefon,kiosk}/*.png`
-(63 zrzuty: 21 ekranów × 1920×1080, 390×844, 1280×800), surowe wyniki: `audit/zrzuty/przed/raport.json`.
+Stan na niedz. 4.10.2026, ok. 00:20, `main` = PR #10. Zrzuty: `docs/archiwum/audit/zrzuty/przed/{desktop,telefon,kiosk}/*.png`
+(63 zrzuty: 21 ekranów × 1920×1080, 390×844, 1280×800), surowe wyniki: `docs/archiwum/audit/zrzuty/przed/raport.json`.
 Bez zmian w kodzie.
 
 **Wniosek w jednym zdaniu:** technicznie aplikacja jest zdrowa (0 błędów 500, 0 błędów JS, 0 martwych linków na 101 sprawdzonych),
@@ -268,7 +268,7 @@ Przykładowy kafelek KPI:
 | 11:00–13:00 | 2–3 | mieszkaniec: mapa / najbliższe / QR, kafelki z ilustracjami, zdjęcie, komentarz, sukces z numerem, oś czasu | — |
 | 13:00–15:30 | 2–3 | kierowca: mapa + lista po priorytecie, karta kosza, Jadę / Opróżniono / Problem, postęp, symulowana nawigacja | — |
 | 15:30–17:00 | 2–3 | kiosk `/panel/<id>` | animacje poza wskaźnikiem |
-| 17:00–19:00 | 5 | Playwright scenariusza (telefon + desktop), smoke wszystkich ekranów i filtrów, Lighthouse ≥ 90 dla `/` i `/dashboard`, `audit/PRZED-PO.html`, `DEMO.md`, iteracje w `audit/iteracje/` | Lighthouse dla pozostałych |
+| 17:00–19:00 | 5 | Playwright scenariusza (telefon + desktop), smoke wszystkich ekranów i filtrów, Lighthouse ≥ 90 dla `/` i `/dashboard`, `docs/archiwum/audit/PRZED-PO.html`, `DEMO.md`, iteracje w `docs/archiwum/audit/iteracje/` | Lighthouse dla pozostałych |
 | 19:00–20:00 | — | Redeploy z `seed --force`, smoke na prod, nowe zrzuty do slajdów | — |
 
-Każdy ekran przechodzi pętlę jakości (zrzut → min. 5 poprawek → druga runda), z zapisem rund w `audit/iteracje/`.
+Każdy ekran przechodzi pętlę jakości (zrzut → min. 5 poprawek → druga runda), z zapisem rund w `docs/archiwum/audit/iteracje/`.
