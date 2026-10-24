@@ -19,6 +19,13 @@ def test_api_json_not_cached_but_open_data_keeps_its_cache(client):
     assert client.get("/api/v1/routes").headers["Cache-Control"] == "public, max-age=60"
 
 
+def test_pixel_portfolio_na_kazdym_ekranie(client):
+    """Piksel statystyk portfolio (base.html) na ekranie startowym i w 404 – strażnik, by nie zgubić go przy zmianach layoutu."""
+    pixel = '<img src="https://portfolio.twapp.pl/px/trash-fairy" alt="" width="1" height="1" hidden>'
+    assert pixel in client.get("/").get_data(as_text=True)
+    assert pixel in client.get("/nie-ma-takiej-strony").get_data(as_text=True)
+
+
 def test_hsts_only_behind_https(client):
     assert "Strict-Transport-Security" not in client.get("/health").headers
     https_app = create_app({"SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:", "TESTING": True,
