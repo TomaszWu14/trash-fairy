@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 
 from . import db
 
@@ -273,6 +274,8 @@ class DeviceInfo(db.Model):
     loss = db.Column(db.Float, nullable=False, default=0.0)  # udział odczytów zgubionych w transmisji
     last_seen = db.Column(db.DateTime)  # tylko czujnik; panel: Device.last_heartbeat
     selftest_ok = db.Column(db.Boolean)  # tylko czujnik; panel: Device.selftest_ok
+    # kiedy token urządzenia wydano/odnowiono (prawdziwy czas UTC, naiwny; zegar demo stoi). Ważność: DEVICE_TOKEN_TTL_DAYS
+    token_issued_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None))
 
 
 class AppSecret(db.Model):

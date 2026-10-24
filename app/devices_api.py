@@ -4,6 +4,8 @@ Błędy jak w panelu miasta: {"blad": "<komunikat po polsku>", "kod": "<kod>"} z
 """
 import hashlib
 import hmac
+import os
+from datetime import UTC, datetime, timedelta
 
 from flask import Blueprint, current_app, jsonify, request
 
@@ -68,6 +70,26 @@ def device_token(serial):
     return hmac.new(key, f"urzadzenie:{serial}".encode(), hashlib.sha256).hexdigest()[:24]
 
 
+TOKEN_TTL_DAYS = 365
+
+
+def token_ttl():
+    """Ważność tokenu urządzenia (env DEVICE_TOKEN_TTL_DAYS, domyślnie 365 dni); śmieci i wartości < 1 → domyślna."""
+    try:
+        days = int(os.environ.get("DEVICE_TOKEN_TTL_DAYS", ""))
+    except ValueError:
+        return timedelta(days=TOKEN_TTL_DAYS)
+    return timedelta(days=days if days >= 1 else TOKEN_TTL_DAYS)
+
+
+def token_valid(info, token):
+    """Token pasuje (stały czas) i nie wygasł. Brak daty wydania (stary wiersz) = nie wygasł; start aplikacji ją uzupełnia.
+    Wygasły token zachowuje się jak zły: wywołujący zwraca ten sam błąd. Odnowienie: `flask renew-device-tokens`."""
+    if info is None or not hmac.compare_digest(token, device_token(info.serial).encode()):
+        return False
+    return info.token_issued_at is None or datetime.now(UTC).replace(tzinfo=None) < info.token_issued_at + token_ttl()
+
+
 def _pct(data, name, required=False):
     v = data.get(name)
     if v is None and not required:
@@ -87,7 +109,7 @@ def reading():
     serial = str(data.get("numer_seryjny") or "")[:20]
     info = DeviceInfo.query.filter_by(serial=serial).first() if serial else None
     token = request.headers.get("X-Token-Urzadzenia", "")
-    if info is None or not hmac.compare_digest(token.encode(), device_token(serial).encode()):  # bajty: str spoza ASCII → TypeError
+    if not token_valid(info, token.encode()):  # bajty: str spoza ASCII → TypeError w compare_digest
         raise ApiError(401, "nieznane_urzadzenie", "Nieznany numer seryjny albo zły token urządzenia.")
     fill = _pct(data, "zapelnienie", required=info.kind == "czujnik")
     battery = _pct(data, "bateria")

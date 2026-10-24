@@ -1,5 +1,5 @@
 """Urządzenia na koszach: reguły baterii i statusu, seed deterministyczny, API z filtrami i błędami."""
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -150,3 +150,64 @@ def test_sensor_and_panel_readings_update_device(client):
     r = client.post("/api/odczyty", json={"numer_seryjny": p["numer_seryjny"], "bateria": p["bateria_pct"]},
                     headers={"X-Token-Urzadzenia": device_token(p["numer_seryjny"])})
     assert r.status_code == 201 and r.json["urzadzenie"]["status"] == "ok"
+
+
+def _post_reading(client, serial, token=None):
+    from app.devices_api import device_token
+    return client.post("/api/odczyty", json={"numer_seryjny": serial, "zapelnienie": 10},
+                       headers={"X-Token-Urzadzenia": token or device_token(serial)})
+
+
+def test_expired_device_token_is_rejected_like_invalid(client, monkeypatch):
+    from app.models import DeviceInfo
+    monkeypatch.setenv("DEVICE_TOKEN_TTL_DAYS", "30")
+    serial = _ok_device("czujnik")["numer_seryjny"]
+    info = DeviceInfo.query.filter_by(serial=serial).one()
+    now = datetime.now(UTC).replace(tzinfo=None)
+    info.token_issued_at = now - timedelta(days=29)
+    db.session.commit()
+    assert _post_reading(client, serial).status_code in (201, 429)  # świeży token przechodzi (429 = limit z innego testu)
+    info.token_issued_at = now - timedelta(days=31)
+    db.session.commit()
+    expired = _post_reading(client, serial)
+    wrong = _post_reading(client, serial, "x" * 24)
+    assert (expired.status_code, expired.json) == (wrong.status_code, wrong.json) == (401, wrong.json)
+    # odnowienie przywraca dostęp (ta sama wartość tokenu)
+    info.token_issued_at = now
+    db.session.commit()
+    assert _post_reading(client, serial).status_code in (201, 429)
+
+
+def test_legacy_token_without_date_gets_backfilled_and_works(app, client):
+    from app import _add_missing_columns
+    from app.models import DeviceInfo
+    serial = _ok_device("panel")["numer_seryjny"]
+    info = DeviceInfo.query.filter_by(serial=serial).one()
+    info.token_issued_at = None
+    db.session.commit()
+    assert _post_reading(client, serial).status_code in (201, 429)  # brak daty ≠ wygasły
+    _add_missing_columns()
+    db.session.refresh(info)
+    assert info.token_issued_at is not None and datetime.now(UTC).replace(tzinfo=None) - info.token_issued_at < timedelta(minutes=1)
+
+
+def test_token_ttl_env_default_and_garbage(monkeypatch):
+    from app.devices_api import token_ttl
+    monkeypatch.delenv("DEVICE_TOKEN_TTL_DAYS", raising=False)
+    assert token_ttl() == timedelta(days=365)
+    for bad in ("abc", "0", "-5"):
+        monkeypatch.setenv("DEVICE_TOKEN_TTL_DAYS", bad)
+        assert token_ttl() == timedelta(days=365)
+    monkeypatch.setenv("DEVICE_TOKEN_TTL_DAYS", "90")
+    assert token_ttl() == timedelta(days=90)
+
+
+def test_renew_device_tokens_command(app):
+    from app.models import DeviceInfo
+    info = DeviceInfo.query.first()
+    info.token_issued_at = datetime(2020, 1, 1)
+    db.session.commit()
+    res = app.test_cli_runner().invoke(args=["renew-device-tokens", "--serial", info.serial])
+    assert res.exit_code == 0 and "Odnowiono tokeny: 1" in res.output
+    db.session.refresh(info)
+    assert info.token_issued_at.year >= 2026
