@@ -14,7 +14,7 @@ from flask import current_app, jsonify, request
 from . import clock, db, photos, rate, residents
 from .api_wspolne import (FRAKCJE, KIND_LABEL, TYPY, _address, _ai, _dowod, _jade_at, _json_body, _point,  # noqa: F401
                           _punkty, _report_from_nr, blad, bp, kosz_json, meta, numer, phone_id, poziom_stan)
-from .devices_api import device_token
+from .devices_api import token_valid
 from .geo import distance_m
 from .models import DeviceInfo, Point, Press
 from .reports import record_press
@@ -114,7 +114,7 @@ def przycisk(point_id):
     data = _json_body()
     info = db.session.get(DeviceInfo, p.id)
     token = str(data.get("token") or "").encode()
-    if info is None or info.kind != "panel" or not hmac.compare_digest(token, device_token(info.serial).encode()):
+    if info is None or info.kind != "panel" or not token_valid(info, token):
         return blad("Ten panel nie jest zarejestrowany przy tym koszu. Zgłoś problem kodem QR z ekranu.", "zly_token_panelu", 403)
     if not isinstance(data.get("typ"), str) or data["typ"] not in TYPY:
         return blad("Wybierz, co jest nie tak z koszem.", "zly_typ")

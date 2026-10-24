@@ -67,3 +67,15 @@ def karnet_command(pages):
     click.echo(f"W obszarze demo w weekend demo: {karnet.import_events(DEMO_DAYS)}.")
     clock.reset()
     click.echo("Symulacja odtworzona z nowymi wydarzeniami.")
+
+
+@click.command("renew-device-tokens")
+@click.option("--serial", default=None, help="Tylko to urządzenie (numer seryjny); domyślnie wszystkie.")
+def renew_device_tokens_command(serial):
+    """Odnawia ważność tokenów urządzeń (data wydania = teraz, ważność: DEVICE_TOKEN_TTL_DAYS). Wartość tokenu się nie zmienia."""
+    from datetime import UTC, datetime
+    from .models import DeviceInfo
+    q = DeviceInfo.query.filter_by(serial=serial) if serial else DeviceInfo.query
+    n = q.update({"token_issued_at": datetime.now(UTC).replace(tzinfo=None)})
+    db.session.commit()
+    click.echo(f"Odnowiono tokeny: {n}.")

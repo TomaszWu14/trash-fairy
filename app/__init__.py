@@ -1,6 +1,7 @@
 import gzip
 import os
 import secrets
+from datetime import UTC, datetime
 
 from flask import Flask, current_app, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
@@ -104,7 +105,7 @@ def create_app(config=None):
     from .dashboard_api import bp as dashboard_bp
     from .devices_api import bp as devices_bp
     from .open_api import bp as open_api_bp
-    from .cli import cleanup_photos_command, karnet_command, seed_command
+    from .cli import cleanup_photos_command, karnet_command, renew_device_tokens_command, seed_command
     from .ui import bp as ui_bp
     from .api_pl import bp as api_pl_bp
     from .views import bp
@@ -146,6 +147,7 @@ def create_app(config=None):
     app.cli.add_command(seed_command)
     app.cli.add_command(cleanup_photos_command)
     app.cli.add_command(karnet_command)
+    app.cli.add_command(renew_device_tokens_command)
     with app.app_context():
         db.create_all()
         _add_missing_columns()
@@ -185,11 +187,16 @@ def _add_missing_columns():
                                ("photo_analysis", "bin_visible", "BOOLEAN"), ("photo_analysis", "condition", "VARCHAR(20)"),
                                ("photo_analysis", "people", "BOOLEAN"), ("dump_report", "cleared_by", "VARCHAR(32)"),
                                ("demo_visitor", "page_views", "INTEGER NOT NULL DEFAULT 0"),
-                               ("demo_visitor", "last_seen_at", "TIMESTAMP"), ("demo_visitor", "sections", "TEXT")]:
+                               ("demo_visitor", "last_seen_at", "TIMESTAMP"), ("demo_visitor", "sections", "TEXT"),
+                               ("device_info", "token_issued_at", "TIMESTAMP")]:
         if table in insp.get_table_names() and column not in {c["name"] for c in insp.get_columns(table)}:
             # tabela, kolumna i typ ze stałej listy wyżej, nie z wejścia — Semgrep: fałszywy alarm
             db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))  # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
             db.session.commit()
+    if "device_info" in insp.get_table_names():  # tokeny sprzed wygasania liczą się od teraz, żeby urządzenia w terenie nie padły
+        db.session.execute(text("UPDATE device_info SET token_issued_at = :t WHERE token_issued_at IS NULL"),
+                           {"t": datetime.now(UTC).replace(tzinfo=None)})
+        db.session.commit()
     if "point" in insp.get_table_names():  # stara baza: dzielnica 72 punktów demo z obszaru (jak w osm_import.district_of)
         db.session.execute(text("UPDATE point SET district = CASE WHEN area = 'Grzegórzki' THEN 'Grzegórzki' "
                                 "ELSE 'Stare Miasto' END WHERE district IS NULL"))
