@@ -62,6 +62,7 @@ SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") docker co
 ```
 `SECRET_KEY` podpisuje dzienne kody QR i tokeny urządzeń. Poza SQLite aplikacja nie wystartuje bez własnego klucza, bo domyślny jest jawny w kodzie.
 Bramka odwiedzających (przedstawienie się przed wejściem do demo) jest domyślnie włączona; `DEMO_VISITOR_GATE=0` ją wyłącza.
+Przepustka z portfolio: gość, który przedstawił się w https://portfolio.twapp.pl (ciasteczko `gosc` na `.twapp.pl`), nie widzi formularza; backend pyta `GET {PORTFOLIO_URL}/api/gosc` (timeout 2 s, tylko kod 200 się liczy, błąd = formularz). `PORTFOLIO_URL` (domyślnie `https://portfolio.twapp.pl`, wymagany `https://`), `PORTFOLIO_PASS=0` wyłącza sprawdzanie.
 Lista osób: ustaw `VISITORS_TOKEN`, potem `/odwiedzajacy?token=…` (`&format=csv` = CSV); bez zmiennej adres zwraca 404.
 Powiadomienie push o każdym nowym gościu: `NTFY_URL` (pełny URL tematu ntfy, np. `https://ntfy.sh/<tajny-temat>`) i opcjonalnie `NTFY_TOKEN` (Bearer dla serwera z kontrolą dostępu); bez `NTFY_URL` nic nie jest wysyłane.
 `NTFY_WATCH_COMPANIES` (frazy po przecinku, bez wielkości liter i polskich znaków): gość z firmą zawierającą frazę daje pilny push „UWAGA firma z listy”. `NTFY_ENGAGED_VIEWS` (domyślnie 10, `0` = wyłączone): jeden push, gdy gość obejrzy tyle ekranów. Lista `/odwiedzajacy` pokazuje liczbę ekranów, czas wizyty i 3 najczęstsze sekcje.

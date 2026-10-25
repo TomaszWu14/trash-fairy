@@ -20,7 +20,7 @@
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-page="{% block page %}{% endblock %}">
-<img src="https://portfolio.twapp.pl/px/trash-fairy" alt="" width="1" height="1" hidden>
+{% block pixel %}<img src="https://portfolio.twapp.pl/px/trash-fairy" alt="" width="1" height="1" hidden>{% endblock %}
 <a class="sr-only" href="#tresc">Przejdź do treści</a>
 {% block topbar %}
 <header class="topbar">

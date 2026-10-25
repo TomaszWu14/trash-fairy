@@ -8,7 +8,7 @@ import logging
 import re
 from datetime import UTC, datetime
 
-from . import db, visitor_notify
+from . import db, portfolio_pass, visitor_notify
 from .models import DemoVisitor
 
 MAX_SECTIONS = 20
@@ -53,7 +53,7 @@ def record(visitor_id, path):
     views, who = visitor.page_views, (visitor.first_name, visitor.last_name, visitor.company)
     db.session.commit()
     threshold = visitor_notify.engaged_threshold()
-    if threshold and views == threshold:
+    if threshold and views == threshold and who[0] != portfolio_pass.GUEST_NAME:  # gość z portfolio: push robi portfolio
         visitor_notify.notify_engaged(*who, views)
 
 

@@ -24,6 +24,8 @@ services:
       SECRET_KEY: ${SECRET_KEY:?Ustaw SECRET_KEY – patrz README, sekcja Uruchomienie}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
       DEMO_VISITOR_GATE: ${DEMO_VISITOR_GATE:-1}
+      PORTFOLIO_URL: ${PORTFOLIO_URL:-https://portfolio.twapp.pl}
+      PORTFOLIO_PASS: ${PORTFOLIO_PASS:-1}
       VISITORS_TOKEN: ${VISITORS_TOKEN:-}
       NTFY_URL: ${NTFY_URL:-}
       NTFY_TOKEN: ${NTFY_TOKEN:-}
