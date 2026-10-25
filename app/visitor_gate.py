@@ -2,7 +2,7 @@
 
 Dotyczy tylko stron HTML (GET) oglądanych w przeglądarce. Nie blokuje /api/*, plików statycznych (w tym PWA i service
 workera), /health, urządzeń IoT (przycisk, e-papier) ani kodów QR przy koszu. Ciasteczko sesji 30 dni; w bazie imię,
-nazwisko i firma bez IP i user-agenta, 90 dni; o każdym wpisie push ntfy (app/visitor_notify.py); obejrzane ekrany
+nazwisko i firma bez IP i user-agenta, 90 dni; o każdym wpisie push ntfy (app/visitor_notify.py); gość z ważną przepustką z portfolio (app/portfolio_pass.py) formularza nie widzi; obejrzane ekrany
 liczy app/visitor_activity.py. Lista dla właściciela: /odwiedzajacy z tokenem VISITORS_TOKEN."""
 import csv
 import hmac
@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 
 from flask import Blueprint, Response, abort, current_app, redirect, render_template, request, session
 
-from . import db, rate, visitor_activity, visitor_notify
+from . import db, portfolio_pass, rate, visitor_activity, visitor_notify
 from .models import DemoVisitor
 
 bp = Blueprint("visitor_gate", __name__)
@@ -66,6 +66,23 @@ def visitor_id():
     return vid if _passed() and isinstance(vid, int) and not isinstance(vid, bool) else None
 
 
+def _admit_from_portfolio():
+    """Ważna przepustka z portfolio → wpuszczamy jak po formularzu: rekord bez danych osobowych (do liczenia aktywności),
+    flaga sesji 30 dni, bez własnego pusha (push z nazwiskiem wysyła portfolio). Zwraca True, gdy wpuszczono."""
+    if not portfolio_pass.valid(request.cookies.get(portfolio_pass.COOKIE, "")):
+        return False
+    try:
+        now = datetime.now(UTC).replace(tzinfo=None)
+        visitor = DemoVisitor(created_at=now, first_name=portfolio_pass.GUEST_NAME, last_name="", company="")
+        db.session.add(visitor)
+        db.session.commit()
+    except Exception:  # noqa: BLE001 – błąd bazy to nie powód do 500: gość dostaje formularz
+        db.session.rollback()
+        return False
+    session[FLAG], session[VISITOR_ID], session.permanent = int(time.time()), visitor.id, True
+    return True
+
+
 def _render(next_url, errors=None, values=None, status=200):
     resp = render_template("ui/wizytowka.html", next_url=next_url, errors=errors or {}, values=values or {})
     return Response(resp, status=status, headers={"Cache-Control": "no-store"})
@@ -77,6 +94,8 @@ def gate():
         return None
     # wyjątki przed sesją: statyki/API bez „Vary: Cookie”, więc przeglądarka i proxy mogą je cache'ować
     if request.path.startswith(EXEMPT_PREFIXES) or request.path in ("/sw.js", "/favicon.ico", "/robots.txt") or _passed():
+        return None
+    if _admit_from_portfolio():
         return None
     return _render(request.full_path.rstrip("?"))
 
