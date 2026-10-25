@@ -1,7 +1,7 @@
 name: Monitor demo
 
-# Co 6 godzin sprawdza publiczne demo: strona główna odpowiada 200, a /health zwraca 200
-# i {"status": "ok"} (sprawdza też bazę). Awaria → jedno issue „Demo nie odpowiada” z etykietą
+# Co 6 godzin sprawdza publiczne demo: strona główna odpowiada 200 (albo 401 z bramką portfolio —
+# ForwardAuth od 24.10), a /health zwraca 200 i {"status": "ok"} (sprawdza też bazę). Awaria → jedno issue „Demo nie odpowiada” z etykietą
 # `demo` (kolejne awarie dopisują komentarze); po udanym sprawdzeniu issue jest zamykane.
 on:
   schedule:
@@ -34,8 +34,21 @@ jobs:
           problems=()
           get() { curl -sS --max-time 30 --retry 3 --retry-delay 20 --retry-all-errors "$@"; }
 
-          code=$(get -o /dev/null -w '%{http_code}' "$DEMO_URL/") || code=${code:-000}
-          [ "$code" = 200 ] || problems+=("Strona główna $DEMO_URL/ zwraca kod $code (oczekiwany 200)")
+          # Od 24.10 demo stoi za ForwardAuth portfolio: bez ciasteczka `gosc` strony dają 401
+          # z formularzem bramki (link do portfolio.twapp.pl/wejscie) — to znaczy, że bramka działa.
+          # Dowodem życia aplikacji jest wtedy /health (ForwardAuth go przepuszcza), który MUSI dać status ok.
+          bramka() { [ "$1" = 401 ] && grep -qF 'portfolio.twapp.pl/wejscie' page.html 2>/dev/null; }
+          za_bramka=''
+
+          rm -f page.html   # curl nie tworzy pliku przy pustej treści — bez starej strony
+          code=$(get -o page.html -w '%{http_code}' "$DEMO_URL/") || code=${code:-000}
+          if [ "$code" = 200 ]; then
+            :
+          elif bramka "$code"; then
+            za_bramka=1
+          else
+            problems+=("Strona główna $DEMO_URL/ zwraca kod $code (oczekiwany 200 albo 401 z bramką portfolio)")
+          fi
 
           health=$(get -w '\n%{http_code}' "$DEMO_URL/health") || health=$'\n000'
           hcode=$(tail -n1 <<<"$health"); hbody=$(sed '$d' <<<"$health")
@@ -43,13 +56,17 @@ jobs:
             problems+=("/health zwraca kod $hcode: ${hbody:0:200}")
           fi
 
+          note=''
+          [ -n "$za_bramka" ] && note=' Za bramką portfolio – sprawdzono tylko zdrowie.'
+
           if [ ${#problems[@]} -eq 0 ]; then
-            echo "Demo działa." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "Demo działa.$note" | tee -a "$GITHUB_STEP_SUMMARY"
             echo "ok=true" >> "$GITHUB_OUTPUT"
           else
             {
               echo "Demo $DEMO_URL — problemy ($(date -u '+%Y-%m-%d %H:%M UTC')):"
               for p in "${problems[@]}"; do echo "- $p"; done
+              [ -z "$note" ] || echo "-$note"
               echo
               echo "Przebieg: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             } > report.md
